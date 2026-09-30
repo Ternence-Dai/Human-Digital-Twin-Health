@@ -1,0 +1,2046 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>戴煜的疗养健康助手 · 人体数字孪生健康平台</title>
+<style>
+:root{
+  --bg:#04070f;
+  --panel:rgba(13,24,44,.72);
+  --panel2:rgba(20,36,62,.55);
+  --line:rgba(64,200,255,.14);
+  --line2:rgba(64,200,255,.32);
+  --cy:#22d3ee;
+  --bl:#3b82f6;
+  --pu:#8b5cf6;
+  --ok:#34d399;
+  --wn:#fbbf24;
+  --dg:#f87171;
+  --tx:#e6f1ff;
+  --tx2:#8aa3c4;
+  --tx3:#5b7396;
+  --r:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  background:radial-gradient(1200px 700px at 15% -10%,#0a2340 0%,transparent 60%),
+             radial-gradient(900px 600px at 100% 100%,#1a0f3a 0%,transparent 55%),
+             var(--bg);
+  color:var(--tx);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  overflow:hidden;
+  font-size:14px;
+  line-height:1.55;
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(34,211,238,.035) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(34,211,238,.035) 1px,transparent 1px);
+  background-size:46px 46px;
+  mask-image:radial-gradient(circle at 50% 40%,#000 20%,transparent 85%);
+  -webkit-mask-image:radial-gradient(circle at 50% 40%,#000 20%,transparent 85%);
+}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:rgba(34,211,238,.25);border-radius:8px}
+::-webkit-scrollbar-track{background:transparent}
+input,button,select,textarea{font-family:inherit;font-size:inherit;color:inherit;outline:none;border:none;background:none}
+button{cursor:pointer}
+a{color:var(--cy);text-decoration:none}
+
+/* ---------- 通用组件 ---------- */
+.glass{
+  background:linear-gradient(160deg,rgba(18,32,56,.85),rgba(10,18,34,.75));
+  border:1px solid var(--line);
+  border-radius:var(--r);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  position:relative;
+  overflow:hidden;
+}
+.glass::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(34,211,238,.5),transparent);
+  opacity:.7;
+}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.3px}
+.tag.ok{background:rgba(52,211,153,.13);color:var(--ok);border:1px solid rgba(52,211,153,.3)}
+.tag.wn{background:rgba(251,191,36,.13);color:var(--wn);border:1px solid rgba(251,191,36,.3)}
+.tag.dg{background:rgba(248,113,113,.13);color:var(--dg);border:1px solid rgba(248,113,113,.3)}
+.tag.cy{background:rgba(34,211,238,.12);color:var(--cy);border:1px solid rgba(34,211,238,.3)}
+.tag.pu{background:rgba(139,92,246,.14);color:#a78bfa;border:1px solid rgba(139,92,246,.32)}
+
+.sec-title{display:flex;align-items:center;gap:9px;margin:20px 0 12px;font-size:15px;font-weight:700;letter-spacing:.5px}
+.sec-title:first-child{margin-top:0}
+.sec-title .bar{width:3px;height:15px;border-radius:3px;background:linear-gradient(180deg,var(--cy),var(--bl));box-shadow:0 0 10px rgba(34,211,238,.7)}
+.sec-title .more{margin-left:auto;font-size:12px;color:var(--tx3);font-weight:400}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  padding:10px 18px;border-radius:11px;font-size:13.5px;font-weight:600;
+  background:linear-gradient(135deg,rgba(34,211,238,.18),rgba(59,130,246,.18));
+  border:1px solid rgba(34,211,238,.35);color:#a5f3fc;
+  transition:.22s;
+}
+.btn:hover{background:linear-gradient(135deg,rgba(34,211,238,.3),rgba(59,130,246,.3));box-shadow:0 0 22px rgba(34,211,238,.28);transform:translateY(-1px)}
+.btn.primary{background:linear-gradient(135deg,#0891b2,#2563eb);color:#fff;border-color:transparent;box-shadow:0 6px 22px rgba(8,145,178,.35)}
+.btn.primary:hover{box-shadow:0 8px 28px rgba(34,211,238,.5)}
+.btn.ghost{background:rgba(255,255,255,.03);border-color:var(--line);color:var(--tx2)}
+.btn.ghost:hover{color:var(--tx);border-color:var(--line2)}
+.btn.sm{padding:6px 13px;font-size:12px;border-radius:9px}
+
+/* ---------- 启动页 ---------- */
+.splash{
+  position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:26px;
+  background:radial-gradient(700px 500px at 50% 45%,#07203a,#03060d 70%);
+  transition:opacity .7s ease,visibility .7s;
+}
+.splash.hide{opacity:0;visibility:hidden}
+.splash-logo{position:relative;width:130px;height:130px;display:grid;place-items:center}
+.splash-logo .ring{
+  position:absolute;inset:0;border-radius:50%;border:1px solid rgba(34,211,238,.35);
+  animation:spin 6s linear infinite;
+}
+.splash-logo .ring:nth-child(2){inset:14px;border-color:rgba(139,92,246,.4);animation-duration:9s;animation-direction:reverse;border-style:dashed}
+.splash-logo .ring:nth-child(3){inset:28px;border-color:rgba(59,130,246,.5);animation-duration:4s}
+.splash-logo .core{
+  width:56px;height:56px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#67e8f9,#0891b2 60%,#1e3a8a);
+  box-shadow:0 0 40px rgba(34,211,238,.8),0 0 80px rgba(34,211,238,.35);
+  animation:pulse 2s ease-in-out infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.08);opacity:.85}}
+.splash h1{font-size:23px;letter-spacing:3px;font-weight:800;background:linear-gradient(90deg,#67e8f9,#a78bfa,#67e8f9);background-size:200% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 3s linear infinite}
+@keyframes shine{to{background-position:200% center}}
+.splash p{color:var(--tx3);font-size:12px;letter-spacing:2.5px}
+.splash .loadbar{width:190px;height:2px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
+.splash .loadbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cy),var(--pu));box-shadow:0 0 12px var(--cy);animation:load 2.1s ease forwards}
+@keyframes load{to{width:100%}}
+
+/* ---------- 登录页 ---------- */
+.login{
+  position:fixed;inset:0;z-index:190;display:flex;align-items:center;justify-content:center;padding:20px;
+  background:radial-gradient(800px 600px at 50% 30%,#08182e,#03060d 75%);
+  transition:opacity .6s ease,visibility .6s;
+}
+.login.hide{opacity:0;visibility:hidden}
+.login-card{width:100%;max-width:390px;padding:32px 26px;border-radius:22px}
+.login-card h2{font-size:20px;font-weight:800;letter-spacing:1px;margin-bottom:4px}
+.login-card .sub{color:var(--tx3);font-size:12px;margin-bottom:24px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11.5px;color:var(--tx3);margin-bottom:6px;letter-spacing:.5px}
+.field input{
+  width:100%;padding:12px 14px;border-radius:11px;
+  background:rgba(255,255,255,.04);border:1px solid var(--line);
+  font-size:14px;transition:.2s;color:var(--tx);
+}
+.field input:focus{border-color:var(--line2);background:rgba(34,211,238,.06);box-shadow:0 0 0 3px rgba(34,211,238,.08)}
+.field input::placeholder{color:#3d5570}
+.login-actions{display:flex;flex-direction:column;gap:10px;margin-top:20px}
+.divider{display:flex;align-items:center;gap:10px;color:var(--tx3);font-size:11px;margin:16px 0}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--line)}
+.legal{text-align:center;font-size:10.5px;color:#3d5570;margin-top:18px;line-height:1.7}
+
+/* ---------- 应用外壳 ---------- */
+.shell{position:relative;z-index:1;display:none;height:100vh;height:100dvh}
+.shell.show{display:flex}
+.sidebar{
+  width:212px;flex-shrink:0;display:flex;flex-direction:column;
+  border-right:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(10,20,38,.9),rgba(6,12,24,.85));
+  backdrop-filter:blur(16px);
+}
+.brand{padding:20px 18px 16px;border-bottom:1px solid var(--line)}
+.brand .logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:14.5px;letter-spacing:.6px}
+.brand .dot{width:9px;height:9px;border-radius:50%;background:var(--cy);box-shadow:0 0 12px var(--cy);animation:pulse 2s infinite}
+.brand .en{font-size:9.5px;color:var(--tx3);letter-spacing:1.4px;margin-top:5px;padding-left:18px}
+.nav{flex:1;overflow-y:auto;padding:12px 10px;display:flex;flex-direction:column;gap:3px}
+.nav-item{
+  display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:11px;
+  font-size:13.5px;color:var(--tx2);transition:.2s;border:1px solid transparent;cursor:pointer;
+  position:relative;
+}
+.nav-item:hover{background:rgba(34,211,238,.06);color:var(--tx)}
+.nav-item.active{
+  background:linear-gradient(90deg,rgba(34,211,238,.16),rgba(59,130,246,.05));
+  color:#a5f3fc;border-color:rgba(34,211,238,.22);
+}
+.nav-item.active::before{
+  content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);
+  width:3px;height:16px;border-radius:3px;background:var(--cy);box-shadow:0 0 10px var(--cy);
+}
+.nav-item .ic{width:20px;text-align:center;font-size:15px}
+.nav-foot{padding:12px 16px;border-top:1px solid var(--line);font-size:10px;color:#33506e;line-height:1.6}
+
+.main{flex:1;display:flex;flex-direction:column;min-width:0;position:relative}
+.topbar{
+  height:58px;flex-shrink:0;display:flex;align-items:center;gap:12px;padding:0 18px;
+  border-bottom:1px solid var(--line);
+  background:rgba(7,14,28,.7);backdrop-filter:blur(14px);
+}
+.topbar .title{font-size:15px;font-weight:700;letter-spacing:.6px}
+.topbar .title small{display:block;font-size:9.5px;color:var(--tx3);letter-spacing:1.4px;font-weight:400}
+.topbar .spacer{flex:1}
+.status-pill{
+  display:flex;align-items:center;gap:6px;padding:5px 11px;border-radius:20px;font-size:11px;
+  background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.28);color:var(--ok);
+}
+.status-pill .d{width:6px;height:6px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok);animation:pulse 1.8s infinite}
+.avatar{
+  width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-size:15px;
+  background:linear-gradient(135deg,#0891b2,#6366f1);box-shadow:0 0 16px rgba(34,211,238,.35);
+  cursor:pointer;flex-shrink:0;
+}
+.pages{flex:1;overflow-y:auto;overflow-x:hidden;padding:18px;scroll-behavior:smooth}
+.page{display:none;animation:fadeUp .38s cubic-bezier(.2,.8,.3,1)}
+.page.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+.tabbar{
+  display:none;position:fixed;bottom:0;left:0;right:0;z-index:50;
+  padding:8px 6px calc(8px + env(safe-area-inset-bottom));
+  background:rgba(6,12,24,.94);backdrop-filter:blur(18px);border-top:1px solid var(--line);
+  justify-content:space-around;
+}
+.tabbar .tb{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:6px 2px;color:var(--tx3);font-size:10px;border-radius:10px;transition:.2s;
+}
+.tabbar .tb .i{font-size:17px;line-height:1}
+.tabbar .tb.active{color:var(--cy);text-shadow:0 0 12px rgba(34,211,238,.7)}
+
+/* ---------- 首页 ---------- */
+.hero{display:flex;gap:18px;flex-wrap:wrap;align-items:stretch}
+.score-card{flex:1;min-width:270px;padding:20px;display:flex;align-items:center;gap:20px}
+.ring-wrap{position:relative;width:124px;height:124px;flex-shrink:0}
+.ring-wrap svg{transform:rotate(-90deg)}
+.ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-center .v{font-size:31px;font-weight:800;line-height:1;background:linear-gradient(135deg,#67e8f9,#a78bfa);-webkit-background-clip:text;background-clip:text;color:transparent}
+.ring-center .u{font-size:9.5px;color:var(--tx3);letter-spacing:1.6px;margin-top:4px}
+.score-info h3{font-size:15px;font-weight:700;margin-bottom:5px}
+.score-info .desc{font-size:12px;color:var(--tx2);line-height:1.6}
+.score-info .chips{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+
+.metrics-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+.metric-card{padding:14px;position:relative;overflow:hidden}
+.metric-card .lb{font-size:11px;color:var(--tx3);display:flex;align-items:center;gap:5px}
+.metric-card .vv{font-size:22px;font-weight:800;margin-top:6px;letter-spacing:.5px}
+.metric-card .vv small{font-size:11px;font-weight:500;color:var(--tx3);margin-left:2px}
+.metric-card .spark{margin-top:8px;height:22px}
+.metric-card .delta{position:absolute;top:12px;right:12px;font-size:10px;font-weight:700}
+
+.quick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.quick-item{
+  padding:15px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;
+  cursor:pointer;transition:.24s;text-align:center;
+}
+.quick-item:hover{transform:translateY(-3px);border-color:var(--line2);box-shadow:0 8px 26px rgba(34,211,238,.14)}
+.quick-item .qi{
+  width:44px;height:44px;border-radius:13px;display:grid;place-items:center;font-size:20px;
+  background:linear-gradient(135deg,rgba(34,211,238,.16),rgba(99,102,241,.16));
+  border:1px solid rgba(34,211,238,.22);
+}
+.quick-item .qt{font-size:12px;color:var(--tx2)}
+
+.alert-item{
+  display:flex;gap:11px;padding:13px 15px;border-radius:13px;margin-bottom:10px;
+  background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2);
+}
+.alert-item.wn{background:rgba(251,191,36,.055);border-color:rgba(251,191,36,.2)}
+.alert-item .ai{font-size:17px;line-height:1.2}
+.alert-item .at{font-size:13px;font-weight:600;margin-bottom:2px}
+.alert-item .ad{font-size:11.5px;color:var(--tx3)}
+
+/* ---------- 数字人体 ---------- */
+.body-layout{display:grid;grid-template-columns:1fr 260px;gap:16px;align-items:start}
+.body-stage-card{padding:16px;min-height:520px;display:flex;flex-direction:column;align-items:center;position:relative}
+.human-stage{
+  flex:1;display:flex;align-items:center;justify-content:center;width:100%;
+  perspective:1100px;position:relative;
+}
+.human-rotor{width:100%;max-width:330px;transition:transform .12s linear;transform-style:preserve-3d}
+#humanSvg{width:100%;height:auto;display:block;overflow:visible}
+.human-scan{
+  position:absolute;left:6%;right:6%;height:2px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(34,211,238,.85),transparent);
+  box-shadow:0 0 18px rgba(34,211,238,.9);
+  animation:scanmove 3.6s ease-in-out infinite;
+}
+@keyframes scanmove{0%,100%{top:12%;opacity:.2}50%{top:82%;opacity:.9}}
+
+.body-line{fill:rgba(34,211,238,.03);stroke:#1c5b7a;stroke-width:1.3;stroke-linejoin:round}
+.limb-line{fill:none;stroke:#1c5b7a;stroke-linecap:round;stroke-linejoin:round}
+.vessel-line{fill:none;stroke-linecap:round;filter:url(#glow)}
+.meridian-line{fill:none;stroke-linecap:round;stroke-dasharray:4 3}
+.acu-dot{cursor:pointer;transition:.2s}
+.acu-dot:hover{r:3}
+
+.organ-node{cursor:pointer;transition:.22s}
+.organ-node:hover{filter:brightness(1.5)}
+.organ-node .hit{fill:transparent}
+
+.layer-ctrl{display:flex;flex-direction:column;gap:9px}
+.ctrl-row{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:11px;
+  background:rgba(255,255,255,.03);border:1px solid var(--line);cursor:pointer;transition:.2s;
+}
+.ctrl-row:hover{border-color:var(--line2)}
+.ctrl-row .ci{font-size:15px;width:20px;text-align:center}
+.ctrl-row .cn{font-size:12.5px;flex:1}
+.switch{
+  width:36px;height:20px;border-radius:12px;background:rgba(255,255,255,.1);
+  position:relative;transition:.25s;flex-shrink:0;
+}
+.switch::after{
+  content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;
+  background:#5b7396;transition:.25s;
+}
+.switch.on{background:rgba(34,211,238,.3)}
+.switch.on::after{left:18px;background:var(--cy);box-shadow:0 0 10px var(--cy)}
+
+.angle-slider{width:100%;-webkit-appearance:none;height:4px;border-radius:4px;background:rgba(255,255,255,.1);outline:none}
+.angle-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;width:15px;height:15px;border-radius:50%;
+  background:var(--cy);box-shadow:0 0 12px var(--cy);cursor:pointer;
+}
+.persona-row{display:flex;gap:7px;flex-wrap:wrap}
+.persona{
+  flex:1;min-width:60px;padding:8px 4px;text-align:center;font-size:11.5px;border-radius:10px;
+  background:rgba(255,255,255,.03);border:1px solid var(--line);color:var(--tx3);transition:.2s;
+}
+.persona.active{background:rgba(34,211,238,.14);border-color:rgba(34,211,238,.4);color:#a5f3fc}
+
+/* ---------- 卡片网格 ---------- */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:12px}
+.organ-card{padding:14px;cursor:pointer;transition:.24s}
+.organ-card:hover{transform:translateY(-3px);border-color:var(--line2);box-shadow:0 10px 30px rgba(34,211,238,.13)}
+.organ-card .oc-top{display:flex;align-items:center;gap:9px;margin-bottom:10px}
+.organ-card .oc-icon{
+  width:36px;height:36px;border-radius:11px;display:grid;place-items:center;font-size:18px;
+  background:linear-gradient(135deg,rgba(34,211,238,.14),rgba(99,102,241,.14));
+  border:1px solid rgba(34,211,238,.2);
+}
+.organ-card .oc-name{font-size:14px;font-weight:700}
+.organ-card .oc-en{font-size:9px;color:var(--tx3);letter-spacing:1.2px}
+.organ-card .oc-score{display:flex;align-items:baseline;gap:4px;margin-bottom:8px}
+.organ-card .oc-score b{font-size:23px;font-weight:800;background:linear-gradient(135deg,#67e8f9,#818cf8);-webkit-background-clip:text;background-clip:text;color:transparent}
+.organ-card .oc-score span{font-size:10px;color:var(--tx3)}
+.mini-bar{height:4px;border-radius:4px;background:rgba(255,255,255,.07);overflow:hidden}
+.mini-bar i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,var(--cy),var(--bl));box-shadow:0 0 8px rgba(34,211,238,.6);transition:width .8s cubic-bezier(.2,.8,.3,1)}
+
+/* ---------- 列表 ---------- */
+.list-item{
+  display:flex;align-items:center;gap:12px;padding:13px 15px;border-radius:13px;margin-bottom:9px;
+  background:linear-gradient(160deg,rgba(18,32,56,.6),rgba(10,18,34,.5));
+  border:1px solid var(--line);cursor:pointer;transition:.22s;
+}
+.list-item:hover{border-color:var(--line2);transform:translateX(3px);background:linear-gradient(160deg,rgba(24,44,76,.8),rgba(12,22,42,.6))}
+.list-item .li-icon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:16px;background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.18);flex-shrink:0}
+.list-item .li-main{flex:1;min-width:0}
+.list-item .li-t{font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:7px}
+.list-item .li-s{font-size:11px;color:var(--tx3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.list-item .li-v{font-size:15px;font-weight:800;color:var(--cy);flex-shrink:0}
+
+/* ---------- 穴位 ---------- */
+.search-box{display:flex;align-items:center;gap:9px;padding:10px 14px;border-radius:13px;background:rgba(255,255,255,.04);border:1px solid var(--line);margin-bottom:14px}
+.search-box input{flex:1;font-size:13.5px}
+.search-box input::placeholder{color:#3d5570}
+.chip-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+.chip{
+  padding:6px 13px;border-radius:20px;font-size:12px;color:var(--tx2);
+  background:rgba(255,255,255,.035);border:1px solid var(--line);transition:.2s;
+}
+.chip:hover{border-color:var(--line2);color:var(--tx)}
+.chip.active{background:rgba(34,211,238,.15);border-color:rgba(34,211,238,.4);color:#a5f3fc}
+
+/* ---------- AI 问诊 ---------- */
+.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 58px - 36px);min-height:440px}
+.chat{flex:1;overflow-y:auto;padding:4px 2px 14px;display:flex;flex-direction:column;gap:13px}
+.msg{display:flex;gap:10px;max-width:88%;animation:fadeUp .35s ease}
+.msg.user{align-self:flex-end;flex-direction:row-reverse}
+.msg .av{
+  width:31px;height:31px;border-radius:10px;display:grid;place-items:center;font-size:14px;flex-shrink:0;
+  background:linear-gradient(135deg,rgba(34,211,238,.2),rgba(99,102,241,.2));
+  border:1px solid rgba(34,211,238,.25);
+}
+.msg.user .av{background:linear-gradient(135deg,#0891b2,#6366f1);border-color:transparent}
+.bubble{
+  padding:11px 14px;border-radius:14px;font-size:13.5px;line-height:1.7;
+  background:linear-gradient(160deg,rgba(18,32,56,.9),rgba(10,18,34,.8));
+  border:1px solid var(--line);
+}
+.msg.user .bubble{background:linear-gradient(135deg,rgba(8,145,178,.35),rgba(37,99,235,.3));border-color:rgba(34,211,238,.35)}
+.bubble pre{
+  margin-top:9px;padding:11px;border-radius:10px;background:rgba(0,0,0,.4);
+  border:1px solid rgba(34,211,238,.18);font-size:11.5px;line-height:1.65;
+  font-family:"SF Mono",Consolas,Monaco,monospace;color:#7dd3fc;overflow-x:auto;
+}
+.bubble .kv{display:flex;gap:7px;margin:3px 0;font-size:12.5px}
+.bubble .kv b{color:var(--tx3);font-weight:500;min-width:62px}
+.step-line{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--tx2);padding:3px 0;animation:fadeUp .3s}
+.step-line .dot2{width:7px;height:7px;border-radius:50%;background:var(--cy);box-shadow:0 0 9px var(--cy);animation:pulse 1.1s infinite}
+.chips-bar{display:flex;gap:7px;overflow-x:auto;padding:9px 0;scrollbar-width:none}
+.chips-bar::-webkit-scrollbar{display:none}
+.chips-bar .chip{white-space:nowrap}
+.chat-input{
+  display:flex;gap:9px;padding:9px 9px 9px 15px;border-radius:15px;
+  background:rgba(255,255,255,.04);border:1px solid var(--line);align-items:center;
+}
+.chat-input input{flex:1;font-size:13.5px}
+.chat-input input::placeholder{color:#3d5570}
+
+/* ---------- 报告 ---------- */
+.report-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.bar-row{margin-bottom:13px}
+.bar-row .br-top{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:6px}
+.bar-row .br-top b{color:var(--cy);font-weight:700}
+.bar-track{height:7px;border-radius:7px;background:rgba(255,255,255,.06);overflow:hidden}
+.bar-track i{display:block;height:100%;border-radius:7px;transition:width 1s cubic-bezier(.2,.8,.3,1)}
+
+/* ---------- 我的 ---------- */
+.profile-head{display:flex;align-items:center;gap:15px;padding:20px}
+.profile-av{
+  width:62px;height:62px;border-radius:20px;display:grid;place-items:center;font-size:26px;
+  background:linear-gradient(135deg,#0891b2,#6366f1);box-shadow:0 0 26px rgba(34,211,238,.4);
+}
+.profile-head .pn{font-size:17px;font-weight:800}
+.profile-head .ps{font-size:11.5px;color:var(--tx3);margin-top:3px}
+.vip-card{
+  padding:18px;border-radius:16px;position:relative;overflow:hidden;
+  background:linear-gradient(125deg,rgba(139,92,246,.22),rgba(34,211,238,.14));
+  border:1px solid rgba(139,92,246,.32);
+}
+.vip-card::after{
+  content:'';position:absolute;right:-40px;top:-40px;width:150px;height:150px;border-radius:50%;
+  background:radial-gradient(circle,rgba(139,92,246,.35),transparent 70%);
+}
+.setting-row{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);font-size:13.5px;cursor:pointer;transition:.2s}
+.setting-row:last-child{border-bottom:none}
+.setting-row:hover{background:rgba(34,211,238,.05)}
+.setting-row .si{font-size:16px;width:22px;text-align:center}
+.setting-row .arrow{margin-left:auto;color:var(--tx3);font-size:15px}
+
+/* ---------- 弹窗 ---------- */
+.modal{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;padding:18px}
+.modal.show{display:flex}
+.modal-bg{position:absolute;inset:0;background:rgba(2,5,12,.78);backdrop-filter:blur(6px);animation:fadeIn .25s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-card{
+  position:relative;width:100%;max-width:480px;max-height:86vh;overflow-y:auto;
+  border-radius:20px;padding:22px;animation:popIn .32s cubic-bezier(.2,.9,.3,1.1);
+}
+@keyframes popIn{from{opacity:0;transform:scale(.94) translateY(14px)}to{opacity:1;transform:none}}
+.modal-close{position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:rgba(255,255,255,.06);color:var(--tx3);font-size:15px;transition:.2s}
+.modal-close:hover{background:rgba(248,113,113,.2);color:var(--dg)}
+
+.empty{text-align:center;color:var(--tx3);padding:40px 0;font-size:13px}
+
+.footer-note{
+  margin-top:26px;padding:16px;border-radius:14px;text-align:center;
+  border:1px dashed rgba(64,200,255,.16);color:#3d5570;font-size:10.5px;line-height:1.9;
+}
+.footer-note b{color:#4b6b8f;font-weight:600}
+
+@media(max-width:860px){
+  .sidebar{display:none}
+  .tabbar{display:flex}
+  .pages{padding:14px 13px 86px}
+  .body-layout{grid-template-columns:1fr}
+  .quick-grid{grid-template-columns:repeat(2,1fr)}
+  .chat-wrap{height:calc(100vh - 58px - 150px)}
+  .topbar{padding:0 14px}
+  .score-card{flex-direction:column;text-align:center;gap:14px}
+}
+@media(max-width:400px){
+  .card-grid{grid-template-columns:repeat(2,1fr)}
+  .metric-card .vv{font-size:19px}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ 启动页 ============ -->
+<div class="splash" id="splash">
+  <div class="splash-logo">
+    <div class="ring"></div><div class="ring"></div><div class="ring"></div>
+    <div class="core"></div>
+  </div>
+  <div style="text-align:center">
+    <h1>HUMAN DIGITAL TWIN</h1>
+    <p style="margin-top:8px">人体数字孪生健康平台</p>
+  </div>
+  <div class="loadbar"><i></i></div>
+  <p style="color:#2c4763;font-size:10px;letter-spacing:1px">正在加载医疗知识图谱…</p>
+</div>
+
+<!-- ============ 登录页 ============ -->
+<div class="login hide" id="login">
+  <div class="login-card glass">
+    <div style="display:flex;align-items:center;gap:11px;margin-bottom:22px">
+      <div style="width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#0891b2,#6366f1);display:grid;place-items:center;font-size:19px;box-shadow:0 0 20px rgba(34,211,238,.4)">溺</div>
+      <div>
+        <h2 style="font-size:17px">数字孪生健康</h2>
+        <div class="sub" style="margin:0">戴煜的疗养健康助手</div>
+      </div>
+    </div>
+    <div class="field">
+      <label>手机号码</label>
+      <input id="phoneInput" type="tel" maxlength="11" placeholder="请输入手机号" value="138 8888 8888">
+    </div>
+    <div class="field">
+      <label>验证码</label>
+      <input id="codeInput" type="tel" maxlength="6" placeholder="请输入 6 位验证码" value="888888">
+    </div>
+    <div class="login-actions">
+      <button class="btn primary" style="width:100%;padding:13px" onclick="doLogin()">登 录 / 注 册</button>
+      <button class="btn ghost" style="width:100%;padding:12px" onclick="doLogin()">⚡ 一键体验演示账号</button>
+    </div>
+    <div class="divider">其他方式</div>
+    <div style="display:flex;gap:10px">
+      <button class="btn ghost sm" style="flex:1;justify-content:center;padding:10px">微信登录</button>
+      <button class="btn ghost sm" style="flex:1;justify-content:center;padding:10px">Apple ID</button>
+    </div>
+    <div class="legal">
+      登录即代表您同意《用户服务协议》与《隐私政策》<br>
+      本平台内容仅供健康参考，不能替代专业医疗诊断
+    </div>
+  </div>
+</div>
+
+<!-- ============ 应用主体 ============ -->
+<div class="shell" id="shell">
+
+  <!-- 侧边栏（桌面端） -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo"><span class="dot"></span>数字孪生健康</div>
+      <div class="en">HUMAN DIGITAL TWIN</div>
+    </div>
+    <nav class="nav" id="navList"></nav>
+    <div class="nav-foot">
+      © 2025 戴煜的疗养健康助手<br>All Rights Reserved · V1.0.0
+    </div>
+  </aside>
+
+  <!-- 主区域 -->
+  <div class="main">
+    <header class="topbar">
+      <div>
+        <div class="title" id="pageTitle">健康总览<small id="pageSub">DASHBOARD</small></div>
+      </div>
+      <div class="spacer"></div>
+      <div class="status-pill"><span class="d"></span>设备已连接</div>
+      <div class="avatar" onclick="go('me')"></div>
+    </header>
+
+    <div class="pages" id="pages">
+
+      <!-- ---------- 首页 ---------- -->
+      <section class="page active" data-page="home">
+        <div class="hero">
+          <div class="score-card glass">
+            <div class="ring-wrap">
+              <svg viewBox="0 0 124 124" width="124" height="124">
+                <defs>
+                  <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#22d3ee"/>
+                    <stop offset="55%" stop-color="#3b82f6"/>
+                    <stop offset="100%" stop-color="#a78bfa"/>
+                  </linearGradient>
+                </defs>
+                <circle cx="62" cy="62" r="52" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="9"/>
+                <circle cx="62" cy="62" r="52" fill="none" stroke="url(#ringGrad)" stroke-width="9"
+                        stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="52.3"
+                        style="filter:drop-shadow(0 0 6px rgba(34,211,238,.8))"/>
+              </svg>
+              <div class="ring-center">
+                <div class="v">84</div>
+                <div class="u">HEALTH SCORE</div>
+              </div>
+            </div>
+            <div class="score-info">
+              <h3>健康状态：良好 <span class="tag cy">综合评级 A</span></h3>
+              <div class="desc">基于器官健康、循环系统、经络能量、睡眠、运动与心理压力六大维度综合评估。较上次提升 <b style="color:var(--ok)">+2</b> 分。</div>
+              <div class="chips">
+                <span class="tag ok">✓ 器官健康 28/30</span>
+                <span class="tag wn">! 经络能量 17/20</span>
+                <span class="tag ok">✓ 循环系统 16/20</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sec-title"><span class="bar"></span>今日体征 <span class="more">数据同步于 08:24</span></div>
+        <div class="metrics-grid" id="homeMetrics"></div>
+
+        <div class="sec-title"><span class="bar"></span>功能导航</div>
+        <div class="quick-grid" id="quickGrid"></div>
+
+        <div class="sec-title"><span class="bar"></span>健康预警 <span class="more">2 条待处理</span></div>
+        <div class="alert-item wn">
+          <div class="ai">⚠️</div>
+          <div>
+            <div class="at">肝脏代谢负荷偏高</div>
+            <div class="ad">近 14 天作息不规律，肝经能量值下降 8%，建议 23:00 前入睡并复查肝功能。</div>
+          </div>
+        </div>
+        <div class="alert-item">
+          <div class="ai"></div>
+          <div>
+            <div class="at">轻度心血管风险</div>
+            <div class="ad">静息心率 78 bpm（偏高），HRV 46ms（偏低），建议进行动态心电监测。</div>
+          </div>
+        </div>
+
+        <div class="footer-note">
+          <b>戴煜的疗养健康助手</b> · 人体数字孪生健康平台<br>
+          © 2025 戴煜的疗养健康助手 Platform. All Rights Reserved.<br>
+          本平台内容仅供健康参考，不能替代专业医疗诊断与治疗
+        </div>
+      </section>
+
+      <!-- ---------- 数字人体 ---------- -->
+      <section class="page" data-page="body">
+        <div class="body-layout">
+          <div class="body-stage-card glass">
+            <div style="width:100%;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <div style="font-size:13px;font-weight:700;letter-spacing:.5px">3D 数字人体 · <span id="personaLabel" style="color:var(--cy)">成年男性</span></div>
+              <div class="tag cy" id="layerCount">4 层可见</div>
+            </div>
+            <div class="human-stage">
+              <div class="human-scan"></div>
+              <div class="human-rotor" id="humanRotor">
+                <svg id="humanSvg" viewBox="0 0 200 340"></svg>
+              </div>
+            </div>
+            <div style="width:100%;padding:0 8px;margin-top:10px">
+              <div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--tx3);margin-bottom:6px">
+                <span>视角旋转</span><span id="angleLabel">0°</span>
+              </div>
+              <input type="range" class="angle-slider" id="angleSlider" min="-35" max="35" value="0">
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div class="glass" style="padding:16px">
+              <div style="font-size:12.5px;font-weight:700;margin-bottom:11px;letter-spacing:.5px">人体模型</div>
+              <div class="persona-row" id="personaRow"></div>
+            </div>
+
+            <div class="glass" style="padding:16px">
+              <div style="font-size:12.5px;font-weight:700;margin-bottom:11px;letter-spacing:.5px">图层显示</div>
+              <div class="layer-ctrl" id="layerCtrl"></div>
+            </div>
+
+            <div class="glass" style="padding:16px">
+              <div style="font-size:12.5px;font-weight:700;margin-bottom:11px;letter-spacing:.5px">操作</div>
+              <div style="display:flex;gap:8px">
+                <button class="btn sm" style="flex:1;justify-content:center" onclick="autoRotate()">⟳ 自动旋转</button>
+                <button class="btn ghost sm" style="flex:1;justify-content:center" onclick="resetView()">⤾ 复位</button>
+              </div>
+              <div style="font-size:11px;color:var(--tx3);margin-top:11px;line-height:1.7">
+                提示：点击模型上的器官节点可查看详细健康档案。
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------- 器官中心 ---------- -->
+      <section class="page" data-page="organ">
+        <div class="sec-title"><span class="bar"></span>器官健康总览 <span class="more">共 12 个器官系统</span></div>
+        <div class="card-grid" id="organGrid"></div>
+        <div class="footer-note">器官健康指数由多模态数据（体征、检测记录、经络能量、生活习惯）综合计算得出</div>
+      </section>
+
+      <!-- ---------- 血管循环 ---------- -->
+      <section class="page" data-page="vessel">
+        <div class="sec-title"><span class="bar"></span>循环系统指标</div>
+        <div class="metrics-grid" id="vesselMetrics"></div>
+
+        <div class="sec-title"><span class="bar"></span>血管图谱</div>
+        <div class="glass" style="padding:16px" id="vesselMap"></div>
+
+        <div class="sec-title"><span class="bar"></span>风险评估</div>
+        <div class="list-item">
+          <div class="li-icon" style="background:rgba(251,191,36,.12);border-color:rgba(251,191,36,.25)">喝</div>
+          <div class="li-main">
+            <div class="li-t">心血管风险 <span class="tag wn">轻度</span></div>
+            <div class="li-s">综合血压、血脂、HRV 与动脉硬化指数评估</div>
+          </div>
+          <div class="li-v" style="color:var(--wn)">32</div>
+        </div>
+        <div class="list-item">
+          <div class="li-icon" style="background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.25)">變</div>
+          <div class="li-main">
+            <div class="li-t">血栓风险 <span class="tag ok">低</span></div>
+            <div class="li-s">血液流变学指标正常，微循环通畅</div>
+          </div>
+          <div class="li-v" style="color:var(--ok)">18</div>
+        </div>
+        <div class="list-item">
+          <div class="li-icon" style="background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.25)"></div>
+          <div class="li-main">
+            <div class="li-t">动脉硬化风险 <span class="tag ok">低</span></div>
+            <div class="li-s">baPWV 1180 cm/s，血管弹性良好</div>
+          </div>
+          <div class="li-v" style="color:var(--ok)">21</div>
+        </div>
+      </section>
+
+      <!-- ---------- 经络中心 ---------- -->
+      <section class="page" data-page="meridian">
+        <div class="sec-title"><span class="bar"></span>经络热力图</div>
+        <div class="glass" style="padding:16px" id="meridianHeat"></div>
+
+        <div class="sec-title"><span class="bar"></span>十二正经 <span class="more">子午流注</span></div>
+        <div id="meridianList12"></div>
+
+        <div class="sec-title"><span class="bar"></span>奇经八脉</div>
+        <div id="meridianList8"></div>
+      </section>
+
+      <!-- ---------- 穴位中心 ---------- -->
+      <section class="page" data-page="acupoint">
+        <div class="search-box">
+          <span style="font-size:15px;color:var(--tx3)"></span>
+          <input id="acuSearch" placeholder="搜索穴位名称、功效或主治症状…" oninput="renderAcupoints()">
+        </div>
+        <div class="chip-row" id="acuChips"></div>
+        <div style="font-size:11.5px;color:var(--tx3);margin-bottom:10px" id="acuCount"></div>
+        <div id="acuList"></div>
+      </section>
+
+      <!-- ---------- AI 问诊 ---------- -->
+      <section class="page" data-page="ai">
+        <div class="chat-wrap">
+          <div class="chat" id="chat"></div>
+          <div class="chips-bar" id="symptomChips"></div>
+          <div class="chat-input">
+            <input id="chatInput" placeholder="请描述您的症状，如：最近头晕、失眠…" onkeydown="if(event.key==='Enter')sendMsg()">
+            <button class="btn primary sm" onclick="sendMsg()" style="padding:9px 16px">发送</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------- 健康报告 ---------- -->
+      <section class="page" data-page="report">
+        <div class="report-grid">
+          <div class="glass" style="padding:20px">
+            <div class="sec-title" style="margin-top:0"><span class="bar"></span>健康评分构成</div>
+            <div id="scoreBars"></div>
+            <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:12.5px;color:var(--tx2)">综合健康总分</span>
+              <span style="font-size:26px;font-weight:800;background:linear-gradient(135deg,#67e8f9,#a78bfa);-webkit-background-clip:text;background-clip:text;color:transparent">84</span>
+            </div>
+          </div>
+
+          <div class="glass" style="padding:20px;display:flex;flex-direction:column;align-items:center;justify-content:center">
+            <div class="sec-title" style="margin-top:0;width:100%"><span class="bar"></span>六维能力雷达</div>
+            <svg id="radarSvg" viewBox="0 0 240 220" style="width:100%;max-width:270px"></svg>
+          </div>
+        </div>
+
+        <div class="sec-title"><span class="bar"></span>AI 健康建议</div>
+        <div id="adviceList"></div>
+
+        <div class="sec-title"><span class="bar"></span>近 3 次检测趋势</div>
+        <div class="glass" style="padding:20px">
+          <svg id="trendSvg" viewBox="0 0 320 120" style="width:100%"></svg>
+        </div>
+
+        <div class="footer-note">
+          报告生成时间：2025-07-12 08:24 · 数据来源：可穿戴设备 + 用户自填 + AI 分析引擎<br>
+          <b>本报告仅供健康管理参考，不作为临床诊断依据</b>
+        </div>
+      </section>
+
+      <!-- ---------- 我的 ---------- -->
+      <section class="page" data-page="me">
+        <div class="glass">
+          <div class="profile-head">
+            <div class="profile-av"></div>
+            <div>
+              <div class="pn">李明远 <span class="tag cy" style="margin-left:6px">高级会员</span></div>
+              <div class="ps">ID: HDT-20250712 · 男 · 34 岁 · O 型血</div>
+              <div class="ps">身高 176cm · 体重 71kg · BMI 22.9（正常）</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sec-title"><span class="bar"></span>会员权益</div>
+        <div class="vip-card">
+          <div style="position:relative;z-index:1">
+            <div style="font-size:15px;font-weight:800;letter-spacing:.5px">高级会员 · 有效期至 2025-12-31</div>
+            <div style="font-size:12px;color:#c4b5fd;margin-top:6px;line-height:1.8">
+              ✓ 无限次 AI 智能问诊 &nbsp; ✓ 专业健康报告<br>
+              ✓ 中医体质分析 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ✓ 个性化饮食运动建议
+            </div>
+            <button class="btn sm" style="margin-top:12px;background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.25);color:#fff">续费 / 升级企业版</button>
+          </div>
+        </div>
+
+        <div class="sec-title"><span class="bar"></span>健康档案</div>
+        <div class="glass" style="padding:0">
+          <div class="setting-row"><span class="si"></span>我的健康档案<span class="arrow">›</span></div>
+          <div class="setting-row"><span class="si">⌚</span>已连接设备（手环 / 血压计）<span class="tag ok" style="margin-left:auto">2 台在线</span></div>
+          <div class="setting-row"><span class="si"></span>历史检测记录<span class="arrow">›</span></div>
+          <div class="setting-row"><span class="si">離</span>中医体质测评<span class="tag pu" style="margin-left:auto">平和质</span></div>
+        </div>
+
+        <div class="sec-title"><span class="bar"></span>设置</div>
+        <div class="glass" style="padding:0">
+          <div class="setting-row"><span class="si"></span>健康预警推送<span class="arrow">›</span></div>
+          <div class="setting-row"><span class="si"></span>隐私与数据安全<span class="arrow">›</span></div>
+          <div class="setting-row"><span class="si">ℹ️</span>关于平台<span class="arrow">›</span></div>
+        </div>
+
+        <div class="footer-note" style="margin-top:20px">
+          <b>戴煜的疗养健康助手</b> · 人体数字孪生健康平台 V1.0.0<br>
+          技术架构：Flutter + AI 大模型 + 医疗知识图谱 + 数字孪生<br>
+          © 2025 戴煜的疗养健康助手 Platform. All Rights Reserved.<br>
+          本平台内容仅供健康参考，不能替代专业医疗诊断与治疗
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- 底部导航（移动端） -->
+  <nav class="tabbar" id="tabbar"></nav>
+</div>
+
+<!-- 弹窗 -->
+<div class="modal" id="modal">
+  <div class="modal-bg" onclick="closeModal()"></div>
+  <div class="modal-card glass" id="modalCard"></div>
+</div>
+
+<script>
+/* =========================================================
+   戴煜的疗养健康助手 · 人体数字孪生健康平台
+   © 2025 戴煜的疗养健康助手 Platform. All Rights Reserved.
+   ========================================================= */
+
+/* ---------------- 数据层 ---------------- */
+
+const ORGANS = [
+  { id:'brain', name:'脑', en:'BRAIN', sys:'神经系统', icon:'易', x:100, y:38, rx:9, ry:8,
+    score:92, risk:'低风险', lv:1,
+    desc:'中枢神经系统的核心器官，负责感觉整合、运动控制、语言、记忆与情绪调节。',
+    fn:'信息处理 · 运动控制 · 神经内分泌调节',
+    metrics:[{k:'认知评分',v:'91'},{k:'睡眠时长',v:'7.2 h'},{k:'反应速度',v:'优'}],
+    history:[{d:'05-12',s:91},{d:'06-12',s:92},{d:'07-12',s:92}],
+    advice:['保证每日 7–8 小时高质量睡眠','每周 3 次有氧运动，促进脑部血流','坚持正念冥想，降低皮质醇水平'] },
+
+  { id:'heart', name:'心脏', en:'HEART', sys:'循环系统', icon:'變', x:97, y:103, rx:7, ry:8,
+    score:88, risk:'轻度心血管风险', lv:2,
+    desc:'循环系统的动力泵，通过节律性收缩将血液输送至全身，维持组织灌注。',
+    fn:'泵血 · 维持血压 · 内分泌调节',
+    metrics:[{k:'静息心率',v:'72 bpm'},{k:'射血分数',v:'62%'},{k:'血压',v:'126/82'}],
+    history:[{d:'05-12',s:90},{d:'06-12',s:89},{d:'07-12',s:88}],
+    advice:['每周 150 分钟中等强度有氧运动','钠盐摄入控制在每日 5g 以内','定期监测血压与心率变异性（HRV）'] },
+
+  { id:'lung', name:'肺', en:'LUNG', sys:'呼吸系统', icon:'贈', x:83, y:92, rx:9, ry:11, dual:true,
+    score:90, risk:'低风险', lv:1,
+    desc:'气体交换的主要场所，负责氧气摄入与二氧化碳排出，维持酸碱平衡。',
+    fn:'气体交换 · 酸碱平衡 · 免疫防御',
+    metrics:[{k:'肺活量',v:'3.9 L'},{k:'血氧饱和度',v:'98%'},{k:'呼吸频率',v:'16 次/分'}],
+    history:[{d:'05-12',s:89},{d:'06-12',s:90},{d:'07-12',s:90}],
+    advice:['避免长期暴露于粉尘与二手烟环境','每日进行 10 分钟腹式呼吸训练','有氧运动提升肺通气效率'] },
+
+  { id:'liver', name:'肝脏', en:'LIVER', sys:'消化系统', icon:'贈', x:114, y:121, rx:8, ry:7,
+    score:76, risk:'中风险 · 脂肪肝倾向', lv:3,
+    desc:'人体最大的实质性器官，承担代谢、解毒、合成与胆汁分泌等多重功能。',
+    fn:'代谢解毒 · 蛋白合成 · 胆汁分泌',
+    metrics:[{k:'ALT',v:'48 U/L ↑'},{k:'GGT',v:'62 U/L ↑'},{k:'脂肪含量',v:'轻度升高'}],
+    history:[{d:'05-12',s:80},{d:'06-12',s:78},{d:'07-12',s:76}],
+    advice:['减少精制糖与高脂饮食摄入','保证 23:00 前入睡，利于肝脏修复','每周至少 3 次运动，控制体重','3 个月后复查肝功能与肝脏超声'] },
+
+  { id:'gallbladder', name:'胆囊', en:'GALLBLADDER', sys:'消化系统', icon:'', x:119, y:130, rx:3.6, ry:4.5,
+    score:82, risk:'低风险', lv:1,
+    desc:'储存与浓缩胆汁，进食后收缩将胆汁排入十二指肠，帮助脂肪消化。',
+    fn:'胆汁储存 · 浓缩 · 排放',
+    metrics:[{k:'胆囊壁',v:'光滑'},{k:'结石',v:'未见'},{k:'收缩功能',v:'良好'}],
+    history:[{d:'05-12',s:83},{d:'06-12',s:82},{d:'07-12',s:82}],
+    advice:['规律吃早餐，避免胆汁淤积','控制动物内脏与油炸食品摄入','保持体重稳定，避免快速减重'] },
+
+  { id:'stomach', name:'胃', en:'STOMACH', sys:'消化系统', icon:'️', x:87, y:121, rx:7.5, ry:8,
+    score:79, risk:'中风险 · 胃动力不足', lv:3,
+    desc:'消化道最膨大的部分，负责食物储存、机械研磨与初步化学消化。',
+    fn:'食物储存 · 胃酸分泌 · 初步消化',
+    metrics:[{k:'胃排空',v:'偏慢'},{k:'胃酸',v:'正常'},{k:'幽门螺杆菌',v:'阴性'}],
+    history:[{d:'05-12',s:82},{d:'06-12',s:80},{d:'07-12',s:79}],
+    advice:['少食多餐，细嚼慢咽','避免辛辣、生冷及过量咖啡','饭后散步 15 分钟促进胃排空'] },
+
+  { id:'spleen', name:'脾', en:'SPLEEN', sys:'免疫系统', icon:'️', x:84, y:110, rx:5.5, ry:6,
+    score:85, risk:'低风险', lv:1,
+    desc:'最大的外周免疫器官，参与淋巴细胞生成、血液过滤与免疫应答。',
+    fn:'免疫应答 · 血液过滤 · 储血',
+    metrics:[{k:'脾脏大小',v:'正常'},{k:'免疫球蛋白',v:'正常'},{k:'血小板',v:'226×10⁹/L'}],
+    history:[{d:'05-12',s:85},{d:'06-12',s:85},{d:'07-12',s:85}],
+    advice:['保持规律作息，避免过度劳累','注意保暖，减少寒凉食物','适度运动提升免疫力'] },
+
+  { id:'kidney', name:'肾', en:'KIDNEY', sys:'泌尿系统', icon:'齃', x:88, y:137, rx:4.8, ry:5.5, dual:true, dualDx:24,
+    score:84, risk:'低风险', lv:1,
+    desc:'排泄代谢废物、调节水电解质与酸碱平衡，并分泌多种重要激素。',
+    fn:'排泄 · 水盐平衡 · 血压调节',
+    metrics:[{k:'肌酐',v:'82 μmol/L'},{k:'eGFR',v:'98 mL/min'},{k:'尿蛋白',v:'阴性'}],
+    history:[{d:'05-12',s:84},{d:'06-12',s:84},{d:'07-12',s:84}],
+    advice:['每日饮水 1500–2000 mL','控制蛋白质摄入总量，避免高盐','避免长期服用肾毒性药物'] },
+
+  { id:'smallintestine', name:'小肠', en:'SMALL INTESTINE', sys:'消化系统', icon:'', x:100, y:145, rx:6, ry:5,
+    score:86, risk:'低风险', lv:1,
+    desc:'营养吸收的主要场所，通过绒毛结构高效吸收糖、氨基酸、脂肪与维生素。',
+    fn:'营养吸收 · 消化酶分泌 · 免疫屏障',
+    metrics:[{k:'吸收功能',v:'良好'},{k:'菌群多样性',v:'中等'},{k:'排便',v:'规律'}],
+    history:[{d:'05-12',s:86},{d:'06-12',s:86},{d:'07-12',s:86}],
+    advice:['增加膳食纤维与发酵食品摄入','避免长期高糖高脂饮食','规律作息，减少肠道应激'] },
+
+  { id:'largeintestine', name:'大肠', en:'LARGE INTESTINE', sys:'消化系统', icon:'匿', x:100, y:155, rx:7.5, ry:5.5,
+    score:78, risk:'中风险 · 菌群失衡', lv:3,
+    desc:'吸收水分与电解质，形成并储存粪便，同时维系肠道微生态平衡。',
+    fn:'水分吸收 · 粪便形成 · 菌群共生',
+    metrics:[{k:'排便频率',v:'2–3 日/次'},{k:'菌群多样性',v:'偏低'},{k:'隐血',v:'阴性'}],
+    history:[{d:'05-12',s:81},{d:'06-12',s:79},{d:'07-12',s:78}],
+    advice:['每日摄入 25g 以上膳食纤维','补充益生菌与益生元','每日饮水 2000 mL，坚持晨起排便'] },
+
+  { id:'pancreas', name:'胰腺', en:'PANCREAS', sys:'内分泌系统', icon:'⚗️', x:101, y:129, rx:5, ry:3.5,
+    score:83, risk:'低风险', lv:1,
+    desc:'兼具外分泌与内分泌功能，分泌消化酶及胰岛素、胰高血糖素等激素。',
+    fn:'消化酶分泌 · 血糖调节',
+    metrics:[{k:'空腹血糖',v:'5.3 mmol/L'},{k:'糖化血红蛋白',v:'5.4%'},{k:'淀粉酶',v:'正常'}],
+    history:[{d:'05-12',s:83},{d:'06-12',s:83},{d:'07-12',s:83}],
+    advice:['控制精制碳水与含糖饮料','戒烟限酒，避免暴饮暴食','定期监测空腹血糖与糖化血红蛋白'] },
+
+  { id:'bladder', name:'膀胱', en:'BLADDER', sys:'泌尿系统', icon:'', x:100, y:163, rx:5, ry:4,
+    score:87, risk:'低风险', lv:1,
+    desc:'储存尿液的肌性囊状器官，通过逼尿肌与括约肌协同完成排尿。',
+    fn:'尿液储存 · 排尿控制',
+    metrics:[{k:'残余尿量',v:'12 mL'},{k:'排尿次数',v:'6 次/日'},{k:'尿常规',v:'正常'}],
+    history:[{d:'05-12',s:87},{d:'06-12',s:87},{d:'07-12',s:87}],
+    advice:['避免长期憋尿','每日饮水充足，稀释尿液','减少咖啡因与酒精刺激'] }
+];
+
+const MERIDIANS_12 = [
+  { name:'肺经', time:'寅时 03:00–05:00', energy:82, status:'通畅', organ:'肺',
+    path:'起于中焦，下络大肠，上膈属肺，出腋下沿上肢内侧前缘至拇指端' },
+  { name:'大肠经', time:'卯时 05:00–07:00', energy:74, status:'轻度堵塞', organ:'大肠',
+    path:'起于食指桡侧端，沿上肢外侧前缘上行，入缺盆络肺，下膈属大肠，上挟鼻孔' },
+  { name:'胃经', time:'辰时 07:00–09:00', energy:79, status:'需关注', organ:'胃',
+    path:'起于鼻旁，下行至颊车，沿颈前下行入缺盆，下膈属胃络脾，沿下肢外侧前缘至第二趾' },
+  { name:'脾经', time:'巳时 09:00–11:00', energy:86, status:'通畅', organ:'脾',
+    path:'起于足大趾内侧端，沿下肢内侧前缘上行，入腹属脾络胃，上膈挟咽连舌本' },
+  { name:'心经', time:'午时 11:00–13:00', energy:71, status:'轻度堵塞', organ:'心脏',
+    path:'起于心中，出属心系，下膈络小肠，上挟咽系目系，沿上肢内侧后缘至小指端' },
+  { name:'小肠经', time:'未时 13:00–15:00', energy:83, status:'通畅', organ:'小肠',
+    path:'起于小指尺侧端，沿上肢外侧后缘上行，绕肩胛交大椎，入缺盆络心，下膈属小肠' },
+  { name:'膀胱经', time:'申时 15:00–17:00', energy:77, status:'需关注', organ:'膀胱',
+    path:'起于目内眦，上额交巅，络脑下项，挟脊抵腰，络肾属膀胱，沿下肢后侧至小趾端' },
+  { name:'肾经', time:'酉时 17:00–19:00', energy:88, status:'通畅', organ:'肾',
+    path:'起于足小趾下，斜走足心，出内踝，沿下肢内侧后缘上行，属肾络膀胱，上贯肝膈入肺' },
+  { name:'心包经', time:'戌时 19:00–21:00', energy:80, status:'通畅', organ:'心包',
+    path:'起于胸中，出属心包络，下膈历络三焦，沿上肢内侧中线上行至中指端' },
+  { name:'三焦经', time:'亥时 21:00–23:00', energy:75, status:'需关注', organ:'三焦',
+    path:'起于无名指尺侧端，沿上肢外侧中线上行，入缺盆布膻中，络心包，下膈循属三焦' },
+  { name:'胆经', time:'子时 23:00–01:00', energy:69, status:'轻度堵塞', organ:'胆囊',
+    path:'起于目锐眦，上抵头角，下耳后，循颈入缺盆，下腋循胸胁，络肝属胆，沿下肢外侧至第四趾' },
+  { name:'肝经', time:'丑时 01:00–03:00', energy:66, status:'明显堵塞', organ:'肝脏',
+    path:'起于足大趾丛毛之际，沿足背上行，环阴器抵小腹，挟胃属肝络胆，上贯膈布胁肋，连目系上巅' }
+];
+
+const MERIDIANS_8 = [
+  { name:'任脉', energy:84, status:'通畅', path:'起于胞中，下出会阴，沿腹胸正中线上行至颏下承浆穴' },
+  { name:'督脉', energy:81, status:'通畅', path:'起于胞中，下出会阴，沿脊柱正中上行，过项入脑，上巅至龈交' },
+  { name:'冲脉', energy:76, status:'需关注', path:'起于胞中，下出会阴，挟脐上行，为"十二经之海"' },
+  { name:'带脉', energy:79, status:'通畅', path:'起于季胁，环腰一周，约束纵行诸经' },
+  { name:'阴维脉', energy:77, status:'通畅', path:'起于小腿内侧，沿下肢内侧上行至咽喉，维系诸阴经' },
+  { name:'阳维脉', energy:73, status:'需关注', path:'起于足跟外侧，沿下肢外侧上行至项后，维系诸阳经' },
+  { name:'阴跷脉', energy:80, status:'通畅', path:'起于足舟骨后方，沿下肢内侧上行至目内眦' },
+  { name:'阳跷脉', energy:78, status:'通畅', path:'起于足跟外侧，沿下肢外侧上行至目内眦' }
+];
+
+const ACU_RAW = [
+  ['肺经','中府','胸前壁外上方，前正中线旁开6寸，平第1肋间隙','宣肺理气，止咳平喘','咳嗽、气喘、胸痛、肩背痛'],
+  ['肺经','尺泽','肘横纹中，肱二头肌腱桡侧凹陷处','清肺泻热，降逆和中','咳嗽、咽喉肿痛、肘臂挛痛'],
+  ['肺经','孔最','前臂掌面桡侧，腕横纹上7寸','清热止血，润肺止咳','咳血、咽喉肿痛、肘臂痛'],
+  ['肺经','列缺','桡骨茎突上方，腕横纹上1.5寸','宣肺解表，通经活络','头痛、咳嗽、颈项强痛'],
+  ['肺经','太渊','腕掌侧横纹桡侧，桡动脉搏动处','补肺益气，通脉止咳','咳嗽、气短、无脉症'],
+  ['肺经','鱼际','第一掌骨中点桡侧，赤白肉际处','清肺泻火，利咽止痛','咽喉肿痛、失音、咳嗽'],
+  ['肺经','少商','拇指桡侧指甲角旁0.1寸','清热利咽，开窍醒神','咽喉肿痛、发热、昏迷'],
+
+  ['大肠经','商阳','食指桡侧指甲角旁0.1寸','清热解表，开窍醒神','咽喉肿痛、齿痛、发热'],
+  ['大肠经','合谷','手背第1、2掌骨间，第2掌骨桡侧中点','镇静止痛，通经活络','头痛、牙痛、面瘫、发热、便秘'],
+  ['大肠经','曲池','屈肘成直角，肘横纹外端与肱骨外上髁连线中点','清热解表，调和气血','发热、高血压、肘臂痛、皮肤瘙痒'],
+  ['大肠经','肩髃','肩峰前下方，三角肌上部凹陷处','通经活络，理气化痰','肩臂疼痛、上肢不遂、肩周炎'],
+  ['大肠经','迎香','鼻翼外缘中点旁，鼻唇沟中','通鼻窍，散风热','鼻塞、鼻炎、面瘫、面痒'],
+
+  ['胃经','承泣','目正视，瞳孔直下，眶下缘与眼球之间','疏风清热，明目止泪','目赤肿痛、眼睑瞤动、近视'],
+  ['胃经','地仓','口角旁开0.4寸','祛风止痛，舒筋活络','面瘫、流涎、齿痛'],
+  ['胃经','颊车','下颌角前上方一横指，咀嚼时咬肌隆起处','祛风通络，开关止痛','牙痛、面瘫、颊肿'],
+  ['胃经','下关','颧弓下缘，下颌骨髁状突前缘凹陷处','疏风清热，通关利窍','牙痛、耳鸣、面瘫'],
+  ['胃经','天枢','脐中旁开2寸','调理肠腑，理气消滞','腹胀、腹泻、便秘、月经不调'],
+  ['胃经','梁丘','髌骨外上缘上2寸','理气和胃，通络止痛','胃痛、膝痛、乳痈'],
+  ['胃经','足三里','犊鼻下3寸，胫骨前嵴外一横指','健脾和胃，扶正培元','胃痛、腹胀、消化不良、体虚、失眠'],
+  ['胃经','上巨虚','足三里下3寸','调和肠胃，通经活络','腹痛、腹泻、便秘、肠鸣'],
+  ['胃经','丰隆','外踝尖上8寸，条口穴外1寸','化痰祛湿，宁心安神','痰多、咳嗽、头晕、失眠'],
+  ['胃经','内庭','足背第2、3趾间缝纹端','清胃泻火，理气止痛','牙痛、咽喉肿痛、胃热、便秘'],
+
+  ['脾经','隐白','足大趾内侧趾甲角旁0.1寸','健脾统血，宁神定志','月经过多、崩漏、腹胀'],
+  ['脾经','公孙','第一跖骨基底部前下方赤白肉际处','健脾胃，调冲任','胃痛、呕吐、腹痛、腹泻'],
+  ['脾经','三阴交','内踝尖上3寸，胫骨内侧缘后方','健脾利湿，调补肝肾','失眠、月经不调、脾胃虚弱、水肿'],
+  ['脾经','阴陵泉','胫骨内侧髁下方凹陷处','健脾利湿，通利三焦','腹胀、水肿、小便不利、膝痛'],
+  ['脾经','血海','髌骨内上缘上2寸','调经统血，健脾化湿','月经不调、湿疹、皮肤瘙痒'],
+  ['脾经','大横','脐中旁开4寸','温中散寒，调理肠胃','腹胀、腹泻、便秘'],
+  ['脾经','大包','腋中线上，第6肋间隙','统血养经，宽胸理气','胸胁痛、气喘、全身乏力'],
+
+  ['心经','极泉','腋窝顶点，腋动脉搏动处','宽胸宁心，通经活络','心痛、胸闷、胁肋疼痛'],
+  ['心经','少海','屈肘，肘横纹内端与肱骨内上髁连线中点','宁心安神，通络止痛','心痛、手颤、肘臂挛痛'],
+  ['心经','通里','腕横纹上1寸，尺侧腕屈肌腱桡侧','宁心安神，通利舌络','心悸、失眠、暴喑'],
+  ['心经','神门','腕横纹尺侧端，尺侧腕屈肌腱桡侧凹陷处','宁心安神，清心调气','失眠、心悸、健忘、焦虑'],
+  ['心经','少冲','小指桡侧指甲角旁0.1寸','清心开窍，苏厥醒神','心悸、心痛、昏迷、热病'],
+
+  ['小肠经','少泽','小指尺侧指甲角旁0.1寸','清热利咽，通乳开窍','乳汁不足、咽喉肿痛、昏迷'],
+  ['小肠经','后溪','握拳，第5掌指关节后尺侧横纹头赤白肉际','舒经利窍，宁神止痛','颈项强痛、腰背痛、落枕、耳鸣'],
+  ['小肠经','养老','尺骨小头近端桡侧凹陷处','清头明目，舒筋活络','目视不明、肩背肘臂痛'],
+  ['小肠经','小海','屈肘，尺骨鹰嘴与肱骨内上髁之间凹陷处','清热祛风，通络止痛','肘臂疼痛、耳鸣、头痛'],
+  ['小肠经','天宗','肩胛骨冈下窝中央凹陷处','舒筋活络，理气消肿','肩胛疼痛、肩周炎、气喘'],
+  ['小肠经','颧髎','目外眦直下，颧骨下缘凹陷处','祛风消肿，清热止痛','面瘫、面痛、齿痛'],
+  ['小肠经','听宫','耳屏前，下颌骨髁状突后缘，张口凹陷处','聪耳开窍，宁神止痛','耳鸣、耳聋、齿痛'],
+
+  ['膀胱经','睛明','目内眦角稍上方凹陷处','明目退翳，通络止痛','目赤肿痛、近视、迎风流泪'],
+  ['膀胱经','攒竹','眉头凹陷中，眶上切迹处','清热明目，祛风通络','头痛、眉棱骨痛、眼睑下垂'],
+  ['膀胱经','天柱','后发际正中直上0.5寸，旁开1.3寸','清头明目，强筋健骨','头痛、项强、肩背痛'],
+  ['膀胱经','肺俞','第3胸椎棘突下，旁开1.5寸','宣肺理气，止咳平喘','咳嗽、气喘、盗汗'],
+  ['膀胱经','心俞','第5胸椎棘突下，旁开1.5寸','宽胸理气，宁心安神','心痛、心悸、失眠、健忘'],
+  ['膀胱经','肝俞','第9胸椎棘突下，旁开1.5寸','疏肝利胆，理气明目','胁痛、黄疸、目赤、眩晕'],
+  ['膀胱经','脾俞','第11胸椎棘突下，旁开1.5寸','健脾和胃，利湿升清','腹胀、腹泻、消化不良'],
+  ['膀胱经','胃俞','第12胸椎棘突下，旁开1.5寸','和胃健脾，消食利湿','胃痛、呕吐、腹胀'],
+  ['膀胱经','肾俞','第2腰椎棘突下，旁开1.5寸','补肾益气，强腰壮骨','腰痛、耳鸣、遗精、月经不调'],
+  ['膀胱经','大肠俞','第4腰椎棘突下，旁开1.5寸','理气化滞，通调肠腑','腰痛、腹胀、便秘、腹泻'],
+  ['膀胱经','委中','腘横纹中点，股二头肌腱与半腱肌腱中间','舒筋活络，泄热清暑','腰背痛、下肢痿痹、中暑'],
+  ['膀胱经','承山','腓肠肌两肌腹之间凹陷顶端','舒筋活络，理肠疗痔','小腿痉挛、腰腿痛、痔疾'],
+  ['膀胱经','昆仑','外踝尖与跟腱之间凹陷处','安神清热，舒筋活络','头痛、项强、腰骶痛、足跟痛'],
+  ['膀胱经','至阴','足小趾外侧趾甲角旁0.1寸','正胎催产，清头明目','胎位不正、难产、头痛、目痛'],
+
+  ['肾经','涌泉','足底前1/3处，足趾跖屈时呈凹陷处','滋肾清热，开窍醒神','失眠、头晕、高血压、足心热'],
+  ['肾经','太溪','内踝尖与跟腱之间凹陷处','滋阴益肾，壮阳强腰','腰痛、耳鸣、失眠、月经不调'],
+  ['肾经','照海','内踝尖下方凹陷处','滋阴清热，通调三焦','咽干、失眠、月经不调、便秘'],
+  ['肾经','复溜','太溪穴上2寸，跟腱前缘','补肾益阴，温阳利水','水肿、盗汗、腰脊强痛'],
+  ['肾经','阴谷','腘窝内侧，半腱肌腱与半膜肌腱之间','益肾调经，理气止痛','阳痿、小便难、膝股内侧痛'],
+  ['肾经','俞府','锁骨下缘，前正中线旁开2寸','宽胸理气，止咳平喘','咳嗽、气喘、胸痛'],
+
+  ['心包经','天池','第4肋间隙，乳头外1寸','宽胸理气，化痰散结','胸闷、心痛、腋下肿痛'],
+  ['心包经','曲泽','肘横纹中，肱二头肌腱尺侧缘','清心泻热，和胃降逆','心痛、心悸、胃痛、呕吐'],
+  ['心包经','内关','腕横纹上2寸，掌长肌腱与桡侧腕屈肌腱之间','宁心安神，理气止痛','心悸、胸闷、胃痛、呕吐、失眠'],
+  ['心包经','大陵','腕横纹中央，掌长肌腱与桡侧腕屈肌腱之间','宁心安神，清热散结','心痛、心悸、胃痛、腕关节痛'],
+  ['心包经','劳宫','握拳，中指尖下，第2、3掌骨之间','清心泻热，开窍醒神','口疮、口臭、心痛、烦躁'],
+  ['心包经','中冲','中指尖端中央','开窍醒神，清心泻热','昏迷、中暑、心痛、舌强'],
+
+  ['三焦经','关冲','无名指尺侧指甲角旁0.1寸','清热开窍，利喉舌','头痛、咽喉肿痛、昏迷'],
+  ['三焦经','中渚','手背第4、5掌骨间，掌指关节后凹陷处','清热通络，开窍聪耳','耳鸣、头痛、手指屈伸不利'],
+  ['三焦经','阳池','腕背横纹中，指伸肌腱尺侧缘凹陷处','通调三焦，舒筋通络','腕痛、消渴、耳聋'],
+  ['三焦经','外关','腕背横纹上2寸，尺骨与桡骨之间','解表清热，通经活络','感冒、头痛、耳鸣、胁痛'],
+  ['三焦经','支沟','腕背横纹上3寸，尺骨与桡骨之间','清利三焦，通腑降逆','便秘、胁痛、耳鸣、肩臂痛'],
+  ['三焦经','天井','屈肘，尺骨鹰嘴上1寸凹陷处','清热散结，安神通络','偏头痛、瘰疬、肘臂痛'],
+  ['三焦经','翳风','耳垂后方，乳突与下颌角之间凹陷处','聪耳通窍，散内泄热','耳鸣、耳聋、面瘫、牙痛'],
+  ['三焦经','丝竹空','眉梢外侧凹陷处','清头明目，散风止痛','头痛、目赤、眼睑瞤动'],
+
+  ['胆经','瞳子髎','目外眦旁0.5寸，眶骨外缘凹陷处','疏风散热，明目退翳','头痛、目赤、目翳'],
+  ['胆经','听会','耳屏间切迹前，下颌髁状突后缘','开窍聪耳，通经活络','耳鸣、耳聋、面瘫'],
+  ['胆经','阳白','目正视，瞳孔直上，眉上1寸','清头明目，祛风泄热','前额痛、目痛、眼睑下垂'],
+  ['胆经','风池','枕骨下，胸锁乳突肌与斜方肌上端之间凹陷处','祛风解表，清头明目','头痛、眩晕、颈项强痛、感冒'],
+  ['胆经','肩井','大椎与肩峰连线中点','祛风清热，活络消肿','肩背痛、颈项强、乳痈'],
+  ['胆经','环跳','股骨大转子最凸点与骶管裂孔连线外1/3处','祛风化湿，强健腰膝','腰腿痛、坐骨神经痛、下肢痿痹'],
+  ['胆经','阳陵泉','腓骨小头前下方凹陷处','舒肝利胆，强健腰膝','胁痛、口苦、膝痛、下肢麻木'],
+  ['胆经','悬钟','外踝尖上3寸，腓骨前缘','平肝熄风，舒筋活络','颈项强痛、落枕、偏头痛'],
+  ['胆经','丘墟','外踝前下方，趾长伸肌腱外侧凹陷处','疏肝利胆，通经活络','胁痛、踝关节痛、颈项痛'],
+  ['胆经','足临泣','足背第4、5趾间，趾蹼缘后方赤白肉际','疏肝解郁，通经活络','头痛、目赤、胁痛、足跗肿痛'],
+  ['胆经','足窍阴','第4趾外侧趾甲角旁0.1寸','疏肝解郁，清热聪耳','偏头痛、耳鸣、失眠、足痛'],
+
+  ['肝经','大敦','足大趾外侧趾甲角旁0.1寸','疏肝理气，调经止血','疝气、遗尿、月经不调'],
+  ['肝经','行间','足背第1、2趾间，趾蹼缘后方赤白肉际','清肝泻火，凉血安神','目赤、头痛、失眠、胁痛'],
+  ['肝经','太冲','足背第1、2跖骨结合部前方凹陷处','平肝熄风，舒肝养血','头痛、眩晕、胁痛、月经不调、情绪焦虑'],
+  ['肝经','中封','内踝前1寸，胫骨前肌腱内侧凹陷处','疏肝通络，利湿清热','疝气、遗精、小便不利'],
+  ['肝经','曲泉','屈膝，膝内侧横纹头上方凹陷处','疏肝理气，调经止痛','月经不调、小腹痛、膝痛'],
+  ['肝经','章门','第11肋游离端下方','疏肝健脾，理气散结','腹胀、胁痛、消化不良'],
+  ['肝经','期门','乳头直下，第6肋间隙','疏肝理气，活血化瘀','胸胁胀痛、呕吐、乳痈'],
+
+  ['任脉','中极','前正中线上，脐下4寸','益肾助阳，通利膀胱','小便不利、遗尿、月经不调'],
+  ['任脉','关元','前正中线上，脐下3寸','培元固本，补益下焦','腹痛、遗尿、月经不调、体虚'],
+  ['任脉','气海','前正中线上，脐下1.5寸','益气助阳，调经固经','腹胀、腹泻、体虚乏力'],
+  ['任脉','神阙','脐中央','温阳救逆，利水固脱','腹痛、腹泻、水肿、体虚'],
+  ['任脉','中脘','前正中线上，脐上4寸','和胃健脾，降逆利水','胃痛、腹胀、呕吐、消化不良'],
+  ['任脉','膻中','前正中线上，两乳头连线中点','宽胸理气，止咳平喘','胸闷、气喘、心悸、乳汁不足'],
+  ['任脉','天突','胸骨上窝中央','宣肺利咽，理气化痰','咳嗽、气喘、咽喉肿痛'],
+  ['任脉','廉泉','结喉上方，舌骨上缘凹陷处','利喉舒舌，消肿止痛','舌强不语、吞咽困难、咽喉肿痛'],
+  ['任脉','承浆','颏唇沟正中凹陷处','祛风通络，生津止渴','面瘫、齿龈肿痛、流涎'],
+
+  ['督脉','长强','尾骨端与肛门连线中点','通调督脉，调理肠腑','痔疾、脱肛、腰脊痛'],
+  ['督脉','腰阳关','第4腰椎棘突下凹陷处','祛寒除湿，舒筋活络','腰骶痛、下肢痿痹、月经不调'],
+  ['督脉','命门','第2腰椎棘突下凹陷处','温肾壮阳，强腰固精','腰痛、遗精、阳痿、泄泻'],
+  ['督脉','至阳','第7胸椎棘突下凹陷处','宽胸利膈，疏肝利胆','胸胁胀痛、黄疸、咳喘'],
+  ['督脉','身柱','第3胸椎棘突下凹陷处','宣肺清热，宁神镇咳','咳嗽、气喘、癫痫'],
+  ['督脉','大椎','第7颈椎棘突下凹陷处','清热解表，截疟止痫','发热、感冒、颈项强痛、痤疮'],
+  ['督脉','风府','后发际正中直上1寸，枕外隆凸直下凹陷处','散风熄风，通关开窍','头痛、项强、眩晕、中风'],
+  ['督脉','百会','头顶正中线与两耳尖连线交点处','升阳举陷，益气固脱','头痛、眩晕、失眠、健忘、脱肛'],
+  ['督脉','神庭','前发际正中直上0.5寸','清头散风，宁神醒脑','头痛、失眠、鼻渊'],
+  ['督脉','水沟','人中沟上1/3与中1/3交点处','醒神开窍，清热熄风','昏迷、中暑、癫痫、面瘫']
+];
+
+const ACUPOINTS = ACU_RAW.map((a, i) => ({
+  id: i + 1, meridian: a[0], name: a[1], position: a[2], effect: a[3], indications: a[4]
+}));
+
+const SYMPTOM_DB = [
+  { kw:['头晕','眩晕','头昏'], organ:'脑 / 肝脏', meridian:'肝经', risk:'中风险', lv:2,
+    note:'肝阳上亢或脑供血不足表现，与肝经能量下降相关',
+    advice:'监测血压与颈椎状况，避免熬夜，每日按压太冲穴 3 分钟' },
+  { kw:['头痛','偏头痛'], organ:'肝脏', meridian:'肝经 / 胆经', risk:'中风险', lv:2,
+    note:'情志不畅或胆经循行受阻常见',
+    advice:'规律作息，减少屏幕使用，可按摩风池、太阳穴' },
+  { kw:['失眠','睡不着','多梦','易醒'], organ:'心脏 / 肝脏', meridian:'心经 / 肝经', risk:'中风险', lv:2,
+    note:'心肝血虚或心肾不交，交感神经过度兴奋',
+    advice:'睡前 1 小时远离电子屏幕，按压神门穴与三阴交各 3 分钟' },
+  { kw:['胃胀','腹胀','消化不良','胃痛'], organ:'胃 / 脾', meridian:'胃经 / 脾经', risk:'中风险', lv:2,
+    note:'胃动力不足，胃经能量偏低',
+    advice:'少食多餐、细嚼慢咽，按揉足三里与中脘穴，饭后散步 15 分钟' },
+  { kw:['胸闷','心悸','心慌'], organ:'心脏', meridian:'心包经 / 心经', risk:'中风险', lv:2,
+    note:'心包经气机不畅，需关注心血管指标',
+    advice:'立即检测血压与心率，必要时进行心电图检查；按压内关穴' },
+  { kw:['咳嗽','气短','咳痰'], organ:'肺', meridian:'肺经', risk:'低风险', lv:1,
+    note:'肺经宣发肃降功能减弱',
+    advice:'保持室内湿度，进行腹式呼吸训练，可按揉肺俞与列缺穴' },
+  { kw:['乏力','疲劳','没力气','疲倦'], organ:'脾 / 肾', meridian:'脾经 / 肾经', risk:'中风险', lv:2,
+    note:'脾气虚弱、气血生化不足',
+    advice:'保证睡眠，补充优质蛋白与 B 族维生素，艾灸足三里与关元穴' },
+  { kw:['腰痛','腰酸','腰疼'], organ:'肾', meridian:'肾经 / 膀胱经', risk:'中风险', lv:2,
+    note:'肾气不足或腰肌劳损',
+    advice:'避免久坐，每日做小燕飞 3 组，按揉肾俞与委中穴' },
+  { kw:['便秘','排便困难'], organ:'大肠', meridian:'大肠经', risk:'中风险', lv:2,
+    note:'肠道蠕动减慢，菌群可能失衡',
+    advice:'每日饮水 2000mL，增加膳食纤维，顺时针按摩腹部 5 分钟' },
+  { kw:['眼干','眼涩','视物模糊','眼疲劳'], organ:'肝脏', meridian:'肝经', risk:'低风险', lv:1,
+    note:'肝血不足，久视伤血',
+    advice:'每用眼 40 分钟远眺 5 分钟，按揉睛明、攒竹穴' },
+  { kw:['耳鸣','耳聋'], organ:'肾', meridian:'肾经 / 三焦经', risk:'中风险', lv:2,
+    note:'肾开窍于耳，肾精亏虚或三焦经气滞',
+    advice:'避免长期噪声暴露，按压耳门、听宫、翳风穴' },
+  { kw:['焦虑','烦躁','情绪低落','压力大'], organ:'肝脏', meridian:'肝经 / 心包经', risk:'中风险', lv:2,
+    note:'肝气郁结，自主神经功能紊乱',
+    advice:'每日 15 分钟正念呼吸，增加户外运动，按揉太冲与内关穴' },
+  { kw:['怕冷','手脚冰凉'], organ:'肾 / 脾', meridian:'肾经 / 任脉', risk:'中风险', lv:2,
+    note:'阳气不足，末梢循环欠佳',
+    advice:'睡前泡脚 15 分钟，艾灸关元、命门穴，适当增加温性食物' },
+  { kw:['多汗','盗汗','自汗'], organ:'肺 / 肾', meridian:'肺经 / 肾经', risk:'中风险', lv:2,
+    note:'卫气不固或阴虚火旺',
+    advice:'注意固表止汗，可按揉复溜与合谷穴，必要时就诊中医科' }
+];
+
+/* ---------------- 状态 ---------------- */
+const state = {
+  page: 'home',
+  persona: '成年男性',
+  layers: { organ: true, vessel: true, meridian: true, acupoint: true },
+  angle: 0,
+  autoRotate: false,
+  acuFilter: '全部',
+  chatStarted: false
+};
+
+const PAGES_META = [
+  { key:'home',     name:'健康总览', en:'DASHBOARD',   icon:'' },
+  { key:'body',     name:'数字人体', en:'DIGITAL TWIN',icon:'溺' },
+  { key:'organ',    name:'器官中心', en:'ORGANS',      icon:'變' },
+  { key:'vessel',   name:'血管循环', en:'CIRCULATION', icon:'喝' },
+  { key:'meridian', name:'经络中心', en:'MERIDIANS',   icon:'〰️' },
+  { key:'acupoint', name:'穴位中心', en:'ACUPOINTS',   icon:'' },
+  { key:'ai',       name:'AI 问诊',  en:'AI CONSULT',  icon:'烙' },
+  { key:'report',   name:'健康报告', en:'REPORT',      icon:'' },
+  { key:'me',       name:'我的',     en:'PROFILE',     icon:'' }
+];
+
+const TABBAR = ['home','body','ai','report','me'];
+
+/* ---------------- 初始化 ---------------- */
+window.addEventListener('load', () => {
+  buildNav();
+  buildQuickGrid();
+  buildHomeMetrics();
+  buildHuman();
+  buildLayerCtrl();
+  buildPersonaRow();
+  buildOrganGrid();
+  buildVesselPage();
+  buildMeridianPage();
+  buildAcupointChips();
+  renderAcupoints();
+  buildSymptomChips();
+  renderScoreBars();
+  renderRadar();
+  renderTrend();
+  renderAdvice();
+  renderVesselMetrics();
+
+  setTimeout(() => {
+    document.getElementById('splash').classList.add('hide');
+    document.getElementById('login').classList.remove('hide');
+  }, 2300);
+});
+
+/* ---------------- 导航 ---------------- */
+function buildNav(){
+  const nav = document.getElementById('navList');
+  nav.innerHTML = PAGES_META.map(p => `
+    <div class="nav-item ${p.key==='home'?'active':''}" data-nav="${p.key}" onclick="go('${p.key}')">
+      <span class="ic">${p.icon}</span><span>${p.name}</span>
+    </div>`).join('');
+
+  const tb = document.getElementById('tabbar');
+  tb.innerHTML = TABBAR.map(k => {
+    const p = PAGES_META.find(x => x.key === k);
+    return `<div class="tb ${k==='home'?'active':''}" data-nav="${k}" onclick="go('${k}')">
+      <span class="i">${p.icon}</span><span>${p.name}</span></div>`;
+  }).join('');
+}
+
+function go(page){
+  state.page = page;
+  document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.dataset.page === page));
+  document.querySelectorAll('[data-nav]').forEach(b => b.classList.toggle('active', b.dataset.nav === page));
+  const meta = PAGES_META.find(p => p.key === page);
+  document.getElementById('pageTitle').innerHTML = `${meta.name}<small>${meta.en}</small>`;
+  document.getElementById('pages').scrollTop = 0;
+}
+
+/* ---------------- 登录 ---------------- */
+function doLogin(){
+  document.getElementById('login').classList.add('hide');
+  document.getElementById('shell').classList.add('show');
+}
+
+/* ---------------- 首页 ---------------- */
+function buildQuickGrid(){
+  const items = [
+    { k:'body', i:'溺', t:'数字人体' },
+    { k:'organ', i:'變', t:'器官图谱' },
+    { k:'vessel', i:'喝', t:'血管循环' },
+    { k:'meridian', i:'〰️', t:'经络系统' },
+    { k:'acupoint', i:'', t:'穴位中心' },
+    { k:'ai', i:'烙', t:'AI 问诊' },
+    { k:'report', i:'', t:'健康报告' },
+    { k:'me', i:'', t:'健康档案' }
+  ];
+  document.getElementById('quickGrid').innerHTML = items.map(it => `
+    <div class="quick-item glass" onclick="go('${it.k}')">
+      <div class="qi">${it.i}</div>
+      <div class="qt">${it.t}</div>
+    </div>`).join('');
+}
+
+function buildHomeMetrics(){
+  const metrics = [
+    { lb:'心率', v:'72', u:'bpm', d:'+3', c:'var(--wn)', spark:[60,64,62,70,68,72,72] },
+    { lb:'血压', v:'126/82', u:'mmHg', d:'正常', c:'var(--ok)', spark:[118,120,124,122,126,124,126] },
+    { lb:'血氧', v:'98', u:'%', d:'稳定', c:'var(--ok)', spark:[97,98,98,97,98,99,98] },
+    { lb:'睡眠', v:'7.2', u:'h', d:'+0.4', c:'var(--ok)', spark:[6.2,6.8,6.5,7.0,6.9,7.1,7.2] }
+  ];
+  document.getElementById('homeMetrics').innerHTML = metrics.map(m => `
+    <div class="metric-card glass">
+      <div class="lb">${m.lb}</div>
+      <div class="delta" style="color:${m.c}">${m.d}</div>
+      <div class="vv">${m.v}<small>${m.u}</small></div>
+      <div class="spark">${sparkSVG(m.spark, m.c)}</div>
+    </div>`).join('');
+}
+
+function sparkSVG(data, color){
+  const w = 120, h = 22;
+  const max = Math.max(...data), min = Math.min(...data);
+  const range = max - min || 1;
+  const pts = data.map((v, i) => {
+    const x = (i / (data.length - 1)) * w;
+    const y = h - ((v - min) / range) * (h - 4) - 2;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="width:100%;height:100%">
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.6"
+      stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>
+  </svg>`;
+}
+
+/* ---------------- 数字人体 ---------------- */
+function buildPersonaRow(){
+  const list = ['成年男性','成年女性','儿童','老年人'];
+  document.getElementById('personaRow').innerHTML = list.map(p => `
+    <div class="persona ${p===state.persona?'active':''}" onclick="setPersona('${p}', this)">${p}</div>
+  `).join('');
+}
+function setPersona(p, el){
+  state.persona = p;
+  document.querySelectorAll('.persona').forEach(e => e.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('personaLabel').textContent = p;
+  buildHuman();
+}
+
+function buildLayerCtrl(){
+  const layers = [
+    { k:'organ', i:'變', n:'器官系统' },
+    { k:'vessel', i:'喝', n:'血管循环' },
+    { k:'meridian', i:'〰️', n:'经络系统' },
+    { k:'acupoint', i:'', n:'穴位标记' }
+  ];
+  document.getElementById('layerCtrl').innerHTML = layers.map(l => `
+    <div class="ctrl-row" onclick="toggleLayer('${l.k}', this)">
+      <span class="ci">${l.i}</span>
+      <span class="cn">${l.n}</span>
+      <span class="switch ${state.layers[l.k]?'on':''}"></span>
+    </div>`).join('');
+  updateLayerCount();
+}
+
+function toggleLayer(k, el){
+  state.layers[k] = !state.layers[k];
+  el.querySelector('.switch').classList.toggle('on', state.layers[k]);
+  applyLayers();
+  updateLayerCount();
+}
+
+function updateLayerCount(){
+  const n = Object.values(state.layers).filter(Boolean).length;
+  document.getElementById('layerCount').textContent = `${n} 层可见`;
+}
+
+function applyLayers(){
+  const svg = document.getElementById('humanSvg');
+  const map = { organ:'.layer-organ', vessel:'.layer-vessel', meridian:'.layer-meridian', acupoint:'.layer-acu' };
+  Object.entries(map).forEach(([k, sel]) => {
+    const g = svg.querySelector(sel);
+    if (g) g.style.display = state.layers[k] ? '' : 'none';
+  });
+}
+
+function buildHuman(){
+  const svg = document.getElementById('humanSvg');
+  const isChild = state.persona === '儿童';
+  const isElder = state.persona === '老年人';
+  const isFemale = state.persona === '成年女性';
+
+  let html = `
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="1.6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <radialGradient id="organGrad">
+      <stop offset="0%" stop-color="#22d3ee" stop-opacity=".55"/>
+      <stop offset="100%" stop-color="#3b82f6" stop-opacity=".22"/>
+    </radialGradient>
+  </defs>`;
+
+  // 人体轮廓
+  const headR = isChild ? 17 : 20;
+  const headY = isChild ? 34 : 40;
+  const torsoTop = isChild ? 60 : 68;
+  const torsoBot = isChild ? 132 : 150;
+  const legBot = isChild ? 280 : 318;
+  const shoulder = isChild ? 16 : 22;
+
+  html += `<g class="layer-body">
+    <circle cx="100" cy="${headY}" r="${headR}" class="body-line"/>
+    <path d="M${100-shoulder},${torsoTop} Q100,${torsoTop-8} ${100+shoulder},${torsoTop}
+             L${100+shoulder+5},${torsoBot} Q100,${torsoBot+13} ${100-shoulder-5},${torsoBot} Z" class="body-line"/>
+    <path d="M${100-shoulder+2},${torsoTop+6} L${100-shoulder-18},${torsoTop+38} L${100-shoulder-24},${torsoTop+78}"
+          class="limb-line" stroke-width="11"/>
+    <path d="M${100+shoulder-2},${torsoTop+6} L${100+shoulder+18},${torsoTop+38} L${100+shoulder+24},${torsoTop+78}"
+          class="limb-line" stroke-width="11"/>
+    <path d="M88,${torsoBot+4} L84,${(torsoBot+legBot)/2} L82,${legBot}" class="limb-line" stroke-width="14"/>
+    <path d="M112,${torsoBot+4} L116,${(torsoBot+legBot)/2} L118,${legBot}" class="limb-line" stroke-width="14"/>
+  </g>`;
+
+  // 血管系统
+  html += `<g class="layer-vessel">
+    <path d="M97,103 L100,132 M97,103 L92,74 L94,56" stroke="#f87171" stroke-width="2.2" class="vessel-line"/>
+    <path d="M97,103 L82,86 L64,112 L58,150" stroke="#f87171" stroke-width="2" class="vessel-line"/>
+    <path d="M97,103 L112,86 L136,112 L142,150" stroke="#60a5fa" stroke-width="2" class="vessel-line"/>
+    <path d="M100,132 L88,176 L84,246 L82,316" stroke="#f87171" stroke-width="2" class="vessel-line"/>
+    <path d="M100,132 L112,176 L116,246 L118,316" stroke="#60a5fa" stroke-width="2" class="vessel-line"/>
+    <path d="M97,103 L108,96 L120,104" stroke="#f87171" stroke-width="1.6" class="vessel-line"/>
+    <circle cx="97" cy="103" r="3" fill="#f87171" opacity=".9">
+      <animate attributeName="r" values="3;5;3" dur="1.4s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values=".9;.3;.9" dur="1.4s" repeatCount="indefinite"/>
+    </circle>
+  </g>`;
+
+  // 经络系统
+  const meridianPaths = [
+    'M84,92 L78,112 L70,140 L64,168 L60,196',       // 肺经
+    'M118,95 L128,120 L138,148 L144,176',            // 大肠经
+    'M95,70 L92,100 L88,132 L86,168 L84,210 L82,252 L80,296 L78,316', // 胃经
+    'M106,70 L109,102 L111,140 L109,178 L107,214 L105,256 L103,296 L101,316', // 脾经
+    'M100,104 L118,112 L132,140 L140,168',           // 心经
+    'M100,112 L82,124 L66,148 L58,172',              // 小肠经
+    'M92,44 L88,72 L86,104 L88,140 L90,180 L88,224 L86,272 L84,314', // 膀胱经
+    'M108,44 L112,72 L114,104 L112,140 L110,180 L112,224 L114,272 L116,314' // 肾经
+  ];
+  html += `<g class="layer-meridian">` + meridianPaths.map((d, i) =>
+    `<path d="${d}" stroke="${i % 2 ? '#fbbf24' : '#22d3ee'}" stroke-width="1.2" opacity=".72" class="meridian-line"/>`
+  ).join('') + `</g>`;
+
+  // 器官
+  html += `<g class="layer-organ">`;
+  ORGANS.forEach(o => {
+    const riskColor = o.lv === 1 ? '#34d399' : o.lv === 2 ? '#fbbf24' : '#f87171';
+    const draw = (cx, cy) => `
+      <g class="organ-node" data-organ="${o.id}" onclick="openOrgan('${o.id}')">
+        <ellipse cx="${cx}" cy="${cy}" rx="${o.rx}" ry="${o.ry}" fill="url(#organGrad)"
+                 stroke="${riskColor}" stroke-width="1.3" opacity=".92"/>
+        <ellipse cx="${cx}" cy="${cy}" rx="${o.rx}" ry="${o.ry}" class="hit"/>
+        <title>${o.name} · 健康指数 ${o.score}</title>
+      </g>`;
+    html += draw(o.x, o.y);
+    if (o.dual) html += draw(o.x + (o.dualDx || 34), o.y);
+  });
+  // 心脏脉冲
+  html += `<circle cx="97" cy="103" r="9" fill="none" stroke="#22d3ee" stroke-width="1" opacity=".6">
+    <animate attributeName="r" values="8;14;8" dur="1.6s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values=".6;0;.6" dur="1.6s" repeatCount="indefinite"/>
+  </circle>`;
+  html += `</g>`;
+
+  // 穴位
+  const acuPts = [
+    [100,25],[100,52],[84,80],[118,80],[86,104],[116,104],[88,132],[112,132],
+    [92,156],[108,156],[84,200],[116,200],[84,250],[116,250],[82,290],[118,290],[82,314],[118,314]
+  ];
+  html += `<g class="layer-acu">` + acuPts.map(([x, y]) =>
+    `<circle cx="${x}" cy="${y}" r="1.7" fill="#67e8f9" opacity=".85" filter="url(#glow)"/>`
+  ).join('') + `</g>`;
+
+  svg.innerHTML = html;
+  applyLayers();
+}
+
+function autoRotate(){
+  state.autoRotate = !state.autoRotate;
+  const rotor = document.getElementById('humanRotor');
+  const slider = document.getElementById('angleSlider');
+
+  if (state.autoRotate){
+    const step = () => {
+      if (!state.autoRotate) return;
+      state.angle += 0.6;
+      if (state.angle > 35) state.angle = -35;
+      rotor.style.transform = `rotateY(${state.angle}deg)`;
+      slider.value = state.angle;
+      document.getElementById('angleLabel').textContent = Math.round(state.angle) + '°';
+      requestAnimationFrame(step);
+    };
+    step();
+  }
+}
+
+function resetView(){
+  state.autoRotate = false;
+  state.angle = 0;
+  document.getElementById('humanRotor').style.transform = 'rotateY(0deg)';
+  document.getElementById('angleSlider').value = 0;
+  document.getElementById('angleLabel').textContent = '0°';
+}
+
+document.addEventListener('input', e => {
+  if (e.target.id === 'angleSlider'){
+    state.autoRotate = false;
+    state.angle = parseFloat(e.target.value);
+    document.getElementById('humanRotor').style.transform = `rotateY(${state.angle}deg)`;
+    document.getElementById('angleLabel').textContent = Math.round(state.angle) + '°';
+  }
+});
+
+/* ---------------- 器官中心 ---------------- */
+function buildOrganGrid(){
+  document.getElementById('organGrid').innerHTML = ORGANS.map(o => {
+    const cls = o.lv === 1 ? 'ok' : o.lv === 2 ? 'wn' : 'dg';
+    return `
+    <div class="organ-card glass" onclick="openOrgan('${o.id}')">
+      <div class="oc-top">
+        <div class="oc-icon">${o.icon}</div>
+        <div>
+          <div class="oc-name">${o.name}</div>
+          <div class="oc-en">${o.en}</div>
+        </div>
+      </div>
+      <div class="oc-score"><b>${o.score}</b><span>/100</span></div>
+      <div class="mini-bar"><i style="width:${o.score}%"></i></div>
+      <div style="margin-top:9px"><span class="tag ${cls}">${o.risk}</span></div>
+    </div>`;
+  }).join('');
+}
+
+function openOrgan(id){
+  const o = ORGANS.find(x => x.id === id);
+  if (!o) return;
+  const cls = o.lv === 1 ? 'ok' : o.lv === 2 ? 'wn' : 'dg';
+  const maxS = Math.max(...o.history.map(h => h.s));
+  const minS = Math.min(...o.history.map(h => h.s));
+  const spark = sparkSVG(o.history.map(h => h.s), o.lv === 1 ? '#34d399' : o.lv === 2 ? '#fbbf24' : '#f87171');
+
+  document.getElementById('modalCard').innerHTML = `
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div style="display:flex;align-items:center;gap:13px;margin-bottom:16px">
+      <div style="width:50px;height:50px;border-radius:15px;display:grid;place-items:center;font-size:24px;background:linear-gradient(135deg,rgba(34,211,238,.16),rgba(99,102,241,.16));border:1px solid rgba(34,211,238,.25)">${o.icon}</div>
+      <div>
+        <div style="font-size:18px;font-weight:800">${o.name} <span style="font-size:10px;color:var(--tx3);letter-spacing:1.5px">${o.en}</span></div>
+        <div style="font-size:11.5px;color:var(--tx3);margin-top:2px">${o.sys}</div>
+      </div>
+      <div style="margin-left:auto;text-align:right">
+        <div style="font-size:27px;font-weight:800;background:linear-gradient(135deg,#67e8f9,#a78bfa);-webkit-background-clip:text;background-clip:text;color:transparent">${o.score}</div>
+        <div style="font-size:9.5px;color:var(--tx3);letter-spacing:1px">健康指数</div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:14px"><span class="tag ${cls}">${o.risk}</span></div>
+
+    <div style="font-size:12.5px;line-height:1.8;color:var(--tx2);margin-bottom:14px">${o.desc}</div>
+
+    <div style="font-size:11.5px;color:var(--tx3);margin-bottom:6px">主要功能</div>
+    <div style="font-size:12.5px;color:#a5f3fc;margin-bottom:16px;padding:10px 12px;border-radius:10px;background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.14)">${o.fn}</div>
+
+    <div style="font-size:11.5px;color:var(--tx3);margin-bottom:8px">关键指标</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:16px">
+      ${o.metrics.map(m => `
+        <div style="padding:10px;border-radius:11px;background:rgba(255,255,255,.035);border:1px solid var(--line);text-align:center">
+          <div style="font-size:10.5px;color:var(--tx3)">${m.k}</div>
+          <div style="font-size:13.5px;font-weight:700;margin-top:4px;color:var(--cy)">${m.v}</div>
+        </div>`).join('')}
+    </div>
+
+    <div style="font-size:11.5px;color:var(--tx3);margin-bottom:8px">检测趋势</div>
+    <div style="padding:12px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid var(--line);margin-bottom:16px">
+      <div style="height:36px">${spark}</div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--tx3);margin-top:6px">
+        ${o.history.map(h => `<span>${h.d} · ${h.s}</span>`).join('')}
+      </div>
+    </div>
+
+    <div style="font-size:11.5px;color:var(--tx3);margin-bottom:8px">改善建议</div>
+    ${o.advice.map(a => `
+      <div style="display:flex;gap:8px;font-size:12.5px;line-height:1.7;color:var(--tx2);margin-bottom:7px">
+        <span style="color:var(--cy)">▸</span><span>${a}</span>
+      </div>`).join('')}
+
+    <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--line);font-size:10px;color:#3d5570;text-align:center;line-height:1.7">
+      数据来源：AI 健康分析引擎 · 本内容仅供健康参考
+    </div>
+  `;
+  document.getElementById('modal').classList.add('show');
+}
+
+function closeModal(){
+  document.getElementById('modal').classList.remove('show');
+}
+
+/* ---------------- 血管循环 ---------------- */
+const VESSEL_METRICS = [
+  { lb:'血压', v:'126/82', u:'mmHg', c:'var(--ok)', d:'正常' },
+  { lb:'血氧', v:'98', u:'%', c:'var(--ok)', d:'稳定' },
+  { lb:'脉搏', v:'72', u:'bpm', c:'var(--ok)', d:'规律' },
+  { lb:'HRV', v:'46', u:'ms', c:'var(--wn)', d:'偏低' },
+  { lb:'循环指数', v:'88', u:'', c:'var(--cy)', d:'良好' },
+  { lb:'动脉硬化指数', v:'1.12', u:'', c:'var(--ok)', d:'正常' }
+];
+
+function renderVesselMetrics(){
+  document.getElementById('vesselMetrics').innerHTML = VESSEL_METRICS.map(m => `
+    <div class="metric-card glass">
+      <div class="lb">${m.lb}</div>
+      <div class="delta" style="color:${m.c}">${m.d}</div>
+      <div class="vv">${m.v}<small>${m.u}</small></div>
+    </div>`).join('');
+}
+
+function buildVesselPage(){
+  const vessels = [
+    { n:'脑血管', s:'血流速度 62 cm/s', st:'良好', lv:1 },
+    { n:'冠状动脉', s:'钙化积分 12', st:'良好', lv:1 },
+    { n:'主动脉', s:'内径 3.2 cm', st:'正常', lv:1 },
+    { n:'静脉系统', s:'回流功能良好', st:'正常', lv:1 },
+    { n:'微循环系统', s:'甲襞微循环 轻度异常', st:'需关注', lv:2 }
+  ];
+  document.getElementById('vesselMap').innerHTML = vessels.map(v => `
+    <div style="display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--line)">
+      <div style="width:7px;height:7px;border-radius:50%;background:${v.lv===1?'var(--ok)':'var(--wn)'};box-shadow:0 0 9px ${v.lv===1?'var(--ok)':'var(--wn)'}"></div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600">${v.n}</div>
+        <div style="font-size:11px;color:var(--tx3);margin-top:2px">${v.s}</div>
+      </div>
+      <span class="tag ${v.lv===1?'ok':'wn'}">${v.st}</span>
+    </div>`).join('');
+}
+
+/* ---------------- 经络中心 ---------------- */
+function buildMeridianPage(){
+  renderMeridianHeat();
+
+  document.getElementById('meridianList12').innerHTML = MERIDIANS_12.map(m => {
+    const cls = m.energy >= 80 ? 'ok' : m.energy >= 72 ? 'wn' : 'dg';
+    return `
+    <div class="list-item" onclick="openMeridian('${m.name}', ${m.energy}, '${m.status}', '${m.path}', '${m.time}', '${m.organ}')">
+      <div class="li-icon">〰️</div>
+      <div class="li-main">
+        <div class="li-t">${m.name} <span class="tag ${cls}">${m.status}</span></div>
+        <div class="li-s">${m.time} · 关联器官：${m.organ}</div>
+      </div>
+      <div class="li-v" style="color:${m.energy>=80?'var(--ok)':m.energy>=72?'var(--wn)':'var(--dg)'}">${m.energy}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('meridianList8').innerHTML = MERIDIANS_8.map(m => {
+    const cls = m.energy >= 80 ? 'ok' : m.energy >= 74 ? 'wn' : 'dg';
+    return `
+    <div class="list-item" onclick="openMeridian('${m.name}', ${m.energy}, '${m.status}', '${m.path}', '奇经八脉', '—')">
+      <div class="li-icon"></div>
+      <div class="li-main">
+        <div class="li-t">${m.name} <span class="tag ${cls}">${m.status}</span></div>
+        <div class="li-s">${m.path.slice(0, 30)}…</div>
+      </div>
+      <div class="li-v" style="color:${m.energy>=80?'var(--ok)':m.energy>=74?'var(--wn)':'var(--dg)'}">${m.energy}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderMeridianHeat(){
+  const el = document.getElementById('meridianHeat');
+  const items = [...MERIDIANS_12.slice(0, 8).map(m => ({ n:m.name, e:m.energy })),
+                 ...MERIDIANS_8.slice(0, 4).map(m => ({ n:m.name, e:m.energy }))];
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:9px">
+      ${items.map(it => {
+        const c = it.e >= 82 ? '#34d399' : it.e >= 74 ? '#22d3ee' : it.e >= 68 ? '#fbbf24' : '#f87171';
+        return `<div style="padding:10px 4px;border-radius:11px;text-align:center;
+            background:${c}1a;border:1px solid ${c}44;transition:.25s" title="能量值 ${it.e}">
+          <div style="font-size:12px;font-weight:600;color:${c}">${it.n}</div>
+          <div style="font-size:15px;font-weight:800;color:${c};margin-top:3px">${it.e}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="display:flex;gap:14px;margin-top:14px;font-size:10.5px;color:var(--tx3);flex-wrap:wrap">
+      <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#34d399;margin-right:4px"></i>能量充足 ≥82</span>
+      <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#22d3ee;margin-right:4px"></i>正常 74–81</span>
+      <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#fbbf24;margin-right:4px"></i>需关注 68–73</span>
+      <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#f87171;margin-right:4px"></i>堵塞风险 &lt;68</span>
+    </div>`;
+}
+
+function openMeridian(name, energy, status, path, time, organ){
+  const cls = energy >= 80 ? 'ok' : energy >= 72 ? 'wn' : 'dg';
+  document.getElementById('modalCard').innerHTML = `
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div style="display:flex;align-items:center;gap:13px;margin-bottom:16px">
+      <div style="width:50px;height:50px;border-radius:15px;display:grid;place-items:center;font-size:23px;background:linear-gradient(135deg,rgba(251,191,36,.14),rgba(34,211,238,.14));border:1px solid rgba(251,191,36,.25)">〰️</div>
+      <div>
+        <div style="font-size:18px;font-weight:800">${name}</div>
+        <div style="font-size:11.5px;color:var(--tx3);margin-top:2px">${time}</div>
+      </div>
+      <div style="margin-left:auto;text-align:right">
+        <div style="font-size:26px;font-weight:800;color:var(--cy)">${energy}</div>
+        <div style="font-size:9.5px;color:var(--tx3);letter-spacing:1px">能量值</div>
+      </div>
+    </div>
+    <div style="margin-bottom:14px"><span class="tag ${cls}">${status}</span></div>
+    <div style="font-size:11.5px;color:var(--tx3);margin-bottom:6px">循行路线</div>
+    <div style="font-size:12.5px;line-height:1.85;color:var(--tx2);padding:12px;border-radius:11px;background:rgba(255,255,255,.03);border:1px solid var(--line);margin-bottom:16px">${path}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+      <div style="padding:12px;border-radius:11px;background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.16)">
+        <div style="font-size:10.5px;color:var(--tx3)">关联器官</div>
+        <div style="font-size:14px;font-weight:700;margin-top:4px">${organ}</div>
+      </div>
+      <div style="padding:12px;border-radius:11px;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2)">
+        <div style="font-size:10.5px;color:var(--tx3)">堵塞预警</div>
+        <div style="font-size:14px;font-weight:700;margin-top:4px;color:${cls==='dg'?'var(--dg)':cls==='wn'?'var(--wn)':'var(--ok)'}">
+          ${energy < 68 ? '高' : energy < 74 ? '中' : '低'}
+        </div>
+      </div>
+    </div>
+    <div style="font-size:11.5px;color:var(--tx3);margin-bottom:8px">调理建议</div>
+    <div style="font-size:12.5px;line-height:1.8;color:var(--tx2)">
+      ▸ 于当令时段（${time.split(' ')[0]}）保持静息或浅睡，利于经气运行<br>
+      ▸ 每日沿经络走向推按 3–5 分钟，力度以微酸胀为宜<br>
+      ▸ 配合对应原穴艾灸，每次 10–15 分钟<br>
+      ▸ 避免寒凉饮食与情绪剧烈波动
+    </div>
+  `;
+  document.getElementById('modal').classList.add('show');
+}
+
+/* ---------------- 穴位中心 ---------------- */
+function buildAcupointChips(){
+  const meris = ['全部', ...new Set(ACUPOINTS.map(a => a.meridian))];
+  document.getElementById('acuChips').innerHTML = meris.map(m => `
+    <div class="chip ${m==='全部'?'active':''}" onclick="setAcuFilter('${m}', this)">${m}</div>
+  `).join('');
+}
+
+function setAcuFilter(m, el){
+  state.acuFilter = m;
+  document.querySelectorAll('#acuChips .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderAcupoints();
+}
+
+function renderAcupoints(){
+  const kw = (document.getElementById('acuSearch').value || '').trim();
+  let list = ACUPOINTS;
+  if (state.acuFilter !== '全部') list = list.filter(a => a.meridian === state.acuFilter);
+  if (kw) list = list.filter(a =>
+    a.name.includes(kw) || a.effect.includes(kw) || a.indications.includes(kw) || a.meridian.includes(kw)
+  );
+
+  document.getElementById('acuCount').textContent =
+    `穴位库收录 361 个标准经穴 · 当前筛选显示 ${list.length} 个`;
+
+  if (!list.length){
+    document.getElementById('acuList').innerHTML = `<div class="empty">未找到匹配的穴位</div>`;
+    return;
+  }
+
+  document.getElementById('acuList').innerHTML = list.map(a => `
+    <div class="list-item" onclick="openAcupoint(${a.id})">
+      <div class="li-icon"></div>
+      <div class="li-main">
+        <div class="li-t">${a.name} <span class="tag cy">${a.meridian}</span></div>
+        <div class="li-s">${a.effect}</div>
+      </div>
+      <span class="arrow" style="color:var(--tx3)">›</span>
+    </div>`).join('');
+}
+
+function openAcupoint(id){
+  const a = ACUPOINTS.find(x => x.id === id);
+  if (!a) return;
+  const relOrgan = {
+    '肺经':'肺','大肠经':'大肠','胃经':'胃','脾经':'脾','心经':'心脏','小肠经':'小肠',
+    '膀胱经':'膀胱','肾经':'肾','心包经':'心包','三焦经':'三焦','胆经':'胆囊','肝经':'肝脏',
+    '任脉':'任脉系统','督脉':'督脉系统'
+  }[a.meridian] || '—';
+
+  document.getElementById('modalCard').innerHTML = `
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div style="display:flex;align-items:center;gap:13px;margin-bottom:16px">
+      <div style="width:50px;height:50px;border-radius:15px;display:grid;place-items:center;font-size:23px;background:linear-gradient(135deg,rgba(34,211,238,.16),rgba(99,102,241,.16));border:1px solid rgba(34,211,238,.25)"></div>
+      <div>
+        <div style="font-size:18px;font-weight:800">${a.name}</div>
+        <div style="font-size:11.5px;color:var(--tx3);margin-top:2px">${a.meridian} · 编号 HD-A${String(a.id).padStart(3,'0')}</div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:14px;display:flex;gap:7px;flex-wrap:wrap">
+      <span class="tag cy">${a.meridian}</span>
+      <span class="tag pu">关联器官：${relOrgan}</span>
+    </div>
+
+    <div style="font-size:11.5px;color:var(--tx3);margin-bottom:6px">定位</div>
+    <div style="font-size:12.5px;line-height:1.8;color:var(--tx2);padding:11px 13px;border-radius:11px;background:rgba(255,255,255,.03);border:1px solid var(--line);margin-bottom:14px">${a.position}</div>
+
+    <div style="font-size:11.5px;color:var(--tx3);margin-bottom:6px">功效</div>
+    <div style="font-size:12.5px;line-height:1.8;color:#a5f3fc;padding:11px 13px;border-radius:11px;background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.16);margin-bottom:14px">${a.effect}</div>
+
+    <div style="font-size:11.5px;color:var(--tx3);margin-bottom:6px">主治 / 适应症</div>
+    <div style="font-size:12.5px;line-height:1.8;color:var(--tx2);padding:11px 13px;border-radius:11px;background:rgba(255,255,255,.03);border:1px solid var(--line);margin-bottom:16px">${a.indications}</div>
+
+    <div style="font-size:11.5px;color:var(--tx3);margin-bottom:8px">操作方式</div>
+    <div style="font-size:12.5px;line-height:1.85;color:var(--tx2)">
+      ▸ 指压：拇指指腹垂直按压，力度由轻到重，保持 3–5 秒后放松<br>
+      ▸ 按揉：顺时针按揉 2–3 分钟，以局部酸胀为度<br>
+      ▸ 艾灸：每次 10–15 分钟，注意避免烫伤<br>
+      ▸ 每日 1–2 次，孕妇及皮肤破损处慎用
+    </div>
+
+    <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--line);font-size:10px;color:#3d5570;text-align:center;line-height:1.7">
+      穴位数据参考《针灸学》国家标准 GB/T 12346-2021<br>本内容仅供健康参考，不构成医疗建议
+    </div>
+  `;
+  document.getElementById('modal').classList.add('show');
+}
+
+/* ---------------- AI 问诊 ---------------- */
+function buildSymptomChips(){
+  const chips = ['头晕','失眠','胃胀','胸闷','乏力','头痛','心悸','便秘','眼干','耳鸣','焦虑','怕冷'];
+  document.getElementById('symptomChips').innerHTML = chips.map(c =>
+    `<div class="chip" onclick="quickAsk('${c}')">${c}</div>`
+  ).join('');
+}
+
+function initChat(){
+  if (state.chatStarted) return;
+  state.chatStarted = true;
+  pushMsg('ai', `您好，我是 <b style="color:var(--cy)">AI 健康助手</b>。<br>
+    我可以基于人体器官图谱、经络穴位系统与医疗知识库，为您进行症状分析与健康风险评估。<br><br>
+    请描述您的不适症状，或点击下方快捷标签。`);
+}
+
+function pushMsg(role, html){
+  const chat = document.getElementById('chat');
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  div.innerHTML = `
+    <div class="av">${role === 'ai' ? '烙' : ''}</div>
+    <div class="bubble">${html}</div>`;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+  return div;
+}
+
+function quickAsk(txt){
+  document.getElementById('chatInput').value = txt;
+  sendMsg();
+}
+
+function sendMsg(){
+  const input = document.getElementById('chatInput');
+  const txt = input.value.trim();
+  if (!txt) return;
+  input.value = '';
+  initChat();
+  pushMsg('user', txt);
+  runAnalysis(txt);
+}
+
+function matchSymptom(text){
+  for (const s of SYMPTOM_DB){
+    if (s.kw.some(k => text.includes(k))) return s;
+  }
+  return {
+    organ:'需进一步评估', meridian:'待匹配', risk:'低风险', lv:1,
+    note:'未匹配到明确的高相关症状模式',
+    advice:'建议补充更详细的症状描述（部位、持续时间、诱因），或前往医疗机构面诊'
+  };
+}
+
+function runAnalysis(text){
+  const r = matchSymptom(text);
+  const steps = [
+    '症状语义解析…',
+    '匹配人体器官图谱…',
+    '匹配经络循行路径…',
+    '计算风险评分模型…',
+    '生成个性化健康建议…'
+  ];
+
+  const holder = pushMsg('ai', '');
+  const bubble = holder.querySelector('.bubble');
+  bubble.innerHTML = '<div style="font-size:12.5px;color:var(--tx3);margin-bottom:6px">AI 分析中…</div>';
+
+  steps.forEach((s, i) => {
+    setTimeout(() => {
+      const line = document.createElement('div');
+      line.className = 'step-line';
+      line.innerHTML = `<span class="dot2"></span><span>${s}</span>`;
+      bubble.appendChild(line);
+      document.getElementById('chat').scrollTop = 1e9;
+
+      if (i === steps.length - 1){
+        setTimeout(() => showResult(holder, r), 520);
+      }
+    }, 340 * (i + 1));
+  });
+}
+
+function showResult(holder, r){
+  const cls = r.lv === 1 ? 'ok' : r.lv === 2 ? 'wn' : 'dg';
+  const json = {
+    "相关器官": r.organ,
+    "相关经络": r.meridian,
+    "风险等级": r.risk,
+    "建议": r.advice
+  };
+
+  holder.querySelector('.bubble').innerHTML = `
+    <div style="font-size:13px;font-weight:700;margin-bottom:9px;color:#a5f3fc">✅ 分析完成</div>
+
+    <div class="kv"><b>相关器官</b><span>${r.organ}</span></div>
+    <div class="kv"><b>相关经络</b><span>${r.meridian}</span></div>
+    <div class="kv"><b>风险等级</b><span class="tag ${cls}">${r.risk}</span></div>
+
+    <div style="margin-top:11px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.035);border:1px solid var(--line);font-size:12px;line-height:1.7;color:var(--tx2)">
+      <b style="color:var(--tx3);font-weight:500">AI 解读：</b>${r.note}
+    </div>
+
+    <div style="margin-top:12px;font-size:11.5px;color:var(--tx3);margin-bottom:5px">结构化输出（JSON）</div>
+    <pre>${JSON.stringify(json, null, 2)}</pre>
+
+    <div style="margin-top:12px;font-size:12px;line-height:1.8;color:var(--tx2)">
+      <b style="color:#a5f3fc">健康建议：</b><br>▸ ${r.advice}<br>
+      ▸ 保持规律作息，每日饮水量 1500–2000 mL<br>
+      ▸ 若症状持续或加重，请及时就医
+    </div>
+
+    <div style="margin-top:13px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn sm" onclick="go('report')">查看健康报告</button>
+      <button class="btn ghost sm" onclick="go('organ')">查看器官档案</button>
+    </div>
+
+    <div style="margin-top:12px;font-size:10px;color:#3d5570;line-height:1.6">
+      ⚠️ 本结果由 AI 基于健康知识库生成，仅供健康参考，不能替代专业医疗诊断。
+    </div>
+  `;
+  document.getElementById('chat').scrollTop = 1e9;
+}
+
+/* ---------------- 健康报告 ---------------- */
+const SCORE_PARTS = [
+  { k:'器官健康', v:28, max:30, c:'#22d3ee' },
+  { k:'循环系统', v:16, max:20, c:'#3b82f6' },
+  { k:'经络系统', v:17, max:20, c:'#8b5cf6' },
+  { k:'睡眠质量', v:7,  max:10, c:'#34d399' },
+  { k:'运动指数', v:8,  max:10, c:'#fbbf24' },
+  { k:'心理压力', v:8,  max:10, c:'#f472b6' }
+];
+
+function renderScoreBars(){
+  document.getElementById('scoreBars').innerHTML = SCORE_PARTS.map(p => `
+    <div class="bar-row">
+      <div class="br-top"><span>${p.k}</span><b>${p.v} / ${p.max}</b></div>
+      <div class="bar-track"><i style="width:${(p.v / p.max * 100).toFixed(0)}%;background:linear-gradient(90deg,${p.c},${p.c}99);box-shadow:0 0 10px ${p.c}88"></i></div>
+    </div>`).join('');
+}
+
+function renderRadar(){
+  const cx = 120, cy = 108, R = 74;
+  const labels = ['器官','循环','经络','睡眠','运动','心理'];
+  const values = [0.93, 0.80, 0.85, 0.70, 0.80, 0.80];
+  const n = labels.length;
+
+  const pt = (i, r) => {
+    const a = -Math.PI / 2 + i * 2 * Math.PI / n;
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  };
+
+  let grid = '';
+  [0.25, 0.5, 0.75, 1].forEach(k => {
+    const pts = labels.map((_, i) => pt(i, R * k).join(',')).join(' ');
+    grid += `<polygon points="${pts}" fill="none" stroke="rgba(64,200,255,${k === 1 ? .3 : .12})" stroke-width="1"/>`;
+  });
+
+  let axes = '';
+  labels.forEach((l, i) => {
+    const [x, y] = pt(i, R);
+    axes += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="rgba(64,200,255,.14)" stroke-width="1"/>`;
+    const [lx, ly] = pt(i, R + 17);
+    axes += `<text x="${lx}" y="${ly + 3}" text-anchor="middle" font-size="10.5" fill="#8aa3c4">${l}</text>`;
+  });
+
+  const poly = values.map((v, i) => pt(i, R * v).join(',')).join(' ');
+  let dots = '';
+  values.forEach((v, i) => {
+    const [x, y] = pt(i, R * v);
+    dots += `<circle cx="${x}" cy="${y}" r="3.2" fill="#22d3ee" stroke="#04070f" stroke-width="1.5"/>`;
+  });
+
+  document.getElementById('radarSvg').innerHTML = `
+    <defs>
+      <linearGradient id="radarFill" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#22d3ee" stop-opacity=".42"/>
+        <stop offset="100%" stop-color="#8b5cf6" stop-opacity=".32"/>
+      </linearGradient>
+    </defs>
+    ${grid}${axes}
+    <polygon points="${poly}" fill="url(#radarFill)" stroke="#22d3ee" stroke-width="1.8"
+             style="filter:drop-shadow(0 0 7px rgba(34,211,238,.6))"/>
+    ${dots}
+  `;
+}
+
+function renderTrend(){
+  const data = [80, 82, 84];
+  const labels = ['05-12', '06-12', '07-12'];
+  const w = 320, h = 120, pad = 26;
+  const maxV = 92, minV = 74;
+
+  const px = i => pad + i * ((w - pad * 2) / (data.length - 1));
+  const py = v => h - pad - ((v - minV) / (maxV - minV)) * (h - pad * 2);
+
+  const pts = data.map((v, i) => [px(i), py(v)]);
+  const line = pts.map(p => p.join(',')).join(' ');
+  const area = `${pad},${h - pad} ${line} ${w - pad},${h - pad}`;
+
+  let dots = '', texts = '';
+  pts.forEach((p, i) => {
+    dots += `<circle cx="${p[0]}" cy="${p[1]}" r="4.5" fill="#22d3ee" stroke="#04070f" stroke-width="2"/>
+             <text x="${p[0]}" y="${p[1] - 12}" text-anchor="middle" font-size="11" fill="#67e8f9" font-weight="700">${data[i]}</text>
+             <text x="${p[0]}" y="${h - 8}" text-anchor="middle" font-size="9.5" fill="#5b7396">${labels[i]}</text>`;
+  });
+
+  let grid = '';
+  for (let i = 0; i <= 3; i++){
+    const y = pad + i * ((h - pad * 2) / 3);
+    grid += `<line x1="${pad}" y1="${y}" x2="${w - pad}" y2="${y}" stroke="rgba(64,200,255,.08)" stroke-width="1"/>`;
+  }
+
+  document.getElementById('trendSvg').innerHTML = `
+    <defs>
+      <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#22d3ee" stop-opacity=".35"/>
+        <stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    ${grid}
+    <polygon points="${area}" fill="url(#areaGrad)"/>
+    <polyline points="${line}" fill="none" stroke="#22d3ee" stroke-width="2.2"
+      stroke-linecap="round" stroke-linejoin="round"
+      style="filter:drop-shadow(0 0 6px rgba(34,211,238,.8))"/>
+    ${dots}
+  `;
+}
+
+function renderAdvice(){
+  const list = [
+    { i:'變', t:'心血管健康', c:'wn', d:'HRV 偏低，建议每周进行 150 分钟中等强度有氧运动，并监测静息心率变化。' },
+    { i:'', t:'肝脏调理', c:'dg', d:'肝经能量 66（明显堵塞），请于 23:00 前入睡，减少酒精与高脂饮食，3 个月后复查肝功能。' },
+    { i:'️', t:'饮食建议', c:'cy', d:'增加膳食纤维至每日 25g 以上，补充益生菌；减少精制糖与油炸食品摄入。' },
+    { i:'', t:'运动建议', c:'ok', d:'每周 3–5 次运动，每次 30–45 分钟，以快走、游泳、八段锦等中低强度为主。' },
+    { i:'', t:'睡眠建议', c:'ok', d:'保持 23:00–07:00 的固定作息，睡前 1 小时避免蓝光暴露，可配合按揉神门穴。' },
+    { i:'律', t:'情志调节', c:'pu', d:'每日 15 分钟正念冥想或深呼吸训练，有助于降低交感神经张力，改善经络气血运行。' }
+  ];
+  document.getElementById('adviceList').innerHTML = list.map(a => `
+    <div class="list-item" style="cursor:default">
+      <div class="li-icon">${a.i}</div>
+      <div class="li-main">
+        <div class="li-t">${a.t} <span class="tag ${a.c}">AI 建议</span></div>
+        <div class="li-s" style="white-space:normal;line-height:1.6">${a.d}</div>
+      </div>
+    </div>`).join('');
+}
+
+/* ---------------- 页面切换钩子 ---------------- */
+const _go = go;
+go = function(page){
+  _go(page);
+  if (page === 'ai'){
+    setTimeout(initChat, 260);
+  }
+  if (page === 'body'){
+    setTimeout(() => {
+      const rotor = document.getElementById('humanRotor');
+      if (rotor) rotor.style.transform = `rotateY(${state.angle}deg)`;
+    }, 60);
+  }
+};
+
+/* ---------------- 键盘 ---------------- */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+
+/* ---------------- 版权 ---------------- */
+console.log('%c 戴煜的疗养健康助手 ',
+  'background:linear-gradient(90deg,#0891b2,#6366f1);color:#fff;padding:6px 14px;border-radius:6px;font-weight:bold;font-size:14px');
+console.log('%c 人体数字孪生健康平台 · V1.0.0\n%c © 2025 戴煜的疗养健康助手 Platform. All Rights Reserved.\n 本平台内容仅供健康参考，不能替代专业医疗诊断。',
+  'color:#22d3ee;font-size:12px', 'color:#5b7396;font-size:11px');
+</script>
+</body>
+</html>
