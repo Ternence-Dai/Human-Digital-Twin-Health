@@ -25,6 +25,7 @@ const PAGES_META = [
   { key:'vessel',   name:'血管循环', en:'CIRCULATION', icon:'喝' },
   { key:'meridian', name:'经络中心', en:'MERIDIANS',   icon:'〰️' },
   { key:'acupoint', name:'穴位中心', en:'ACUPOINTS',   icon:'' },
+  { key:'records',   name:'健康记录', en:'OBSERVATIONS', icon:'' },
   { key:'ai',       name:'症状参考',  en:'SYMPTOM GUIDE',  icon:'烙' },
   { key:'report',   name:'健康报告', en:'REPORT',      icon:'' },
   { key:'me',       name:'我的',     en:'PROFILE',     icon:'' }
@@ -33,7 +34,11 @@ const PAGES_META = [
 const TABBAR = ['home','body','ai','report','me'];
 
 /* ---------------- 初始化 ---------------- */
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
+  try { window.HealthDomain = await import('../../src/domain/index.js'); }
+  catch (error) { console.error('Health domain core unavailable', error); }
+  loadObservations();
+  renderObservations();
   buildNav();
   buildQuickGrid();
   buildHomeMetrics();
@@ -57,6 +62,65 @@ window.addEventListener('load', () => {
     document.getElementById('login').classList.remove('hide');
   }, 2300);
 });
+
+/* ---------------- 可追溯健康记录 ---------------- */
+const OBSERVATION_STORAGE_KEY = 'health-observations-v1';
+function loadObservations(){
+  try{
+    const raw = localStorage.getItem(OBSERVATION_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    window.healthObservations = Array.isArray(parsed) ? parsed : [];
+  }catch(error){
+    console.warn('Health observation storage unavailable', error);
+    window.healthObservations = [];
+  }
+}
+function renderObservations(){
+  const host = document.getElementById('observationList');
+  const count = document.getElementById('observationCount');
+  if(!host || !count) return;
+  const rows = Array.isArray(window.healthObservations) ? [...window.healthObservations] : [];
+  rows.sort((a,b)=>Date.parse(b.observedAt)-Date.parse(a.observedAt));
+  count.textContent = rows.length + ' 条';
+  if(!rows.length){ host.innerHTML='<div class="empty">暂无记录。新增测量后会显示在这里。</div>'; return; }
+  host.innerHTML = rows.map(row=>`
+    <div class="list-item" style="border-bottom:1px solid var(--line);padding:10px 0">
+      <div class="li-main">
+        <div class="li-t">${escHTML(row.metric)}：${escHTML(row.value)} ${escHTML(row.unit)}</div>
+        <div class="li-s">${escHTML(row.observedAt)} · 来源：${escHTML(row.source)}</div>
+        <div class="li-s">质量标记：${escHTML(row.quality)}</div>
+      </div>
+    </div>`).join('');
+}
+function saveObservation(event){
+  if(event) event.preventDefault();
+  const form = document.getElementById('observationForm');
+  if(!form || !window.HealthDomain){ alert('健康记录校验模块尚未加载，请刷新页面后重试。'); return false; }
+  const fields = new FormData(form);
+  const valueText = String(fields.get('value') || '').trim();
+  const value = Number(valueText);
+  const localDate = String(fields.get('observedAt') || '');
+  const observedAt = localDate ? new Date(localDate).toISOString() : '';
+  try{
+    const observation = window.HealthDomain.createObservation({
+      metric:String(fields.get('metric') || ''),
+      value,
+      unit:String(fields.get('unit') || ''),
+      observedAt,
+      source:String(fields.get('source') || ''),
+      quality:String(fields.get('quality') || '')
+    });
+    const next = [...(window.healthObservations || []), observation];
+    localStorage.setItem(OBSERVATION_STORAGE_KEY, JSON.stringify(next));
+    window.healthObservations = next;
+    form.reset();
+    renderObservations();
+    alert('健康记录已保存在当前浏览器。');
+  }catch(error){
+    alert('记录未保存：' + (error && error.message ? error.message : '数据校验失败'));
+  }
+  return false;
+}
 
 /* ---------------- 导航 ---------------- */
 function buildNav(){
