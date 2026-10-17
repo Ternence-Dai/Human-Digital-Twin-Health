@@ -480,7 +480,7 @@ img,svg,canvas,video{max-width:100%}
     <p style="margin-top:8px">人体数字孪生健康平台</p>
   </div>
   <div class="loadbar"><i></i></div>
-  <p style="color:#2c4763;font-size:10px;letter-spacing:1px">正在加载医疗知识图谱…</p>
+  <p style="color:#2c4763;font-size:10px;letter-spacing:1px">演示环境 · 示例数据 · 不代表真实检测结果</p>
 </div>
 
 <!-- ============ 登录页 ============ -->
@@ -1258,7 +1258,7 @@ function buildHomeMetrics(){
   document.getElementById('homeMetrics').innerHTML = metrics.map(m => `
     <div class="metric-card glass">
       <div class="lb">${m.lb}</div>
-      <div class="delta" style="color:${m.c}">${m.d}</div>
+      <div class="delta" style="color:${m.c}">示例 · ${m.d}</div>
       <div class="vv">${m.v}<small>${m.u}</small></div>
       <div class="spark">${sparkSVG(m.spark, m.c)}</div>
     </div>`).join('');
@@ -2006,18 +2006,19 @@ function renderTrend(){
 
 function renderAdvice(){
   const list = [
-    { i:'變', t:'心血管健康', c:'wn', d:'HRV 偏低，建议每周进行 150 分钟中等强度有氧运动，并监测静息心率变化。' },
-    { i:'', t:'肝脏调理', c:'dg', d:'肝经能量 66（明显堵塞），请于 23:00 前入睡，减少酒精与高脂饮食，3 个月后复查肝功能。' },
-    { i:'️', t:'饮食建议', c:'cy', d:'增加膳食纤维至每日 25g 以上，补充益生菌；减少精制糖与油炸食品摄入。' },
-    { i:'', t:'运动建议', c:'ok', d:'每周 3–5 次运动，每次 30–45 分钟，以快走、游泳、八段锦等中低强度为主。' },
-    { i:'', t:'睡眠建议', c:'ok', d:'保持 23:00–07:00 的固定作息，睡前 1 小时避免蓝光暴露，可配合按揉神门穴。' },
-    { i:'律', t:'情志调节', c:'pu', d:'每日 15 分钟正念冥想或深呼吸训练，有助于降低交感神经张力，改善经络气血运行。' }
+    { i:'♥', t:'心血管健康', c:'wn', d:'可记录静息心率、血压与日常活动变化；如出现胸痛、呼吸困难或晕厥等症状，请及时寻求专业医疗帮助。' },
+    { i:'☘', t:'均衡饮食', c:'cy', d:'优先选择多样化蔬果、全谷物和适量优质蛋白；具体饮食方案应结合个人疾病、药物与营养需求。' },
+    { i:'⌁', t:'日常活动', c:'ok', d:'根据体能循序渐进增加活动量；有慢性病、运动禁忌或运动时不适，请先咨询专业人员。' },
+    { i:'◷', t:'睡眠记录', c:'ok', d:'保持相对规律的作息，并记录睡眠时长与主观感受；持续严重睡眠问题建议就医评估。' },
+    { i:'◎', t:'压力管理', c:'pu', d:'可尝试短时放松、呼吸练习或散步；若情绪困扰持续影响生活，请寻求专业支持。' }
   ];
-  document.getElementById('adviceList').innerHTML = list.map(a => `
+  const host = document.getElementById('adviceList');
+  if (!host) return;
+  host.innerHTML = '<div role="note" style="padding:10px 12px;margin-bottom:12px;border:1px solid var(--line);border-radius:10px;color:var(--tx2);font-size:11px;line-height:1.6">以下为通用健康教育信息，不是基于个人检测数据生成的诊断或治疗建议。</div>' + list.map(a => `
     <div class="list-item" style="cursor:default">
       <div class="li-icon">${a.i}</div>
       <div class="li-main">
-        <div class="li-t">${a.t} <span class="tag ${a.c}">AI 建议</span></div>
+        <div class="li-t">${a.t} <span class="tag ${a.c}">健康科普</span></div>
         <div class="li-s" style="white-space:normal;line-height:1.6">${a.d}</div>
       </div>
     </div>`).join('');
