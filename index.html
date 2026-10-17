@@ -1788,9 +1788,16 @@ function pushMsg(role, html){
   const chat = document.getElementById('chat');
   const div = document.createElement('div');
   div.className = 'msg ' + role;
-  div.innerHTML = `
-    <div class="av">${role === 'ai' ? '烙' : ''}</div>
-    <div class="bubble">${html}</div>`;
+  const avatar = document.createElement('div');
+  avatar.className = 'av';
+  avatar.textContent = role === 'ai' ? '烙' : '';
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  // User-entered symptom text is untrusted: render it as text, never HTML.
+  if(role === 'user') bubble.textContent = String(html == null ? '' : html);
+  else bubble.innerHTML = String(html == null ? '' : html);
+  div.appendChild(avatar);
+  div.appendChild(bubble);
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
   return div;
