@@ -16,4 +16,12 @@ assert.doesNotMatch(html, /无限次 AI 智能问诊/,
   'demo must not advertise nonexistent AI consultation');
 assert.match(html, /if\(role === 'user'\) bubble\.textContent/,
   'user-entered symptoms must be rendered as text to prevent HTML injection');
+assert.match(html, /function escHTML\\(value\\)/,
+  'health result renderer must define an HTML escaping helper');
+for (const token of [
+  '${escHTML(r.organ)}', '${escHTML(r.meridian)}', '${escHTML(r.risk)}',
+  '${escHTML(r.note)}', '${escHTML(JSON.stringify(json, null, 2))}', '${escHTML(r.advice)}'
+]) assert.ok(html.includes(token), 'health result field must be escaped: ' + token);
+assert.doesNotMatch(html, /\\$\\{r\\.(?:organ|meridian|risk|note|advice)\\}/,
+  'health result data must not be interpolated into HTML without escaping');
 console.log('Health demo disclosure and symptom safety checks passed.');
