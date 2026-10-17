@@ -16,7 +16,7 @@ assert.doesNotMatch(html, /无限次 AI 智能问诊/,
   'demo must not advertise nonexistent AI consultation');
 assert.match(html, /if\(role === 'user'\) bubble\.textContent/,
   'user-entered symptoms must be rendered as text to prevent HTML injection');
-assert.match(html, /function escHTML\\(value\\)/,
+assert.ok(html.includes('function escHTML(value)'),
   'health result renderer must define an HTML escaping helper');
 for (const token of [
   '${escHTML(r.organ)}', '${escHTML(r.meridian)}', '${escHTML(r.risk)}',
