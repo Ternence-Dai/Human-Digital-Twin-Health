@@ -765,9 +765,9 @@ img,svg,canvas,video{max-width:100%}
           <div class="profile-head">
             <div class="profile-av"></div>
             <div>
-              <div class="pn">李明远 <span class="tag cy" style="margin-left:6px">高级会员</span></div>
-              <div class="ps">ID: HDT-20250712 · 男 · 34 岁 · O 型血</div>
-              <div class="ps">身高 176cm · 体重 71kg · BMI 22.9（正常）</div>
+              <div class="pn">演示用户 <span class="tag cy" style="margin-left:6px">示例档案</span></div>
+              <div class="ps">示例档案 · 非真实身份或医疗记录</div>
+              <div class="ps">示例体征 · 非真实测量数据</div>
             </div>
           </div>
         </div>
@@ -775,10 +775,10 @@ img,svg,canvas,video{max-width:100%}
         <div class="sec-title"><span class="bar"></span>会员权益</div>
         <div class="vip-card">
           <div style="position:relative;z-index:1">
-            <div style="font-size:15px;font-weight:800;letter-spacing:.5px">高级会员 · 有效期至 2025-12-31</div>
+            <div style="font-size:15px;font-weight:800;letter-spacing:.5px">演示服务卡 · 不代表真实会员资格</div>
             <div style="font-size:12px;color:#c4b5fd;margin-top:6px;line-height:1.8">
-              ✓ 无限次 AI 智能问诊 &nbsp; ✓ 专业健康报告<br>
-              ✓ 中医体质分析 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ✓ 个性化饮食运动建议
+              ✓ 本地症状关键词参考 &nbsp; ✓ 健康报告界面示意<br>
+              ✓ 体质测评流程示意 &nbsp;&nbsp; ✓ 一般健康科普提示
             </div>
             <button class="btn sm" style="margin-top:12px;background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.25);color:#fff">续费 / 升级企业版</button>
           </div>
@@ -787,9 +787,9 @@ img,svg,canvas,video{max-width:100%}
         <div class="sec-title"><span class="bar"></span>健康档案</div>
         <div class="glass" style="padding:0">
           <div class="setting-row"><span class="si"></span>我的健康档案<span class="arrow">›</span></div>
-          <div class="setting-row"><span class="si">⌚</span>已连接设备（手环 / 血压计）<span class="tag ok" style="margin-left:auto">2 台在线</span></div>
+          <div class="setting-row"><span class="si">⌚</span>设备连接界面示意（未连接真实设备）<span class="tag ok" style="margin-left:auto">演示状态</span></div>
           <div class="setting-row"><span class="si"></span>历史检测记录<span class="arrow">›</span></div>
-          <div class="setting-row"><span class="si">離</span>中医体质测评<span class="tag pu" style="margin-left:auto">平和质</span></div>
+          <div class="setting-row"><span class="si">離</span>体质测评界面示意<span class="tag pu" style="margin-left:auto">未进行真实测评</span></div>
         </div>
 
         <div class="sec-title"><span class="bar"></span>设置</div>
@@ -1779,9 +1779,9 @@ function buildSymptomChips(){
 function initChat(){
   if (state.chatStarted) return;
   state.chatStarted = true;
-  pushMsg('ai', `您好，我是 <b style="color:var(--cy)">AI 健康助手</b>。<br>
-    我可以基于人体器官图谱、经络穴位系统与医疗知识库，为您进行症状分析与健康风险评估。<br><br>
-    请描述您的不适症状，或点击下方快捷标签。`);
+  pushMsg('ai', `您好，我是 <b style="color:var(--cy)">健康信息助手</b>。<br>
+    我会根据本地预设的症状关键词条目提供一般性信息参考。此功能不是人工智能诊断，不会进行可靠的临床风险评估，也不能替代医生。<br><br>
+    如有严重、突发或迅速加重的症状，请及时寻求医疗帮助。`);
 }
 
 function pushMsg(role, html){
@@ -1816,9 +1816,9 @@ function matchSymptom(text){
     if (s.kw.some(k => text.includes(k))) return s;
   }
   return {
-    organ:'需进一步评估', meridian:'待匹配', risk:'低风险', lv:1,
-    note:'未匹配到明确的高相关症状模式',
-    advice:'建议补充更详细的症状描述（部位、持续时间、诱因），或前往医疗机构面诊'
+    organ:'需进一步评估', meridian:'待匹配', risk:'未评估', lv:0,
+    note:'当前关键词规则未匹配到相关条目；这不代表风险较低，也不能排除疾病',
+    advice:'可补充症状部位、持续时间和变化情况；如症状持续、加重或令人担忧，请咨询医疗专业人员；严重或突发症状应及时就医'
   };
 }
 
