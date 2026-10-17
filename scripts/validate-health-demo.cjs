@@ -14,4 +14,6 @@ assert.match(html, /未连接真实设备/,
   'demo device state must not imply a real connected device');
 assert.doesNotMatch(html, /无限次 AI 智能问诊/,
   'demo must not advertise nonexistent AI consultation');
+assert.match(html, /if\(role === 'user'\) bubble\.textContent/,
+  'user-entered symptoms must be rendered as text to prevent HTML injection');
 console.log('Health demo disclosure and symptom safety checks passed.');
