@@ -65,13 +65,38 @@ window.addEventListener('load', async () => {
 
 /* ---------------- 可追溯健康记录 ---------------- */
 const OBSERVATION_STORAGE_KEY = 'health-observations-v1';
-function loadObservations(){
+let observationStorageRecoveryRequired = false;
+function preserveInvalidObservationStorage(raw){
+  if(!raw) return false;
   try{
-    const raw = localStorage.getItem(OBSERVATION_STORAGE_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
-    window.healthObservations = Array.isArray(parsed) ? parsed : [];
+    const key = OBSERVATION_STORAGE_KEY + '_recovery_' + Date.now();
+    localStorage.setItem(key, raw);
+    console.warn('健康记录原始缓存已保存在恢复项：' + key);
+    return true;
   }catch(error){
-    console.warn('Health observation storage unavailable', error);
+    console.error('无法创建健康记录恢复副本。请勿清理浏览器站点数据。', error);
+    return false;
+  }
+}
+function loadObservations(){
+  let raw = null;
+  try{
+    raw = localStorage.getItem(OBSERVATION_STORAGE_KEY);
+    if(raw === null){
+      window.healthObservations = [];
+      return;
+    }
+    const parsed = JSON.parse(raw);
+    if(!Array.isArray(parsed)) throw new TypeError('health observations cache must be an array');
+    if(window.HealthDomain && typeof window.HealthDomain.createObservation === 'function'){
+      window.healthObservations = parsed.map(row => window.HealthDomain.createObservation(row));
+    }else{
+      window.healthObservations = parsed;
+    }
+  }catch(error){
+    observationStorageRecoveryRequired = true;
+    if(raw !== null) preserveInvalidObservationStorage(raw);
+    console.error('健康记录缓存无法安全读取；已阻止后续保存覆盖原始数据。', error);
     window.healthObservations = [];
   }
 }
@@ -120,6 +145,10 @@ function exportObservations(){
 }
 function saveObservation(event){
   if(event) event.preventDefault();
+  if(observationStorageRecoveryRequired){
+    alert('检测到原健康记录缓存异常，已阻止保存以保护原始数据。请先保留浏览器恢复项并进行数据恢复。');
+    return false;
+  }
   const form = document.getElementById('observationForm');
   if(!form || !window.HealthDomain){ alert('健康记录校验模块尚未加载，请刷新页面后重试。'); return false; }
   const fields = new FormData(form);
