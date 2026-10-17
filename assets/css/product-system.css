@@ -64,3 +64,14 @@ img,svg,canvas{max-width:100%}
   body{background:#fff!important;color:#111!important}
   :where(.card,.panel,.stat-card,.metric-card){box-shadow:none!important;break-inside:avoid}
 }
+
+
+/* V2 application-specific visual layer */
+body .sidebar{background:linear-gradient(180deg,rgba(7,19,34,.98),rgba(5,12,24,.98));border-right-color:rgba(45,212,191,.18)}
+body .main{min-width:0}
+body .topbar{background:rgba(5,13,25,.9);border-bottom-color:rgba(45,212,191,.16)}
+body .glass{border-color:rgba(45,212,191,.18);box-shadow:0 16px 44px rgba(0,0,0,.22);border-radius:20px}
+body .nav-item{border-radius:11px}
+body .nav-item.active{background:linear-gradient(100deg,rgba(45,212,191,.18),rgba(129,140,248,.08));border-color:rgba(45,212,191,.25)}
+body .login-card{box-shadow:0 28px 80px rgba(0,0,0,.4)}
+body input,body select,body textarea{background-color:rgba(5,15,28,.72)}
