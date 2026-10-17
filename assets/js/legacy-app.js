@@ -100,8 +100,10 @@ function saveObservation(event){
   const valueText = String(fields.get('value') || '').trim();
   const value = Number(valueText);
   const localDate = String(fields.get('observedAt') || '');
-  const observedAt = localDate ? new Date(localDate).toISOString() : '';
   try{
+    const parsedDate = new Date(localDate);
+    if(!localDate || !Number.isFinite(parsedDate.getTime())) throw new TypeError('observedAt must be a valid date string');
+    const observedAt = parsedDate.toISOString();
     const observation = window.HealthDomain.createObservation({
       metric:String(fields.get('metric') || ''),
       value,
