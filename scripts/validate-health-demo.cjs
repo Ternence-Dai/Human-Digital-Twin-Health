@@ -32,3 +32,10 @@ assert.match(html, /window\.HealthDomain\.createObservation/, 'records must use 
 assert.match(html, /localStorage\.setItem\(OBSERVATION_STORAGE_KEY/, 'validated observations must persist locally');
 assert.match(html, /escHTML\(row\.metric\)/, 'user-provided observation values must be escaped before rendering');
 assert.match(html, /quality/, 'observation records must expose provenance quality');
+
+assert.match(html, /onclick="exportObservations\(\)"/, 'health records must offer a JSON backup action');
+assert.match(html, /function exportObservations\(\)/, 'JSON backup handler must exist');
+assert.match(html, /schemaVersion:1/, 'export must include a versioned backup schema');
+assert.match(html, /observations:rows/, 'export must include saved observation records');
+assert.match(html, /URL\.revokeObjectURL\(url\)/, 'export must release its temporary object URL');
+assert.match(html, /备份文件可能包含敏感健康信息/, 'export must warn users to protect sensitive backup files');
