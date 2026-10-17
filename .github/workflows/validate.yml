@@ -18,8 +18,6 @@ jobs:
           node-version: 22
       - name: Validate health demo disclosures
         run: node scripts/validate-health-demo.cjs
-      - name: Validate health result HTML escaping
-        run: node scripts/validate-health-demo.cjs
       - name: Parse embedded JavaScript
         run: |
           node <<'NODE'
