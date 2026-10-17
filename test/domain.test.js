@@ -7,10 +7,15 @@ test("rejects missing provenance and invalid measurements", () => {
  assert.throws(() => createObservation({...valid,source:""}), TypeError);
  assert.throws(() => createObservation({...valid,value:Infinity}), TypeError);
  assert.throws(() => createObservation({...valid,quality:"unknown"}), RangeError);
+ assert.throws(() => createObservation({...valid,observedAt:1767225600000}), TypeError);
 });
 test("sorts a copy without mutating input", () => {
  const rows=[valid,{...valid,observedAt:"2025-01-01T00:00:00Z"}];
  const sorted=chronologicalObservations(rows);
  assert.equal(sorted[0].observedAt,"2025-01-01T00:00:00Z");
  assert.equal(rows[0],valid);
+});
+test("rejects malformed rows rather than silently retaining unstable order", () => {
+ assert.throws(() => chronologicalObservations([valid,{...valid,observedAt:"not-a-date"}]), TypeError);
+ assert.throws(() => chronologicalObservations([null]), TypeError);
 });
