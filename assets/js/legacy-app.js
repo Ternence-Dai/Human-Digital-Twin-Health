@@ -92,6 +92,32 @@ function renderObservations(){
       </div>
     </div>`).join('');
 }
+function exportObservations(){
+  const rows = Array.isArray(window.healthObservations) ? window.healthObservations : [];
+  if(!rows.length){ alert('暂无健康记录可导出。'); return false; }
+  try{
+    const payload = {
+      schemaVersion:1,
+      exportedAt:new Date().toISOString(),
+      storage:'local-browser',
+      observations:rows
+    };
+    const blob = new Blob([JSON.stringify(payload,null,2)],{type:'application/json;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'health-observations-' + new Date().toISOString().slice(0,10) + '.json';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    alert('已导出 ' + rows.length + ' 条记录。备份文件可能包含敏感健康信息，请妥善保管。');
+    return true;
+  }catch(error){
+    alert('备份导出失败：' + (error && error.message ? error.message : '浏览器无法创建下载文件'));
+    return false;
+  }
+}
 function saveObservation(event){
   if(event) event.preventDefault();
   const form = document.getElementById('observationForm');
