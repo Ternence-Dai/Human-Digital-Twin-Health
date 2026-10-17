@@ -106,7 +106,7 @@ function renderObservations(){
   if(!host || !count) return;
   if(observationStorageRecoveryRequired){
     count.textContent = '待恢复';
-    host.innerHTML = '<div class="empty">检测到健康记录缓存异常。当前列表为空不代表原记录已丢失；为保护原始数据，已暂停写入和导出。请保留浏览器站点数据并先恢复记录。</div>';
+    host.innerHTML = '<div class="empty">检测到健康记录缓存异常。当前列表为空不代表原记录已丢失；常规记录写入和导出已暂停。请先导出原始恢复数据并妥善保管。<div style="margin-top:12px"><button class="btn" onclick="exportObservationRecovery()">导出原始恢复数据</button></div></div>';
     return;
   }
   const rows = Array.isArray(window.healthObservations) ? [...window.healthObservations] : [];
@@ -121,6 +121,47 @@ function renderObservations(){
         <div class="li-s">质量标记：${escHTML(row.quality)}</div>
       </div>
     </div>`).join('');
+}
+function exportObservationRecovery(){
+  if(!observationStorageRecoveryRequired){
+    alert('当前没有待恢复的健康记录缓存。');
+    return false;
+  }
+  try{
+    const copies = [];
+    const prefix = OBSERVATION_STORAGE_KEY + '_recovery_';
+    for(let i=0;i<localStorage.length;i++){
+      const key = localStorage.key(i);
+      if(key && key.indexOf(prefix) === 0){
+        copies.push({key, raw:localStorage.getItem(key)});
+      }
+    }
+    const payload = {
+      schemaVersion:1,
+      exportedAt:new Date().toISOString(),
+      storage:'local-browser-recovery',
+      originalRaw:localStorage.getItem(OBSERVATION_STORAGE_KEY),
+      recoveryCopies:copies
+    };
+    if(payload.originalRaw === null && !copies.length){
+      alert('未找到可导出的原始缓存或恢复副本。请勿清理浏览器站点数据，并寻求数据恢复帮助。');
+      return false;
+    }
+    const blob = new Blob([JSON.stringify(payload,null,2)],{type:'application/json;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'health-observations-recovery-' + new Date().toISOString().slice(0,10) + '.json';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    alert('已导出原始恢复数据。该文件可能包含敏感健康信息，请妥善保管；它尚未完成修复或验证。');
+    return true;
+  }catch(error){
+    alert('原始恢复数据导出失败：' + (error && error.message ? error.message : '浏览器存储不可用'));
+    return false;
+  }
 }
 function exportObservations(){
   if(observationStorageRecoveryRequired){
