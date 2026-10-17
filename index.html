@@ -590,19 +590,19 @@ img,svg,canvas,video{max-width:100%}
         <div class="sec-title"><span class="bar"></span>功能导航</div>
         <div class="quick-grid" id="quickGrid"></div>
 
-        <div class="sec-title"><span class="bar"></span>健康预警 <span class="more">2 条待处理</span></div>
+        <div class="sec-title"><span class="bar"></span>健康教育示例 <span class="more">非个人预警 · 非实时监测</span></div>
         <div class="alert-item wn">
           <div class="ai">⚠️</div>
           <div>
-            <div class="at">肝脏代谢负荷偏高</div>
-            <div class="ad">近 14 天作息不规律，肝经能量值下降 8%，建议 23:00 前入睡并复查肝功能。</div>
+            <div class="at">示例：生活方式与肝脏健康</div>
+            <div class="ad">以下内容仅作一般健康教育，不代表用户存在肝脏问题，也不是由真实检测或连续监测得出的结论。</div>
           </div>
         </div>
         <div class="alert-item">
           <div class="ai"></div>
           <div>
-            <div class="at">轻度心血管风险</div>
-            <div class="ad">静息心率 78 bpm（偏高），HRV 46ms（偏低），建议进行动态心电监测。</div>
+            <div class="at">示例：心血管相关指标</div>
+            <div class="ad">心率与 HRV 数值为演示内容，不能据此判断个人心血管风险或提出检查建议；请以真实测量和临床评估为准。</div>
           </div>
         </div>
 
@@ -1838,8 +1838,8 @@ function runAnalysis(text){
     '症状语义解析…',
     '匹配人体器官图谱…',
     '匹配经络循行路径…',
-    '计算风险评分模型…',
-    '生成个性化健康建议…'
+    '检索症状关键词参考条目…',
+    '展示一般健康提示（非个性化诊疗建议）…'
   ];
 
   const holder = pushMsg('ai', '');
@@ -1866,19 +1866,19 @@ function showResult(holder, r){
   const json = {
     "相关器官": r.organ,
     "相关经络": r.meridian,
-    "风险等级": r.risk,
+    "匹配条目参考级别（非风险评估）": r.risk,
     "建议": r.advice
   };
 
   holder.querySelector('.bubble').innerHTML = `
-    <div style="font-size:13px;font-weight:700;margin-bottom:9px;color:#a5f3fc">✅ 分析完成</div>
+    <div style="font-size:13px;font-weight:700;margin-bottom:9px;color:#a5f3fc">关键词匹配完成 · 非医疗评估</div>
 
     <div class="kv"><b>相关器官</b><span>${r.organ}</span></div>
     <div class="kv"><b>相关经络</b><span>${r.meridian}</span></div>
-    <div class="kv"><b>风险等级</b><span class="tag ${cls}">${r.risk}</span></div>
+    <div class="kv"><b>参考条目级别（非风险评估）</b><span class="tag ${cls}">${r.risk}</span></div>
 
     <div style="margin-top:11px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.035);border:1px solid var(--line);font-size:12px;line-height:1.7;color:var(--tx2)">
-      <b style="color:var(--tx3);font-weight:500">AI 解读：</b>${r.note}
+      <b style="color:var(--tx3);font-weight:500">规则条目说明：</b>${r.note}
     </div>
 
     <div style="margin-top:12px;font-size:11.5px;color:var(--tx3);margin-bottom:5px">结构化输出（JSON）</div>
