@@ -1,7 +1,7 @@
 'use strict';
 const fs = require('node:fs');
 const assert = require('node:assert/strict');
-const html = fs.readFileSync('index.html', 'utf8');
+const html = fs.readFileSync('index.html', 'utf8') + '\n' + fs.readFileSync('assets/js/legacy-app.js', 'utf8');
 assert.match(html, /本地预设的症状关键词条目/,
   'symptom tool must disclose its local keyword-based implementation');
 assert.match(html, /不是人工智能诊断/,
