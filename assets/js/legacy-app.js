@@ -104,6 +104,11 @@ function renderObservations(){
   const host = document.getElementById('observationList');
   const count = document.getElementById('observationCount');
   if(!host || !count) return;
+  if(observationStorageRecoveryRequired){
+    count.textContent = '待恢复';
+    host.innerHTML = '<div class="empty">检测到健康记录缓存异常。当前列表为空不代表原记录已丢失；为保护原始数据，已暂停写入和导出。请保留浏览器站点数据并先恢复记录。</div>';
+    return;
+  }
   const rows = Array.isArray(window.healthObservations) ? [...window.healthObservations] : [];
   rows.sort((a,b)=>Date.parse(b.observedAt)-Date.parse(a.observedAt));
   count.textContent = rows.length + ' 条';
@@ -118,6 +123,10 @@ function renderObservations(){
     </div>`).join('');
 }
 function exportObservations(){
+  if(observationStorageRecoveryRequired){
+    alert('健康记录缓存异常，当前空列表不是有效备份。为避免导出空文件掩盖原始数据，请先保留浏览器站点数据并恢复记录。');
+    return false;
+  }
   const rows = Array.isArray(window.healthObservations) ? window.healthObservations : [];
   if(!rows.length){ alert('暂无健康记录可导出。'); return false; }
   try{
