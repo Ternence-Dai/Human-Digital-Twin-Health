@@ -826,6 +826,9 @@ img,svg,canvas,video{max-width:100%}
    © 2025 戴煜的疗养健康助手 Platform. All Rights Reserved.
    ========================================================= */
 
+// Escape data-derived text before it is inserted into HTML templates.
+function escHTML(value){return String(value==null?'':value).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+
 /* ---------------- 数据层 ---------------- */
 
 const ORGANS = [
@@ -1870,19 +1873,19 @@ function showResult(holder, r){
   holder.querySelector('.bubble').innerHTML = `
     <div style="font-size:13px;font-weight:700;margin-bottom:9px;color:#a5f3fc">关键词匹配完成 · 非医疗评估</div>
 
-    <div class="kv"><b>相关器官</b><span>${r.organ}</span></div>
-    <div class="kv"><b>相关经络</b><span>${r.meridian}</span></div>
-    <div class="kv"><b>参考条目级别（非风险评估）</b><span class="tag ${cls}">${r.risk}</span></div>
+    <div class="kv"><b>相关器官</b><span>${escHTML(r.organ)}</span></div>
+    <div class="kv"><b>相关经络</b><span>${escHTML(r.meridian)}</span></div>
+    <div class="kv"><b>参考条目级别（非风险评估）</b><span class="tag ${cls}">${escHTML(r.risk)}</span></div>
 
     <div style="margin-top:11px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.035);border:1px solid var(--line);font-size:12px;line-height:1.7;color:var(--tx2)">
-      <b style="color:var(--tx3);font-weight:500">规则条目说明：</b>${r.note}
+      <b style="color:var(--tx3);font-weight:500">规则条目说明：</b>${escHTML(r.note)}
     </div>
 
     <div style="margin-top:12px;font-size:11.5px;color:var(--tx3);margin-bottom:5px">结构化输出（JSON）</div>
-    <pre>${JSON.stringify(json, null, 2)}</pre>
+    <pre>${escHTML(JSON.stringify(json, null, 2))}</pre>
 
     <div style="margin-top:12px;font-size:12px;line-height:1.8;color:var(--tx2)">
-      <b style="color:#a5f3fc">健康建议：</b><br>▸ ${r.advice}<br>
+      <b style="color:#a5f3fc">健康建议：</b><br>▸ ${escHTML(r.advice)}<br>
       ▸ 保持规律作息，每日饮水量 1500–2000 mL<br>
       ▸ 若症状持续或加重，请及时就医
     </div>
