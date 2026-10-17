@@ -1231,7 +1231,7 @@ function buildQuickGrid(){
     { k:'vessel', i:'喝', t:'血管循环' },
     { k:'meridian', i:'〰️', t:'经络系统' },
     { k:'acupoint', i:'', t:'穴位中心' },
-    { k:'ai', i:'烙', t:'AI 问诊' },
+    { k:'ai', i:'烙', t:'症状参考' },
     { k:'report', i:'', t:'健康报告' },
     { k:'me', i:'', t:'健康档案' }
   ];
@@ -1834,7 +1834,7 @@ function runAnalysis(text){
 
   const holder = pushMsg('ai', '');
   const bubble = holder.querySelector('.bubble');
-  bubble.innerHTML = '<div style="font-size:12.5px;color:var(--tx3);margin-bottom:6px">AI 分析中…</div>';
+  bubble.innerHTML = '<div style="font-size:12.5px;color:var(--tx3);margin-bottom:6px">关键词规则匹配中…</div>';
 
   steps.forEach((s, i) => {
     setTimeout(() => {
