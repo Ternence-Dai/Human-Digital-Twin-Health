@@ -356,7 +356,7 @@ a{color:var(--cy);text-decoration:none}
 .chip:hover{border-color:var(--line2);color:var(--tx)}
 .chip.active{background:rgba(34,211,238,.15);border-color:rgba(34,211,238,.4);color:#a5f3fc}
 
-/* ---------- AI 问诊 ---------- */
+/* ---------- 症状参考 ---------- */
 .chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 58px - 36px);min-height:440px}
 .chat{flex:1;overflow-y:auto;padding:4px 2px 14px;display:flex;flex-direction:column;gap:13px}
 .msg{display:flex;gap:10px;max-width:88%;animation:fadeUp .35s ease}
@@ -715,7 +715,7 @@ img,svg,canvas,video{max-width:100%}
         <div id="acuList"></div>
       </section>
 
-      <!-- ---------- AI 问诊 ---------- -->
+      <!-- ---------- 症状参考 ---------- -->
       <section class="page" data-page="ai">
         <div class="chat-wrap">
           <div class="chat" id="chat"></div>
@@ -1159,7 +1159,7 @@ const PAGES_META = [
   { key:'vessel',   name:'血管循环', en:'CIRCULATION', icon:'喝' },
   { key:'meridian', name:'经络中心', en:'MERIDIANS',   icon:'〰️' },
   { key:'acupoint', name:'穴位中心', en:'ACUPOINTS',   icon:'' },
-  { key:'ai',       name:'AI 问诊',  en:'AI CONSULT',  icon:'烙' },
+  { key:'ai',       name:'症状参考',  en:'SYMPTOM GUIDE',  icon:'烙' },
   { key:'report',   name:'健康报告', en:'REPORT',      icon:'' },
   { key:'me',       name:'我的',     en:'PROFILE',     icon:'' }
 ];
@@ -1768,7 +1768,7 @@ function openAcupoint(id){
   document.getElementById('modal').classList.add('show');
 }
 
-/* ---------------- AI 问诊 ---------------- */
+/* ---------------- 症状参考 ---------------- */
 function buildSymptomChips(){
   const chips = ['头晕','失眠','胃胀','胸闷','乏力','头痛','心悸','便秘','眼干','耳鸣','焦虑','怕冷'];
   document.getElementById('symptomChips').innerHTML = chips.map(c =>
