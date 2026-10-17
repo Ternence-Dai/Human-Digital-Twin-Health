@@ -264,6 +264,26 @@
         </div>
       </section>
 
+      <!-- ---------- 健康记录 ---------- -->
+      <section class="page" data-page="records">
+        <div class="health-intro"><div><div class="eyebrow">PERSONAL OBSERVATIONS</div><h2>健康测量记录</h2><p>记录数值、单位、时间与来源；每条数据都标明来源质量。数据仅保存在当前浏览器。</p></div><div class="health-state">请只录入你有权保存的数据。此功能不连接设备、不提供诊断。</div></div>
+        <div class="glass" style="padding:18px;margin-bottom:16px">
+          <div class="sec-title" style="margin-top:0"><span class="bar"></span>新增测量记录</div>
+          <form id="observationForm" onsubmit="return saveObservation(event)" style="display:grid;gap:10px">
+            <label>指标名称<input name="metric" required maxlength="80" placeholder="例如 resting-heart-rate"></label>
+            <label>测量数值<input name="value" type="number" step="any" required></label>
+            <label>单位<input name="unit" required maxlength="24" placeholder="例如 bpm、mmHg、kg"></label>
+            <label>测量时间<input name="observedAt" type="datetime-local" required></label>
+            <label>数据来源<input name="source" required maxlength="120" placeholder="例如手动录入、设备名称或报告来源"></label>
+            <label>数据质量<select name="quality" required><option value="measured">实测 measured</option><option value="reported">本人报告 reported</option><option value="estimated">估算 estimated</option><option value="imported">导入 imported</option><option value="demo">演示 demo</option></select></label>
+            <button class="btn primary" type="submit">保存记录</button>
+          </form>
+          <p style="font-size:11px;color:var(--tx3);margin-top:10px">保存前会校验数值、单位、时间、来源和质量标记。请勿把演示数据标记为实测。</p>
+        </div>
+        <div class="sec-title"><span class="bar"></span>历史记录 <span class="more" id="observationCount">0 条</span></div>
+        <div id="observationList" class="glass" style="padding:14px"></div>
+      </section>
+
       <!-- ---------- 健康报告 ---------- -->
       <section class="page" data-page="report">
         <div class="report-grid">
