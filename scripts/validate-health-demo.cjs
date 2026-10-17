@@ -39,3 +39,9 @@ assert.match(html, /schemaVersion:1/, 'export must include a versioned backup sc
 assert.match(html, /observations:rows/, 'export must include saved observation records');
 assert.match(html, /URL\.revokeObjectURL\(url\)/, 'export must release its temporary object URL');
 assert.match(html, /备份文件可能包含敏感健康信息/, 'export must warn users to protect sensitive backup files');
+
+assert.match(html, /let observationStorageRecoveryRequired = false/, 'health cache recovery state must be explicit');
+assert.match(html, /function preserveInvalidObservationStorage\(raw\)/, 'corrupted raw health cache must be preserved when possible');
+assert.match(html, /health-observations-v1_recovery_/, 'recovery copy must use a separate storage key');
+assert.match(html, /已阻止后续保存覆盖原始数据/, 'corrupted cache must not be silently replaced');
+assert.match(html, /if\(observationStorageRecoveryRequired\)/, 'saving must stop while cache recovery is required');
