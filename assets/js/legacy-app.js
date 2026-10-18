@@ -812,7 +812,7 @@ function openMeridian(name, energy, status, path, time, organ){
       </div>
       <div style="margin-left:auto;text-align:right">
         <div style="font-size:26px;font-weight:800;color:var(--cy)">${energy}</div>
-        <div style="font-size:9.5px;color:var(--tx3);letter-spacing:1px">能量值</div>
+        <div style="font-size:9.5px;color:var(--tx3);letter-spacing:1px">演示能量值</div>
       </div>
     </div>
     <div style="margin-bottom:14px"><span class="tag ${cls}">${status}</span></div>
@@ -824,7 +824,7 @@ function openMeridian(name, energy, status, path, time, organ){
         <div style="font-size:14px;font-weight:700;margin-top:4px">${organ}</div>
       </div>
       <div style="padding:12px;border-radius:11px;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2)">
-        <div style="font-size:10.5px;color:var(--tx3)">堵塞预警</div>
+        <div style="font-size:10.5px;color:var(--tx3)">预设堵塞提示</div>
         <div style="font-size:14px;font-weight:700;margin-top:4px;color:${cls==='dg'?'var(--dg)':cls==='wn'?'var(--wn)':'var(--ok)'}">
           ${energy < 68 ? '高' : energy < 74 ? '中' : '低'}
         </div>
