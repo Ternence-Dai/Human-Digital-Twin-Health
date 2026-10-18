@@ -3,6 +3,24 @@ const fs = require('node:fs');
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const html = fs.readFileSync('index.html', 'utf8') + '\n' + fs.readFileSync('assets/js/health-demo-data.js', 'utf8') + '\n' + fs.readFileSync('assets/js/legacy-app.js', 'utf8');
+const productCss = fs.readFileSync('assets/css/product-system.css', 'utf8');
+assert.match(html, /product-system\\.css\\?v=20261018-v3/,
+  'health app must load the visible V3 product interface stylesheet');
+assert.match(productCss, /Health data workspace redesign/,
+  'health product design layer must be explicitly versioned');
+for (const selector of [
+  '.sidebar{', '.topbar{', '.health-intro{', '.score-card{',
+  '.metric-card{', '.quick-item{', '#observationForm{',
+  '#observationList{', '.tabbar{'
+]) assert.ok(productCss.includes(selector),
+  'health V3 design must style the major product area: ' + selector);
+assert.match(productCss, /@media\\(max-width:860px\\)/,
+  'health redesign must include tablet/mobile layout rules');
+assert.match(productCss, /@media\\(max-width:520px\\)/,
+  'health redesign must include narrow phone layout rules');
+assert.match(productCss, /prefers-reduced-motion:reduce/,
+  'health redesign must respect reduced-motion preferences');
+
 assert.match(html, /本地预设的症状关键词条目/,
   'symptom tool must disclose its local keyword-based implementation');
 assert.match(html, /不是人工智能诊断/,
