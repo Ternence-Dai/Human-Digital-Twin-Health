@@ -11,6 +11,18 @@ assert.match(html, /风险较低，也不能排除疾病/,
   'unmatched symptoms must not be presented as low risk');
 assert.match(html, /示例体征 · 非真实测量数据/,
   'sample vitals must be clearly labeled');
+assert.match(html, /演示数据说明/,
+  'hard-coded health scores and trends must have a prominent demo disclaimer');
+assert.match(html, /不来自本地健康记录、真实设备或医学检查/,
+  'demo scores must not be confused with user observations or clinical test results');
+assert.match(html, /综合健康总分（演示）/,
+  'the hard-coded total score must be labeled as demo data');
+assert.match(html, /六维能力雷达（演示）/,
+  'static radar metrics must be labeled as demo data');
+assert.match(html, /近 3 次检测趋势（演示）/,
+  'static trend data must be labeled as demo data');
+assert.match(html, /图谱演示说明/,
+  'digital human organ positions and state labels must be labeled as a visual demo');
 assert.match(html, /未连接真实设备/,
   'demo device state must not imply a real connected device');
 assert.doesNotMatch(html, /无限次 AI 智能问诊/,
