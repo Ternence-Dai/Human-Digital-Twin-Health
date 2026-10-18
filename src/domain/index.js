@@ -35,10 +35,16 @@ export function createObservation(input) {
   if (!input || typeof input !== "object" || Array.isArray(input)) throw new TypeError("observation must be an object");
   const { metric, value, unit, observedAt, source, quality } = input;
   if (typeof metric !== "string" || !metric.trim()) throw new TypeError("metric is required");
+  if (metric.trim().length > 80) throw new RangeError("metric must not exceed 80 characters");
+  if (/[\\u0000-\\u001f\\u007f]/.test(metric)) throw new TypeError("metric must not contain control characters");
   if (!Number.isFinite(value)) throw new TypeError("value must be finite");
   if (typeof unit !== "string" || !unit.trim()) throw new TypeError("unit is required");
+  if (unit.trim().length > 24) throw new RangeError("unit must not exceed 24 characters");
+  if (/[\\u0000-\\u001f\\u007f]/.test(unit)) throw new TypeError("unit must not contain control characters");
   const canonicalObservedAt = parseObservedAt(observedAt);
   if (typeof source !== "string" || !source.trim()) throw new TypeError("source is required");
+  if (source.trim().length > 180) throw new RangeError("source must not exceed 180 characters");
+  if (/[\\u0000-\\u001f\\u007f]/.test(source)) throw new TypeError("source must not contain control characters");
   if (!allowedQuality.has(quality)) throw new RangeError("quality must identify the provenance class");
   return Object.freeze({ metric:metric.trim(), value, unit:unit.trim(), observedAt:canonicalObservedAt, source:source.trim(), quality });
 }
