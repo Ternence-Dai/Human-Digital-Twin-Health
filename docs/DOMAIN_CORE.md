@@ -39,6 +39,10 @@ Accepted timestamps are normalized to canonical UTC ISO strings. Impossible cale
 
 The domain tests cover provenance classes, required fields, timezone normalization, calendar validation, millisecond precision, and chronological sorting. These tests establish data-contract behaviour; they do not establish clinical validity or medical safety.
 
+
+
+Observation metadata is bounded at the domain boundary: metric labels are limited to 80 characters, units to 24, and source labels to 180. Control characters are rejected. These limits protect imported as well as manually entered records; they do not establish that a metric's unit is clinically appropriate. Metric-specific unit registries and validated conversions must be introduced before automated aggregation across different units.
+
 ## Open-source architecture references
 
 - [HAPI FHIR](https://github.com/hapifhir/hapi-fhir) and [OpenMRS](https://github.com/openmrs/openmrs-core) are reference points for interoperable health-resource structures, identifiers, provenance, and explicit clinical-data boundaries. This browser-local project is not yet a FHIR server and must not imply clinical-system interoperability until adapters and conformance tests exist.
