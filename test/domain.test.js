@@ -56,3 +56,17 @@ test("rejects malformed rows rather than silently retaining unstable order", () 
   assert.throws(() => chronologicalObservations([valid,{...valid,observedAt:"2026-01-01T00:00:00"}]), TypeError);
   assert.throws(() => chronologicalObservations([null]), TypeError);
 });
+
+
+test("observation identity includes measurement value and provenance", async () => {
+  const { observationIdentity } = await import("../src/domain/index.js");
+  const first = createObservation(valid);
+  assert.equal(observationIdentity(first), observationIdentity({...first}));
+  for (const change of [
+    {value:63}, {unit:"Hz"}, {observedAt:"2026-01-02T00:00:00Z"},
+    {source:"manual"}, {quality:"reported"}, {metric:"blood-pressure"}
+  ]) {
+    assert.notEqual(observationIdentity(first), observationIdentity({...first,...change}));
+  }
+  assert.throws(() => observationIdentity(null), TypeError);
+});
