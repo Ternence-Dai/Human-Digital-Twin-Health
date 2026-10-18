@@ -1,6 +1,7 @@
 'use strict';
 const fs = require('node:fs');
 const assert = require('node:assert/strict');
+const vm = require('node:vm');
 const html = fs.readFileSync('index.html', 'utf8') + '\n' + fs.readFileSync('assets/js/health-demo-data.js', 'utf8') + '\n' + fs.readFileSync('assets/js/legacy-app.js', 'utf8');
 assert.match(html, /本地预设的症状关键词条目/,
   'symptom tool must disclose its local keyword-based implementation');
@@ -60,3 +61,15 @@ assert.match(html, /跳过重复/, 'restore must report duplicate records');
 
 assert.match(html, /if\(next\.length > 10000\)/, 'restore must cap the merged local dataset, not only the imported file');
 assert.match(html, /本地健康记录最多保存 10000 条/, 'manual entry must enforce the same local record cap as JSON restore');
+
+assert.match(html, /parseLocalObservationDateTime\\(localDate\\)/,
+  'manual observations must reject invalid local calendar values before UTC conversion');
+const dateParserMatch = html.match(/function parseLocalObservationDateTime\\(value\\)\\s*\\{[\\s\\S]*?\\n\\}/);
+assert.ok(dateParserMatch, 'strict local datetime parser must exist');
+const parseLocalObservationDateTime = vm.runInNewContext('(' + dateParserMatch[0] + ')');
+assert.equal(new Date(parseLocalObservationDateTime('2026-10-18T08:30')).toISOString(),
+  new Date('2026-10-18T08:30').toISOString(), 'valid datetime-local values must keep local-time conversion semantics');
+for (const invalid of ['2026-02-30T08:30','2026-13-01T08:30','2026-10-18T24:00','2026-10-18T08:60','2026-10-18T08:30:00.1234']) {
+  assert.throws(() => parseLocalObservationDateTime(invalid), TypeError,
+    'invalid datetime-local value must not be silently normalized: ' + invalid);
+}
