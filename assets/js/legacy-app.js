@@ -205,6 +205,55 @@ function exportObservations(){
     return false;
   }
 }
+async function importObservations(){
+  if(observationDomainUnavailable || !window.HealthDomain || typeof window.HealthDomain.createObservation !== 'function'){
+    alert('健康记录校验模块不可用，暂不能导入。原始浏览器缓存未修改。');
+    return false;
+  }
+  if(observationStorageRecoveryRequired){
+    alert('检测到原健康记录缓存异常。请先恢复原始记录，再执行导入；当前缓存不会被覆盖。');
+    return false;
+  }
+  const picker = document.getElementById('observationImportFile');
+  if(!picker) return false;
+  picker.value = '';
+  picker.onchange = async () => {
+    const file = picker.files && picker.files[0];
+    if(!file) return;
+    try{
+      if(file.size > 5 * 1024 * 1024) throw new RangeError('备份文件不能超过 5 MB。');
+      const payload = JSON.parse(await file.text());
+      if(!payload || typeof payload !== 'object' || Array.isArray(payload) || payload.schemaVersion !== 1 || !Array.isArray(payload.observations)){
+        throw new TypeError('备份格式无效或版本不受支持；需要 schemaVersion 1 和 observations 数组。');
+      }
+      if(payload.observations.length > 10000) throw new RangeError('单个备份最多允许 10000 条记录。');
+      const imported = payload.observations.map(row => window.HealthDomain.createObservation(row));
+      const existing = Array.isArray(window.healthObservations) ? window.healthObservations : [];
+      const identity = row => JSON.stringify([row.metric,row.value,row.unit,row.observedAt,row.source,row.quality]);
+      const known = new Set(existing.map(identity));
+      const additions = imported.filter(row => {
+        const key = identity(row);
+        if(known.has(key)) return false;
+        known.add(key);
+        return true;
+      });
+      const next = [...existing,...additions];
+      localStorage.setItem(OBSERVATION_STORAGE_KEY,JSON.stringify(next));
+      window.healthObservations = next;
+      renderObservations();
+      alert('导入校验完成：读取 ' + imported.length + ' 条，新增 ' + additions.length + ' 条，跳过重复 ' + (imported.length-additions.length) + ' 条。');
+      return true;
+    }catch(error){
+      alert('导入失败，未写入任何记录：' + (error && error.message ? error.message : '备份校验失败'));
+      return false;
+    }finally{
+      picker.value = '';
+    }
+  };
+  picker.click();
+  return true;
+}
+
 function saveObservation(event){
   if(event) event.preventDefault();
   if(observationDomainUnavailable){
