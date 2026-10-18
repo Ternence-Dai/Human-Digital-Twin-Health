@@ -57,3 +57,5 @@ assert.match(html, /payload\.observations\.map\(row => window\.HealthDomain\.cre
 assert.match(html, /file\.size > 5 \* 1024 \* 1024/, 'restore must enforce a file size limit');
 assert.match(html, /localStorage\.setItem\(OBSERVATION_STORAGE_KEY,JSON\.stringify\(next\)\)/, 'restore must persist the fully validated merged result');
 assert.match(html, /跳过重复/, 'restore must report duplicate records');
+
+assert.match(html, /if\(next\.length > 10000\)/, 'restore must cap the merged local dataset, not only the imported file');
