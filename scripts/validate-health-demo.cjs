@@ -70,6 +70,7 @@ const parseLocalObservationDateTime = vm.runInNewContext('(' + dateParserMatch[0
 assert.equal(new Date(parseLocalObservationDateTime('2026-10-18T08:30')).toISOString(),
   new Date('2026-10-18T08:30').toISOString(), 'valid datetime-local values must keep local-time conversion semantics');
 for (const invalid of ['2026-02-30T08:30','2026-13-01T08:30','2026-10-18T24:00','2026-10-18T08:60','2026-10-18T08:30:00.1234']) {
-  assert.throws(() => parseLocalObservationDateTime(invalid), TypeError,
+  assert.throws(() => parseLocalObservationDateTime(invalid),
+    error => error && error.name === 'TypeError',
     'invalid datetime-local value must not be silently normalized: ' + invalid);
 }
