@@ -284,6 +284,7 @@ function saveObservation(event){
       quality:String(fields.get('quality') || '')
     });
     const next = [...(window.healthObservations || []), observation];
+    if(next.length > 10000) throw new RangeError('本地健康记录最多保存 10000 条；请先导出并整理旧记录。');
     localStorage.setItem(OBSERVATION_STORAGE_KEY, JSON.stringify(next));
     window.healthObservations = next;
     form.reset();
