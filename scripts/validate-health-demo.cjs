@@ -59,6 +59,10 @@ console.log('Health demo disclosure and symptom safety checks passed.');
 
 assert.match(html, /data-page="records"/, 'health observation page must be available');
 assert.match(html, /onsubmit="return saveObservation\(event\)"/, 'observation form must call the save handler');
+assert.match(html, /<select name="quality" required><option value="" selected disabled>请选择数据质量来源<\/option><option value="measured">/,
+  'health observation quality must start unselected, never default to measured');
+assert.match(html, /手动自述请选择 reported.*文件导入请选择 imported.*示例值请选择 demo/,
+  'the observation form must explain the correct provenance choice for manual, imported and demo data');
 assert.match(html, /window\.HealthDomain\.createObservation/, 'records must use the domain provenance validator');
 assert.match(html, /const rows = window\.HealthDomain\.chronologicalObservations\(\s*Array\.isArray\(window\.healthObservations\)/,
   'records UI must use the shared chronological sorter for its validated observations');
