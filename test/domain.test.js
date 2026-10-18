@@ -20,6 +20,10 @@ test("rejects impossible calendar dates and invalid timezone offsets", () => {
   assert.throws(() => createObservation({...valid,observedAt:"2026-02-30T00:00:00Z"}), TypeError);
   assert.throws(() => createObservation({...valid,observedAt:"2026-01-01T00:00:00+14:30"}), TypeError);
 });
+test("rejects offsets that normalize outside the supported four-digit UTC year range", () => {
+  assert.throws(() => createObservation({...valid,observedAt:"0000-01-01T00:00:00+14:00"}), TypeError);
+  assert.throws(() => createObservation({...valid,observedAt:"9999-12-31T23:59:59-14:00"}), TypeError);
+});
 test("rejects missing provenance and invalid measurements", () => {
   assert.throws(() => createObservation({...valid,source:""}), TypeError);
   assert.throws(() => createObservation({...valid,value:Infinity}), TypeError);
