@@ -114,7 +114,7 @@ function renderObservations(){
   }
   if(observationStorageRecoveryRequired){
     count.textContent = '待恢复';
-    host.innerHTML = '<div class="empty">检测到健康记录缓存异常。当前列表为空不代表原记录已丢失；常规记录写入和导出已暂停。请先导出原始恢复数据并妥善保管。<div style="margin-top:12px"><button class="btn" onclick="exportObservationRecovery()">导出原始恢复数据</button></div></div>';
+    host.innerHTML = '<div class="empty">检测到健康记录缓存异常。当前列表为空不代表原记录已丢失；常规记录写入和导出已暂停。请先导出原始恢复数据并妥善保管，再导入有效 JSON 备份或可读取的恢复包。<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="exportObservationRecovery()">导出原始恢复数据</button><button class="btn primary" onclick="importObservations()">导入备份并恢复</button></div></div>';
     return;
   }
   const rows = Array.isArray(window.healthObservations) ? [...window.healthObservations] : [];
@@ -210,8 +210,8 @@ async function importObservations(){
     alert('健康记录校验模块不可用，暂不能导入。原始浏览器缓存未修改。');
     return false;
   }
-  if(observationStorageRecoveryRequired){
-    alert('检测到原健康记录缓存异常。请先恢复原始记录，再执行导入；当前缓存不会被覆盖。');
+  const recovering = observationStorageRecoveryRequired;
+  if(recovering && !confirm('当前健康记录缓存异常。建议先点击“导出原始恢复数据”保留现场。继续导入后，已损坏的缓存内容将由验证通过的备份替换；未能解析的原始内容仍保留在独立恢复项中。确定继续吗？')){
     return false;
   }
   const picker = document.getElementById('observationImportFile');
@@ -223,12 +223,47 @@ async function importObservations(){
     try{
       if(file.size > 5 * 1024 * 1024) throw new RangeError('备份文件不能超过 5 MB。');
       const payload = JSON.parse(await file.text());
-      if(!payload || typeof payload !== 'object' || Array.isArray(payload) || payload.schemaVersion !== 1 || !Array.isArray(payload.observations)){
-        throw new TypeError('备份格式无效或版本不受支持；需要 schemaVersion 1 和 observations 数组。');
+      let imported;
+      const isRecoveryEnvelope = payload && typeof payload === 'object' &&
+        !Array.isArray(payload) && payload.schemaVersion === 1 &&
+        payload.storage === 'local-browser-recovery';
+      if(isRecoveryEnvelope){
+        const rawCandidates = [];
+        if(typeof payload.originalRaw === 'string') rawCandidates.push(payload.originalRaw);
+        if(Array.isArray(payload.recoveryCopies)){
+          payload.recoveryCopies.forEach(copy=>{
+            if(copy && typeof copy.raw === 'string') rawCandidates.push(copy.raw);
+          });
+        }
+        let restored = null;
+        for(const raw of rawCandidates){
+          try{
+            const stored = JSON.parse(raw);
+            const rows = Array.isArray(stored) ? stored
+              : stored && stored.schemaVersion === 1 && Array.isArray(stored.observations)
+                ? stored.observations : null;
+            if(!rows || rows.length > 10000) continue;
+            restored = rows.map(row=>window.HealthDomain.createObservation(row));
+            break;
+          }catch(candidateError){
+            // Keep searching other preserved raw copies; never write an
+            // unvalidated candidate into the active observation store.
+          }
+        }
+        if(!restored){
+          throw new TypeError('恢复包中的原始内容无法通过健康记录校验；请改用最近一次有效的 JSON 备份。');
+        }
+        imported = restored;
+      }else{
+        if(!payload || typeof payload !== 'object' || Array.isArray(payload) ||
+           payload.schemaVersion !== 1 || !Array.isArray(payload.observations)){
+          throw new TypeError('备份格式无效或版本不受支持；需要 schemaVersion 1 和 observations 数组。');
+        }
+        if(payload.observations.length > 10000) throw new RangeError('单个备份最多允许 10000 条记录。');
+        imported = payload.observations.map(row => window.HealthDomain.createObservation(row));
       }
-      if(payload.observations.length > 10000) throw new RangeError('单个备份最多允许 10000 条记录。');
-      const imported = payload.observations.map(row => window.HealthDomain.createObservation(row));
-      const existing = Array.isArray(window.healthObservations) ? window.healthObservations : [];
+      const existing = recovering ? [] :
+        (Array.isArray(window.healthObservations) ? window.healthObservations : []);
       const identity = row => JSON.stringify([row.metric,row.value,row.unit,row.observedAt,row.source,row.quality]);
       const known = new Set(existing.map(identity));
       const additions = imported.filter(row => {
@@ -237,12 +272,16 @@ async function importObservations(){
         known.add(key);
         return true;
       });
-      const next = [...existing,...additions];
+      const next = recovering ? additions : [...existing,...additions];
       if(next.length > 10000) throw new RangeError('合并后的健康记录不能超过 10000 条；请先导出并整理旧记录。');
       localStorage.setItem(OBSERVATION_STORAGE_KEY,JSON.stringify(next));
       window.healthObservations = next;
+      // Release the recovery lock only after the validated replacement is durable.
+      observationStorageRecoveryRequired = false;
       renderObservations();
-      alert('导入校验完成：读取 ' + imported.length + ' 条，新增 ' + additions.length + ' 条，跳过重复 ' + (imported.length-additions.length) + ' 条。');
+      alert((recovering ? '恢复完成：' : '导入校验完成：') +
+        '读取 ' + imported.length + ' 条，新增 ' + additions.length +
+        ' 条，跳过重复 ' + (imported.length-additions.length) + ' 条。');
       return true;
     }catch(error){
       alert('导入失败，未写入任何记录：' + (error && error.message ? error.message : '备份校验失败'));
