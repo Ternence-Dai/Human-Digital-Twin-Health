@@ -238,6 +238,7 @@ async function importObservations(){
         return true;
       });
       const next = [...existing,...additions];
+      if(next.length > 10000) throw new RangeError('合并后的健康记录不能超过 10000 条；请先导出并整理旧记录。');
       localStorage.setItem(OBSERVATION_STORAGE_KEY,JSON.stringify(next));
       window.healthObservations = next;
       renderObservations();
