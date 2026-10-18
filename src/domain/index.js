@@ -22,7 +22,13 @@ function parseObservedAt(value) {
   }
   const timestamp = Date.parse(value);
   if (!Number.isFinite(timestamp)) throw new TypeError("observedAt must be a valid ISO timestamp");
-  return new Date(timestamp).toISOString();
+  const canonicalDate = new Date(timestamp);
+  // Keep canonical values inside the four-digit year format accepted by this parser.
+  // Otherwise a valid offset near a calendar boundary could normalize to an
+  // extended-year ISO string that this same module cannot read back.
+  const utcYear = canonicalDate.getUTCFullYear();
+  if (utcYear < 0 || utcYear > 9999) throw new TypeError("observedAt normalizes outside the supported UTC year range");
+  return canonicalDate.toISOString();
 }
 
 export function createObservation(input) {
