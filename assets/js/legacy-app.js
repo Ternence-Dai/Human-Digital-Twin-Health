@@ -255,6 +255,28 @@ async function importObservations(){
   return true;
 }
 
+function parseLocalObservationDateTime(value){
+  if(typeof value!=='string')throw new TypeError('测量时间格式无效');
+  const match=/^(\\d{4})-(\\d{2})-(\\d{2})T([01]\\d|2[0-3]):([0-5]\\d)(?::([0-5]\\d)(?:\\.(\\d{1,3}))?)?$/.exec(value);
+  if(!match)throw new TypeError('测量时间必须是有效的本地日期时间');
+  const year=Number(match[1]),month=Number(match[2]),day=Number(match[3]);
+  const hour=Number(match[4]),minute=Number(match[5]),second=Number(match[6]||0);
+  const millisecond=Number((match[7]||'').padEnd(3,'0')||0);
+  const leap=year%4===0&&(year%100!==0||year%400===0);
+  const days=[31,leap?29:28,31,30,31,30,31,31,30,31,30,31];
+  if(month<1||month>12||day<1||day>days[month-1]){
+    throw new TypeError('测量时间包含无效的日历日期');
+  }
+  const parsed=new Date(value);
+  if(!Number.isFinite(parsed.getTime())||
+     parsed.getFullYear()!==year||parsed.getMonth()+1!==month||parsed.getDate()!==day||
+     parsed.getHours()!==hour||parsed.getMinutes()!==minute||
+     parsed.getSeconds()!==second||parsed.getMilliseconds()!==millisecond){
+    throw new TypeError('测量时间无效或落在本地时区不存在的时间段');
+  }
+  return parsed.toISOString();
+}
+
 function saveObservation(event){
   if(event) event.preventDefault();
   if(observationDomainUnavailable){
@@ -272,9 +294,7 @@ function saveObservation(event){
   const value = Number(valueText);
   const localDate = String(fields.get('observedAt') || '');
   try{
-    const parsedDate = new Date(localDate);
-    if(!localDate || !Number.isFinite(parsedDate.getTime())) throw new TypeError('observedAt must be a valid date string');
-    const observedAt = parsedDate.toISOString();
+    const observedAt = parseLocalObservationDateTime(localDate);
     const observation = window.HealthDomain.createObservation({
       metric:String(fields.get('metric') || ''),
       value,
