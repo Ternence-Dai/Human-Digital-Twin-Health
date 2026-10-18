@@ -66,6 +66,7 @@ window.addEventListener('load', async () => {
 /* ---------------- 可追溯健康记录 ---------------- */
 const OBSERVATION_STORAGE_KEY = 'health-observations-v1';
 let observationStorageRecoveryRequired = false;
+let observationDomainUnavailable = false;
 function preserveInvalidObservationStorage(raw){
   if(!raw) return false;
   try{
@@ -88,11 +89,13 @@ function loadObservations(){
     }
     const parsed = JSON.parse(raw);
     if(!Array.isArray(parsed)) throw new TypeError('health observations cache must be an array');
-    if(window.HealthDomain && typeof window.HealthDomain.createObservation === 'function'){
-      window.healthObservations = parsed.map(row => window.HealthDomain.createObservation(row));
-    }else{
-      window.healthObservations = parsed;
+    if(!window.HealthDomain || typeof window.HealthDomain.createObservation !== 'function'){
+      observationDomainUnavailable = true;
+      window.healthObservations = [];
+      console.error('健康记录校验模块不可用；原始缓存保持不变，记录读取与写入已暂停。');
+      return;
     }
+    window.healthObservations = parsed.map(row => window.HealthDomain.createObservation(row));
   }catch(error){
     observationStorageRecoveryRequired = true;
     if(raw !== null) preserveInvalidObservationStorage(raw);
@@ -104,6 +107,11 @@ function renderObservations(){
   const host = document.getElementById('observationList');
   const count = document.getElementById('observationCount');
   if(!host || !count) return;
+  if(observationDomainUnavailable){
+    count.textContent = '校验模块不可用';
+    host.innerHTML = '<div class="empty">健康记录校验模块尚未加载。为避免显示未经校验的数据，当前记录列表暂不可用；原始浏览器缓存未修改。请刷新页面后重试。常规写入与导出已暂停。</div>';
+    return;
+  }
   if(observationStorageRecoveryRequired){
     count.textContent = '待恢复';
     host.innerHTML = '<div class="empty">检测到健康记录缓存异常。当前列表为空不代表原记录已丢失；常规记录写入和导出已暂停。请先导出原始恢复数据并妥善保管。<div style="margin-top:12px"><button class="btn" onclick="exportObservationRecovery()">导出原始恢复数据</button></div></div>';
@@ -164,6 +172,10 @@ function exportObservationRecovery(){
   }
 }
 function exportObservations(){
+  if(observationDomainUnavailable){
+    alert('健康记录校验模块尚未加载，暂不能安全导出。原始浏览器缓存未修改，请刷新页面后重试。');
+    return false;
+  }
   if(observationStorageRecoveryRequired){
     alert('健康记录缓存异常，当前空列表不是有效备份。为避免导出空文件掩盖原始数据，请先保留浏览器站点数据并恢复记录。');
     return false;
@@ -195,6 +207,10 @@ function exportObservations(){
 }
 function saveObservation(event){
   if(event) event.preventDefault();
+  if(observationDomainUnavailable){
+    alert('健康记录校验模块尚未加载，暂不能保存。原始浏览器缓存未修改，请刷新页面后重试。');
+    return false;
+  }
   if(observationStorageRecoveryRequired){
     alert('检测到原健康记录缓存异常，已阻止保存以保护原始数据。请先保留浏览器恢复项并进行数据恢复。');
     return false;
