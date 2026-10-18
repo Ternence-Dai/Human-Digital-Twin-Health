@@ -25,8 +25,8 @@ Demo data must be unmistakably labelled and segregated. No clinical claims or di
 
 ## Delivery status
 
-The modernization work is being applied directly to `main`. The current baseline includes a domain-core module, automated domain tests, standalone-app validation, and a GitHub Pages deployment workflow. These checks passing confirms the current baseline is buildable; it does **not** mean the full product rebuild is complete.
+The modernization work is being applied directly to `main`. The verified data slice validates each observation's metric, finite value, unit, timezone-qualified timestamp, source, and provenance class (`measured`, `reported`, `estimated`, `imported`, or `demo`). The records UI uses the shared chronological sorter, keeps newest observations visible first, and has recovery-protected local JSON import/export. CI, tests, and Pages deployment pass for this slice.
 
-Remaining delivery work includes validating the existing application workflows and data, extracting maintainable modules from the legacy entry point, adding migration-safe persistence and import/export checks, and documenting verified domain rules. Existing user data and the legacy application must be preserved while these changes are introduced.
+Remaining delivery work includes broader browser-level testing, consent and access-control workflows, secure backup/retention/deletion design, interoperability adapters, and validation with real user-approved source data. Storage is local to the current browser; it is not yet a synchronized clinical record service. The symptom helper is a local keyword-based aid, not an AI diagnosis or treatment system.
 
 See [the rebuild plan](docs/REBUILD_PLAN.md) and [domain rules, units and validation boundaries](docs/DOMAIN_CORE.md).
