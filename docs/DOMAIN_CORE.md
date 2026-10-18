@@ -22,6 +22,7 @@ Accepted timestamps are normalized to canonical UTC ISO strings. Impossible cale
 ## Provenance and presentation
 
 - Measured, reported, estimated, imported and demo observations must remain distinguishable in storage and UI.
+- The manual-entry form begins with no quality selected. A user must deliberately select the provenance class; it must never silently default a manual value to measured.
 - Never convert demo values into measured observations or silently merge data with different provenance.
 - Sorting or charting must preserve the original value, unit, timestamp and source; timezone conversion must not shift date-only values into another calendar day.
 - A local browser record is not automatically synchronized to a server or another device.
