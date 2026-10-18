@@ -31,6 +31,14 @@ test("accepts every explicit provenance class while rejecting an unselected qual
   assert.throws(() => createObservation({...valid, quality:""}), RangeError);
   assert.throws(() => createObservation({...valid, quality:null}), RangeError);
 });
+test("bounds observation text fields and rejects control characters", () => {
+  assert.throws(() => createObservation({...valid,metric:"m".repeat(81)}), RangeError);
+  assert.throws(() => createObservation({...valid,metric:"heart\\nrate"}), TypeError);
+  assert.throws(() => createObservation({...valid,unit:"u".repeat(25)}), RangeError);
+  assert.throws(() => createObservation({...valid,unit:"bpm\\u0000"}), TypeError);
+  assert.throws(() => createObservation({...valid,source:"s".repeat(181)}), RangeError);
+  assert.throws(() => createObservation({...valid,source:"wearable\\u007f"}), TypeError);
+});
 test("rejects missing provenance and invalid measurements", () => {
   assert.throws(() => createObservation({...valid,source:""}), TypeError);
   assert.throws(() => createObservation({...valid,value:Infinity}), TypeError);
