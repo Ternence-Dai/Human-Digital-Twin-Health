@@ -42,6 +42,8 @@ console.log('Health demo disclosure and symptom safety checks passed.');
 assert.match(html, /data-page="records"/, 'health observation page must be available');
 assert.match(html, /onsubmit="return saveObservation\(event\)"/, 'observation form must call the save handler');
 assert.match(html, /window\.HealthDomain\.createObservation/, 'records must use the domain provenance validator');
+assert.match(html, /window\.HealthDomain\.chronologicalObservations\([\\s\\S]{0,160}window\.healthObservations[\\s\\S]{0,80}\\)\.reverse\(\)/,
+  'records UI must use the shared chronological sorter while presenting newest observations first');
 assert.match(html, /localStorage\.setItem\(OBSERVATION_STORAGE_KEY/, 'validated observations must persist locally');
 assert.match(html, /escHTML\(row\.metric\)/, 'user-provided observation values must be escaped before rendering');
 assert.match(html, /quality/, 'observation records must expose provenance quality');
