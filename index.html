@@ -281,10 +281,10 @@
             <label>单位<input name="unit" required maxlength="24" placeholder="例如 bpm、mmHg、kg"></label>
             <label>测量时间<input name="observedAt" type="datetime-local" required></label>
             <label>数据来源<input name="source" required maxlength="120" placeholder="例如手动录入、设备名称或报告来源"></label>
-            <label>数据质量<select name="quality" required><option value="measured">实测 measured</option><option value="reported">本人报告 reported</option><option value="estimated">估算 estimated</option><option value="imported">导入 imported</option><option value="demo">演示 demo</option></select></label>
+            <label>数据质量<select name="quality" required><option value="" selected disabled>请选择数据质量来源</option><option value="measured">实测 measured · 有直接测量来源</option><option value="reported">本人报告 reported · 手动自述</option><option value="estimated">估算 estimated · 推算值</option><option value="imported">导入 imported · 外部文件</option><option value="demo">演示 demo · 仅供测试</option></select></label>
             <button class="btn primary" type="submit">保存记录</button>
           </form>
-          <p style="font-size:11px;color:var(--tx3);margin-top:10px">保存前会校验数值、单位、时间、来源和质量标记。请勿把演示数据标记为实测。</p>
+          <p style="font-size:11px;color:var(--tx3);margin-top:10px">保存前会校验数值、单位、时间、来源和质量标记。质量类别不会默认选为“实测”：手动自述请选择 reported，文件导入请选择 imported，示例值请选择 demo；只有能追溯到直接测量过程的数据才选 measured。</p>
         </div>
         <div class="sec-title"><span class="bar"></span>历史记录 <span class="more" id="observationCount">0 条</span><button class="btn sm" type="button" onclick="importObservations()">导入 JSON 备份</button>
           <button class="btn sm" type="button" onclick="exportObservations()" style="margin-left:auto">导出 JSON 备份</button>
