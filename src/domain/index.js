@@ -60,3 +60,15 @@ export function chronologicalObservations(observations) {
   });
   return validated.sort((a,b) => Date.parse(a.observedAt)-Date.parse(b.observedAt));
 }
+
+
+// A measurement is a duplicate only when its value, unit, timestamp and provenance all match.
+export function observationIdentity(observation) {
+  if (!observation || typeof observation !== "object" || Array.isArray(observation)) {
+    throw new TypeError("observation identity requires a record object");
+  }
+  return JSON.stringify([
+    observation.metric, observation.value, observation.unit,
+    observation.observedAt, observation.source, observation.quality
+  ]);
+}
