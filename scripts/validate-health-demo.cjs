@@ -60,6 +60,8 @@ assert.match(html, /已阻止后续保存覆盖原始数据/, 'corrupted cache m
 assert.match(html, /if\(observationStorageRecoveryRequired\)/, 'saving must stop while cache recovery is required');
 
 assert.match(html, /let observationDomainUnavailable = false/, 'domain loading failure must have a distinct safe state');
+assert.match(html, /catch \(error\) \{\s*observationDomainUnavailable = true;/,
+  'a failed dynamic import must activate the unavailable state even when the cache is empty');
 assert.match(html, /原始浏览器缓存未修改/, 'domain loading failure must preserve the original cache');
 assert.match(html, /if\(observationDomainUnavailable\)/, 'reads, saves, and exports must stop while the validator is unavailable');
 
