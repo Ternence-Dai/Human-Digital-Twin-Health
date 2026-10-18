@@ -86,3 +86,20 @@ for (const invalid of ['2026-02-30T08:30','2026-13-01T08:30','2026-10-18T24:00',
     error => error && error.name === 'TypeError',
     'invalid datetime-local value must not be silently normalized: ' + invalid);
 }
+
+assert.match(html, /循环系统指标（演示）/,
+  'vascular metrics must be explicitly marked as demonstration data');
+assert.match(html, /风险评估（演示）/,
+  'vascular risk blocks must be explicitly marked as demonstration data');
+assert.match(html, /不是实时设备测量、医学检查结果或个体化风险评估/,
+  'vascular demo must disclose that static values are not personal clinical results');
+assert.match(html, /经络热力图（演示）/,
+  'meridian heatmap must be explicitly marked as demonstration data');
+assert.match(html, /十二正经（演示）/,
+  'meridian twelve-channel panel must be explicitly marked as demonstration data');
+assert.match(html, /奇经八脉（演示）/,
+  'extraordinary-vessel panel must be explicitly marked as demonstration data');
+assert.match(html, /不是生理检测结果，也不会由设备自动计算/,
+  'meridian demo must disclose its static provenance');
+assert.match(html, /演示能量值/,
+  'meridian detail modal must not imply a measured energy value');
