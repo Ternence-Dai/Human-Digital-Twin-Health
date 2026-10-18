@@ -49,3 +49,11 @@ assert.match(html, /if\(observationStorageRecoveryRequired\)/, 'saving must stop
 assert.match(html, /let observationDomainUnavailable = false/, 'domain loading failure must have a distinct safe state');
 assert.match(html, /原始浏览器缓存未修改/, 'domain loading failure must preserve the original cache');
 assert.match(html, /if\(observationDomainUnavailable\)/, 'reads, saves, and exports must stop while the validator is unavailable');
+
+assert.match(html, /onclick="importObservations\\(\\)"/, 'health records must offer a JSON restore action');
+assert.match(html, /async function importObservations\\(\\)/, 'JSON restore handler must exist');
+assert.match(html, /payload\\.schemaVersion !== 1/, 'restore must reject unsupported backup schemas');
+assert.match(html, /payload\\.observations\\.map\\(row => window\\.HealthDomain\\.createObservation\\(row\\)\\)/, 'restore must validate every imported row before saving');
+assert.match(html, /file\\.size > 5 \\* 1024 \\* 1024/, 'restore must enforce a file size limit');
+assert.match(html, /localStorage\\.setItem\\(OBSERVATION_STORAGE_KEY,JSON\\.stringify\\(next\\)\\)/, 'restore must persist the fully validated merged result');
+assert.match(html, /跳过重复/, 'restore must report duplicate records');
