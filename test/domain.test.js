@@ -24,6 +24,13 @@ test("rejects offsets that normalize outside the supported four-digit UTC year r
   assert.throws(() => createObservation({...valid,observedAt:"0000-01-01T00:00:00+14:00"}), TypeError);
   assert.throws(() => createObservation({...valid,observedAt:"9999-12-31T23:59:59-14:00"}), TypeError);
 });
+test("accepts every explicit provenance class while rejecting an unselected quality", () => {
+  for (const quality of ["measured", "reported", "estimated", "imported", "demo"]) {
+    assert.equal(createObservation({...valid, quality}).quality, quality);
+  }
+  assert.throws(() => createObservation({...valid, quality:""}), RangeError);
+  assert.throws(() => createObservation({...valid, quality:null}), RangeError);
+});
 test("rejects missing provenance and invalid measurements", () => {
   assert.throws(() => createObservation({...valid,source:""}), TypeError);
   assert.throws(() => createObservation({...valid,value:Infinity}), TypeError);
