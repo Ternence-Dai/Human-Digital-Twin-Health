@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const html = fs.readFileSync('index.html', 'utf8') + '\n' + fs.readFileSync('assets/js/health-demo-data.js', 'utf8') + '\n' + fs.readFileSync('assets/js/legacy-app.js', 'utf8');
 const productCss = fs.readFileSync('assets/css/product-system.css', 'utf8');
-assert.match(html, /product-system\\.css\\?v=20261018-v3/,
+assert.ok(html.includes('product-system.css?v=20261018-v3'),
   'health app must load the visible V3 product interface stylesheet');
 assert.match(productCss, /Health data workspace redesign/,
   'health product design layer must be explicitly versioned');
