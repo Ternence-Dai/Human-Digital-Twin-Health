@@ -38,3 +38,9 @@ Accepted timestamps are normalized to canonical UTC ISO strings. Impossible cale
 ## Verification boundary
 
 The domain tests cover provenance classes, required fields, timezone normalization, calendar validation, millisecond precision, and chronological sorting. These tests establish data-contract behaviour; they do not establish clinical validity or medical safety.
+
+## Open-source architecture references
+
+- [HAPI FHIR](https://github.com/hapifhir/hapi-fhir) and [OpenMRS](https://github.com/openmrs/openmrs-core) are reference points for interoperable health-resource structures, identifiers, provenance, and explicit clinical-data boundaries. This browser-local project is not yet a FHIR server and must not imply clinical-system interoperability until adapters and conformance tests exist.
+- [SMART Health IT](https://github.com/smart-on-fhir) provides a useful reference for consent-aware authorization and scoped health-data access. It informs future access-control design; no OAuth/SMART workflow is claimed as implemented.
+- The current observation contract deliberately keeps measured, reported, estimated, imported, and demo records distinct. Reference implementations inform future resource mapping, not clinical interpretation or default normal ranges.
