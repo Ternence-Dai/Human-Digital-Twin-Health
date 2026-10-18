@@ -59,3 +59,4 @@ assert.match(html, /localStorage\.setItem\(OBSERVATION_STORAGE_KEY,JSON\.stringi
 assert.match(html, /跳过重复/, 'restore must report duplicate records');
 
 assert.match(html, /if\(next\.length > 10000\)/, 'restore must cap the merged local dataset, not only the imported file');
+assert.match(html, /本地健康记录最多保存 10000 条/, 'manual entry must enforce the same local record cap as JSON restore');
