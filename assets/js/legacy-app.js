@@ -268,7 +268,7 @@ async function importObservations(){
       }
       const existing = recovering ? [] :
         (Array.isArray(window.healthObservations) ? window.healthObservations : []);
-      const identity = row => JSON.stringify([row.metric,row.value,row.unit,row.observedAt,row.source,row.quality]);
+      const identity = window.HealthDomain.observationIdentity;
       const known = new Set(existing.map(identity));
       const additions = imported.filter(row => {
         const key = identity(row);
@@ -346,7 +346,13 @@ function saveObservation(event){
       source:String(fields.get('source') || ''),
       quality:String(fields.get('quality') || '')
     });
-    const next = [...(window.healthObservations || []), observation];
+    const existing = Array.isArray(window.healthObservations) ? window.healthObservations : [];
+    const identity = window.HealthDomain.observationIdentity;
+    if(existing.some(row => identity(row) === identity(observation))){
+      alert('这条测量记录与已有记录完全相同（指标、数值、单位、时间和来源均一致），未重复保存。');
+      return false;
+    }
+    const next = [...existing, observation];
     if(next.length > 10000) throw new RangeError('本地健康记录最多保存 10000 条；请先导出并整理旧记录。');
     localStorage.setItem(OBSERVATION_STORAGE_KEY, JSON.stringify(next));
     window.healthObservations = next;
