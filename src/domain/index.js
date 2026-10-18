@@ -2,7 +2,7 @@ const allowedQuality = new Set(["measured","reported","estimated","imported","de
 
 function parseObservedAt(value) {
   if (typeof value !== "string") throw new TypeError("observedAt must be an ISO timestamp with an explicit timezone");
-  const match = /^(\d{4})-(\d{2})-(\d{2})T([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d)(?:\.\d{1,9})?)?(Z|([+-])(\d{2}):(\d{2}))$/.exec(value);
+  const match = /^(\d{4})-(\d{2})-(\d{2})T([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d)(?:\.\d{1,3})?)?(Z|([+-])(\d{2}):(\d{2}))$/.exec(value);
   if (!match) throw new TypeError("observedAt must be an ISO timestamp with an explicit timezone");
   const [, yearText, monthText, dayText, , , , zone, sign, offsetHourText, offsetMinuteText] = match;
   const year = Number(yearText);
