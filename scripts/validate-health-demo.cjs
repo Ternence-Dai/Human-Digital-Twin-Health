@@ -14,9 +14,9 @@ for (const selector of [
   '#observationList{', '.tabbar{'
 ]) assert.ok(productCss.includes(selector),
   'health V3 design must style the major product area: ' + selector);
-assert.match(productCss, /@media\\(max-width:860px\\)/,
+assert.ok(productCss.includes('@media(max-width:860px)'),
   'health redesign must include tablet/mobile layout rules');
-assert.match(productCss, /@media\\(max-width:520px\\)/,
+assert.ok(productCss.includes('@media(max-width:520px)'),
   'health redesign must include narrow phone layout rules');
 assert.match(productCss, /prefers-reduced-motion:reduce/,
   'health redesign must respect reduced-motion preferences');
