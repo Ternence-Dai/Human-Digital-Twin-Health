@@ -11,6 +11,11 @@ test("rejects timestamps without timezone and date-only values", () => {
   assert.throws(() => createObservation({...valid,observedAt:"2026-01-01T00:00:00"}), TypeError);
   assert.throws(() => createObservation({...valid,observedAt:"2026-01-01"}), TypeError);
 });
+test("rejects sub-millisecond precision that JavaScript would silently truncate", () => {
+  assert.throws(() => createObservation({...valid,observedAt:"2026-01-01T00:00:00.1234Z"}), TypeError);
+  assert.throws(() => createObservation({...valid,observedAt:"2026-01-01T00:00:00.123456789Z"}), TypeError);
+  assert.equal(createObservation({...valid,observedAt:"2026-01-01T00:00:00.123Z"}).observedAt,"2026-01-01T00:00:00.123Z");
+});
 test("rejects impossible calendar dates and invalid timezone offsets", () => {
   assert.throws(() => createObservation({...valid,observedAt:"2026-02-30T00:00:00Z"}), TypeError);
   assert.throws(() => createObservation({...valid,observedAt:"2026-01-01T00:00:00+14:30"}), TypeError);
