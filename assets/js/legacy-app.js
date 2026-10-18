@@ -120,8 +120,9 @@ function renderObservations(){
     host.innerHTML = '<div class="empty">检测到健康记录缓存异常。当前列表为空不代表原记录已丢失；常规记录写入和导出已暂停。请先导出原始恢复数据并妥善保管，再导入有效 JSON 备份或可读取的恢复包。<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="exportObservationRecovery()">导出原始恢复数据</button><button class="btn primary" onclick="importObservations()">导入备份并恢复</button></div></div>';
     return;
   }
-  const rows = Array.isArray(window.healthObservations) ? [...window.healthObservations] : [];
-  rows.sort((a,b)=>Date.parse(b.observedAt)-Date.parse(a.observedAt));
+  const rows = window.HealthDomain.chronologicalObservations(
+    Array.isArray(window.healthObservations) ? window.healthObservations : []
+  ).reverse();
   count.textContent = rows.length + ' 条';
   if(!rows.length){ host.innerHTML='<div class="empty">暂无记录。新增测量后会显示在这里。</div>'; return; }
   host.innerHTML = rows.map(row=>`
