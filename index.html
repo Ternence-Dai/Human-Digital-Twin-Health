@@ -280,7 +280,9 @@
           </form>
           <p style="font-size:11px;color:var(--tx3);margin-top:10px">保存前会校验数值、单位、时间、来源和质量标记。请勿把演示数据标记为实测。</p>
         </div>
-        <div class="sec-title"><span class="bar"></span>历史记录 <span class="more" id="observationCount">0 条</span><button class="btn sm" type="button" onclick="exportObservations()" style="margin-left:auto">导出 JSON 备份</button></div>
+        <div class="sec-title"><span class="bar"></span>历史记录 <span class="more" id="observationCount">0 条</span><button class="btn sm" type="button" onclick="importObservations()">导入 JSON 备份</button>
+          <button class="btn sm" type="button" onclick="exportObservations()" style="margin-left:auto">导出 JSON 备份</button>
+          <input id="observationImportFile" type="file" accept="application/json,.json" hidden></div>
         <div id="observationList" class="glass" style="padding:14px"></div>
       </section>
 
