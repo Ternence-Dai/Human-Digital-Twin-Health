@@ -113,13 +113,13 @@ assert.match(html, /if\(observationDomainUnavailable\)/, 'reads, saves, and expo
 assert.match(html, /onclick="importObservations\(\)"/, 'health records must offer a JSON restore action');
 assert.match(html, /async function importObservations\(\)/, 'JSON restore handler must exist');
 assert.match(html, /payload\.schemaVersion !== 1/, 'restore must reject unsupported backup schemas');
-assert.match(html, /payload\.observations\.map\(row => window\.HealthDomain\.createObservation\(row\)\)/, 'restore must validate every imported row before saving');
+assert.match(html, /window\.HealthDomain\.normalizeObservationHistory\(payload\.observations\)/, 'restore must validate imported measurement rows and version metadata before saving');
 assert.match(html, /file\.size > 5 \* 1024 \* 1024/, 'restore must enforce a file size limit');
 assert.match(html, /localStorage\.setItem\(OBSERVATION_STORAGE_KEY,JSON\.stringify\(next\)\)/, 'restore must persist the fully validated merged result');
-assert.match(html, /跳过重复/, 'restore must report duplicate records');
+assert.match(html, /window\.HealthDomain\.mergeObservationHistories\(existing, imported\)/, 'restore must merge versioned history without reverting prior corrections');
 
 assert.match(html, /if\(next\.length > 10000\)/, 'restore must cap the merged local dataset, not only the imported file');
-assert.match(html, /本地健康记录最多保存 10000 条/, 'manual entry must enforce the same local record cap as JSON restore');
+assert.match(html, /本地健康记录最多保存 10000 个版本/, 'manual entry must cap the complete version history');
 
 assert.match(html, /parseLocalObservationDateTime\(localDate\)/,
   'manual observations must reject invalid local calendar values before UTC conversion');
