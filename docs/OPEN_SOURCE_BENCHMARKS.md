@@ -67,3 +67,19 @@
 - 首页流程按“记录 → 审阅报告 → 人体/器官教育图谱”排列；已移除没有真实依据的固定综合健康分。
 - 下一阶段把记录更正设计为带前值、原因和更正时间的版本链；未完成前不静默覆盖既有测量。
 - 若未来引入 FHIR 导入，先做 Observation/CodeableConcept/Quantity/Provenance 映射和数据质量提示；JSON 上传不等于 FHIR 互操作。
+
+
+## 8. 2026-10-19 源码级复核：OpenMRS Obs 更正与版本关系
+
+本轮实际读取 OpenMRS 的 `api/src/main/java/org/openmrs/Obs.java` 和 `api/src/test/java/org/openmrs/ObsTest.java`，不只参考 README：
+
+- [`Obs.java`](https://github.com/openmrs/openmrs-core/blob/master/api/src/main/java/org/openmrs/Obs.java) 将 Observation 定义为单条临床信息，并支持父子分组、Encounter/Location 等上下文、数值/文本/编码/日期等值类型，以及 `PRELIMINARY`、`FINAL`、`AMENDED` 状态。
+- 该源码的类文档明确建议：已进入正式就诊记录的观察值需要更正时，创建新 Obs，使用 `setPreviousVersion(oldObs)` 关联旧版本，并以说明原因的方式保存新记录，再对旧记录执行带原因的 void 操作；不是直接覆盖旧值。
+- [`ObsTest.java`](https://github.com/openmrs/openmrs-core/blob/master/api/src/test/java/org/openmrs/ObsTest.java) 覆盖 Obs 分组成员添加/删除、重复成员处理、层级关联观察和不同日期时间格式等行为。测试重点不只是展示数值，也包括实体关系行为。
+
+### 对 Health Twin 的映射与当前边界
+
+- 当前 Health Twin 的 `createObservation` 已区分测量时间 `observedAt`、录入时间 `recordedAt`、来源 `source` 和质量分类 `quality`；`observationIdentity` 以规范化后的测量事实识别重复记录。
+- 当前导入采用追加合并并跳过完全重复记录，单条记录没有原地编辑入口；因此当前实现不会静默改写已有测量，但也尚未提供正式的“更正版本链”、更正原因、前序记录引用或作废状态。
+- 下一阶段建议新增显式更正事件：为每条观察记录分配稳定 ID；更正创建新记录并引用 `previousVersionId`，要求更正原因、操作者标识和更正时间；旧记录保留并标记为已被更正，不从原始历史中删除。趋势图和摘要默认只纳入当前有效版本，同时允许查看完整历史。
+- 本地浏览器数据无法提供 OpenMRS 的服务端身份、审计不可抵赖性或临床治理。未实现这些能力前，不显示“已审核”“临床确认”或“不可篡改”等状态。
