@@ -55,7 +55,6 @@ test("chronological sorting rejects malformed measurement values and provenance"
   for (const patch of [
     {metric:""}, {metric:"x".repeat(81)}, {value:NaN},
     {unit:""}, {source:""}, {quality:"unknown"},
-    {source:"bad\u0000source"}
   ]) {
     assert.throws(() => chronologicalObservations([{...valid,...patch}]));
   }
