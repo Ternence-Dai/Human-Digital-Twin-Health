@@ -129,7 +129,8 @@ function renderObservations(){
     <div class="list-item" style="border-bottom:1px solid var(--line);padding:10px 0">
       <div class="li-main">
         <div class="li-t">${escHTML(row.metric)}：${escHTML(row.value)} ${escHTML(row.unit)}</div>
-        <div class="li-s">${escHTML(row.observedAt)} · 来源：${escHTML(row.source)}</div>
+        <div class="li-s">测量时间：${escHTML(row.observedAt)} · 来源：${escHTML(row.source)}</div>
+        ${row.recordedAt ? '<div class="li-s">录入时间：' + escHTML(row.recordedAt) + '</div>' : ''}
         <div class="li-s">质量标记：${escHTML(row.quality)}</div>
       </div>
     </div>`).join('');
@@ -343,6 +344,7 @@ function saveObservation(event){
       value,
       unit:String(fields.get('unit') || ''),
       observedAt,
+      recordedAt:new Date().toISOString(),
       source:String(fields.get('source') || ''),
       quality:String(fields.get('quality') || '')
     });
