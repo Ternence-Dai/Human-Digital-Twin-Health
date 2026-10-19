@@ -43,3 +43,10 @@
 - [OpenMRS Obs 观察值模型](https://github.com/openmrs/openmrs-core/blob/master/api/src/main/java/org/openmrs/Obs.java)
 - [OpenMRS Encounter 记录上下文](https://github.com/openmrs/openmrs-core/blob/master/api/src/main/java/org/openmrs/Encounter.java)
 - [GNU Health](https://github.com/gnuhealth)
+
+## 6. 2026-10-19 实施补充：测量时间与录入时间分离
+
+- `src/domain/index.js` 的 `createObservation` 现在可选接受 `recordedAt`，与必需的 `observedAt` 分开校验并规范化为 UTC ISO 时间。
+- `assets/js/legacy-app.js` 新建测量时记录实际录入时间，记录列表分别显示“测量时间”和“录入时间”。
+- 旧备份中没有 `recordedAt` 的历史记录继续合法读取；系统不会伪造历史录入时间。重复记录身份仍依据指标、数值、单位、测量时间和来源，不因重新导入时间不同而误判为新测量。
+- 回归测试覆盖旧记录兼容、时区归一化、无时区时间和无效日历日期。
