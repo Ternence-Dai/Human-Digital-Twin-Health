@@ -520,3 +520,7 @@ input::placeholder,textarea::placeholder{color:#91a3aa}
   :where(.lib-stats,.metrics-grid){grid-template-columns:minmax(0,1fr)}
 }
 @media(prefers-reduced-motion:reduce){:where(button,a,[role="button"],.card,.kpi,.gcard,.experiment-card,.metric-card,.module-card,.quick,.mode){transition:none!important;transform:none!important}}
+
+
+/* V5 · Core workspace actions */
+.home-action-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:13px}.home-action-row .btn{min-height:34px;padding:7px 11px;font-size:10px;white-space:nowrap}.score-info{min-width:0}.score-info .home-action-row{max-width:100%}@media(max-width:520px){.home-action-row{display:grid;grid-template-columns:1fr 1fr}.home-action-row .btn{white-space:normal;padding:8px 7px}.home-action-row .btn:first-child{grid-column:1/-1}}
