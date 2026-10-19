@@ -75,10 +75,18 @@ assert.match(html, /<select name="quality" required><option value="" selected di
 assert.match(html, /手动自述请选择 reported.*文件导入请选择 imported.*示例值请选择 demo/,
   'the observation form must explain the correct provenance choice for manual, imported and demo data');
 assert.match(html, /window\.HealthDomain\.createObservation/, 'records must use the domain provenance validator');
-assert.match(html, /const rows = window\.HealthDomain\.chronologicalObservations\(\s*Array\.isArray\(window\.healthObservations\)/,
-  'records UI must use the shared chronological sorter for its validated observations');
-assert.match(html, /\)\.reverse\(\);/,
-  'records UI must present the newest validated observation first');
+assert.match(html, /const rows = window\.HealthDomain\.normalizeObservationHistory\(/,
+  'records UI must validate complete observation version history before display');
+assert.match(html, /Date\.parse\(b\.recordedAt \|\| b\.amendedAt \|\| b\.observedAt\)/,
+  'records UI must order versions by actual record or amendment time');
+assert.match(html, /function beginObservationAmendment\(id\)/,
+  'records UI must offer append-only observation correction');
+assert.match(html, /function voidObservationRecord\(id\)/,
+  'records UI must offer traceable observation voiding');
+assert.match(html, /window\.HealthDomain\.amendObservation\(/,
+  'corrections must use the domain version lifecycle');
+assert.match(html, /window\.HealthDomain\.mergeObservationHistories\(/,
+  'imports must merge versioned history without reverting superseded observations');
 assert.match(html, /localStorage\.setItem\(OBSERVATION_STORAGE_KEY/, 'validated observations must persist locally');
 assert.match(html, /escHTML\(row\.metric\)/, 'user-provided observation values must be escaped before rendering');
 assert.match(html, /quality/, 'observation records must expose provenance quality');
