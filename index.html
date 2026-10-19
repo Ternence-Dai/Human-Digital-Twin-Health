@@ -7,8 +7,9 @@
 <meta name="description" content="人体数字孪生健康数据空间：记录健康观察值、数据来源、时间与质量标记。演示信息不代表临床评估。">
 <title>健康数据空间 · 人体数字孪生平台</title>
 <link rel="stylesheet" href="./assets/css/legacy-app.css">
-  <link rel="stylesheet" href="./assets/css/product-system.css?v=20261018-v3">
-  <link rel="stylesheet" href="./assets/css/product-system.css?v=20261019-v5">
+
+
+  <link rel="stylesheet" href="./assets/css/product-system.css?v=20261019-v6">
 </head>
 <body>
 
@@ -81,6 +82,16 @@
       <!-- ---------- 首页 ---------- -->
         <div class="health-intro"><div><div class="eyebrow">PERSONAL HEALTH DATA SPACE</div><h2>个人健康数据与趋势空间</h2><p>集中查看健康记录、身体维度与长期变化。请先核对数据来源、测量时间和单位，再解读任何趋势。</p><div class="health-tags"><span>数据来源可追溯</span><span>趋势记录</span><span>健康教育</span><span>隐私优先</span></div></div><div class="health-state">演示环境：当前页面含示例指标，不代表真实测量、医学评估或诊断结果。</div></div>
       <section class="page active" data-page="home">
+      <section class="product-workflow" aria-label="健康数据工作流">
+        <div class="product-workflow__head"><div><span class="eyebrow">PERSONAL HEALTH DATA WORKFLOW</span><h3>健康数据工作流</h3><p>先建立可追溯记录，再浏览趋势与教育内容；不生成未经验证的个人健康评分。</p></div><span class="product-workflow__mode">PRIVATE · LOCAL · TRACEABLE</span></div>
+        <div class="product-workflow__grid">
+          <button class="product-workflow__item" type="button" onclick="go('records')"><i>01</i><b>记录观察值</b><small>测量值 · 单位 · 时间 · 来源</small><span>打开记录 ↗</span></button>
+          <button class="product-workflow__item" type="button" onclick="go('report')"><i>02</i><b>审阅数据报告</b><small>覆盖范围 · 数据质量 · 时间线</small><span>打开报告 ↗</span></button>
+          <button class="product-workflow__item" type="button" onclick="go('body')"><i>03</i><b>浏览人体图谱</b><small>教育示意 · 非医学影像</small><span>打开图谱 ↗</span></button>
+          <button class="product-workflow__item" type="button" onclick="go('organ')"><i>04</i><b>查看器官知识</b><small>结构与健康教育资料</small><span>打开中心 ↗</span></button>
+        </div><div class="product-workflow__foot">参照 OpenMRS Observation/Encounter 与 GNU Health 的记录可追溯思想；当前仍是本机演示环境，不是临床系统。</div>
+      </section>
+
         <div class="hero">
           <div class="score-card glass">
             <div class="ring-wrap">
@@ -98,8 +109,8 @@
                         style="filter:drop-shadow(0 0 6px rgba(34,211,238,.8))"/>
               </svg>
               <div class="ring-center">
-                <div class="v">84</div>
-                <div class="u">DEMO INDEX</div>
+                <div class="v">—</div>
+                <div class="u">NO HEALTH SCORE</div>
               </div>
             </div>
             <div class="score-info">
