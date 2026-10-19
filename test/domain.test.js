@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createObservation, chronologicalObservations } from "../src/domain/index.js";
+import { createObservation, chronologicalObservations, normalizeObservationHistory, validateObservationHistory, amendObservation, voidObservation, mergeObservationHistories } from "../src/domain/index.js";
 const valid = {metric:"resting-heart-rate",value:62,unit:"bpm",observedAt:"2026-01-01T00:00:00Z",source:"wearable",quality:"measured"};
 
 test("stores explicit provenance and canonical timestamp", () => assert.equal(createObservation(valid).quality,"measured"));
@@ -103,4 +103,88 @@ test("keeps measurement time separate from record-entry time while preserving le
  assert.ok(Object.isFrozen(backfilled));
  assert.throws(()=>createObservation({...base,recordedAt:"2026-02-30T09:30:00Z"}),TypeError);
  assert.throws(()=>createObservation({...base,recordedAt:"2026-10-19T09:30:00"}),TypeError);
+});
+
+
+const amendmentBase = {
+  metric:"resting-heart-rate", value:62, unit:"bpm",
+  observedAt:"2026-10-18T00:00:00Z", recordedAt:"2026-10-18T01:00:00Z",
+  source:"wearable", quality:"measured"
+};
+test("normalizes legacy observations into stable active version records without changing measurements",()=>{
+ const rows=normalizeObservationHistory([amendmentBase,{...amendmentBase,metric:"body-weight",value:70,unit:"kg"}]);
+ assert.equal(rows[0].id,"legacy-observation-000001");
+ assert.equal(rows[1].id,"legacy-observation-000002");
+ assert.equal(rows[0].recordState,"active");
+ assert.equal(rows[0].value,62);
+ assert.equal(rows[0].source,"wearable");
+ assert.ok(Object.isFrozen(rows));
+ assert.ok(rows.every(Object.isFrozen));
+});
+test("amends an observation by appending a new version and preserving the original",()=>{
+ const original=normalizeObservationHistory([amendmentBase]);
+ const oldId=original[0].id;
+ const amended=amendObservation(original,oldId,{...amendmentBase,value:64,source:"validated wearable export"},
+  "Device export corrected after checking original measurement file","reviewer-1",
+  "2026-10-19T02:00:00Z","obs-revision-001");
+ assert.equal(amended.length,2);
+ assert.equal(amended[0].value,62);
+ assert.equal(amended[0].recordState,"superseded");
+ assert.equal(amended[1].value,64);
+ assert.equal(amended[1].recordState,"active");
+ assert.equal(amended[1].previousVersionId,oldId);
+ assert.equal(amended[1].amendmentReason,"Device export corrected after checking original measurement file");
+ assert.equal(amended[1].amendedBy,"reviewer-1");
+ assert.equal(amended[1].amendedAt,"2026-10-19T02:00:00.000Z");
+ assert.equal(validateObservationHistory(amended).length,2);
+ assert.ok(Object.isFrozen(amended[1]));
+});
+test("supports a chronological multi-step observation version chain",()=>{
+ const first=normalizeObservationHistory([amendmentBase]);
+ const second=amendObservation(first,first[0].id,{...amendmentBase,value:63},
+  "Corrected transcription","operator-1","2026-10-19T02:00:00Z","obs-revision-002");
+ const third=amendObservation(second,"obs-revision-002",{...amendmentBase,value:64},
+  "Corrected after source file review","reviewer-1","2026-10-20T02:00:00Z","obs-revision-003");
+ assert.deepEqual(third.map(row=>row.recordState),["superseded","superseded","active"]);
+ assert.equal(third[2].previousVersionId,"obs-revision-002");
+ assert.equal(third[1].previousVersionId,third[0].id);
+});
+test("rejects incomplete, ambiguous or tampered observation amendments",()=>{
+ const base=normalizeObservationHistory([amendmentBase]);
+ const id=base[0].id;
+ assert.throws(()=>amendObservation(base,id,{...amendmentBase,value:63}," ","operator-1","2026-10-19T02:00:00Z","bad-1"),/amendment reason is required/);
+ assert.throws(()=>amendObservation(base,id,{...amendmentBase,value:63},"reason"," ","2026-10-19T02:00:00Z","bad-2"),/amendment actor is required/);
+ assert.throws(()=>amendObservation(base,id,{...amendmentBase,metric:"blood-pressure"},"reason","operator-1","2026-10-19T02:00:00Z","bad-3"),/retain the original observation metric/);
+ assert.throws(()=>amendObservation(base,id,{...amendmentBase,value:63},"reason","operator-1","2026-10-19T02:00:00Z",id),/already exists/);
+ const amended=amendObservation(base,id,{...amendmentBase,value:63},"reason","operator-1","2026-10-19T02:00:00Z","obs-revision-004");
+ assert.throws(()=>validateObservationHistory([...amended,{...amended[1],id:"obs-revision-005"}]),/only one direct successor/);
+ assert.throws(()=>validateObservationHistory([{...amended[0],recordState:"active"},amended[1]]),/must be marked superseded/);
+ assert.throws(()=>validateObservationHistory([{...amended[1],previousVersionId:"missing-parent"},amended[0]]),/previous version does not exist/);
+ assert.throws(()=>validateObservationHistory([
+  {...amended[0],previousVersionId:"obs-revision-004",amendmentReason:"cycle",amendedBy:"reviewer",amendedAt:"2026-10-19T02:00:00Z"},
+  {...amended[1],recordState:"superseded"}
+ ]));
+});
+test("voids an active observation with a reason while retaining its full measurement and provenance",()=>{
+ const original=normalizeObservationHistory([amendmentBase]);
+ const result=voidObservation(original,original[0].id,"Duplicate of the verified source record","reviewer-2","2026-10-19T03:00:00Z");
+ assert.equal(result.length,1);
+ assert.equal(result[0].recordState,"voided");
+ assert.equal(result[0].voidReason,"Duplicate of the verified source record");
+ assert.equal(result[0].voidedBy,"reviewer-2");
+ assert.equal(result[0].value,62);
+ assert.equal(result[0].source,"wearable");
+ assert.throws(()=>voidObservation(result,result[0].id,"again","reviewer-2","2026-10-19T04:00:00Z"),/only an active observation/);
+ assert.throws(()=>amendObservation(result,result[0].id,{...amendmentBase,value:63},"reason","reviewer-2","2026-10-19T04:00:00Z","after-void"),/only an active observation/);
+});
+test("merges imported amendment history without reverting superseded versions",()=>{
+ const original=normalizeObservationHistory([amendmentBase]);
+ const amended=amendObservation(original,original[0].id,{...amendmentBase,value:65},
+  "Source verification correction","reviewer-3","2026-10-19T04:00:00Z","obs-revision-006");
+ const merged=mergeObservationHistories(original,amended);
+ assert.equal(merged.length,2);
+ assert.equal(merged[0].recordState,"superseded");
+ assert.equal(merged[1].recordState,"active");
+ assert.equal(mergeObservationHistories(merged,original)[0].recordState,"superseded");
+ assert.throws(()=>mergeObservationHistories(original,[{...original[0],value:999}]),/id collision/);
 });
