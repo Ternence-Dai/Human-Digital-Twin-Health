@@ -77,11 +77,13 @@ test("observation identity includes measurement value and provenance", async () 
   assert.equal(observationIdentity(first), observationIdentity({...first}));
   for (const change of [
     {value:63}, {unit:"Hz"}, {observedAt:"2026-01-02T00:00:00Z"},
-    {source:"manual"}, {quality:"reported"}, {metric:"blood-pressure"},
-    {recordedAt:"2026-01-02T00:00:00Z"}
+    {source:"manual"}, {quality:"reported"}, {metric:"blood-pressure"}
   ]) {
     assert.notEqual(observationIdentity(first), observationIdentity({...first,...change}));
   }
+  assert.equal(observationIdentity(first),
+    observationIdentity({...first,recordedAt:"2026-01-02T00:00:00Z"}),
+    "record-entry time must not prevent duplicate measurement detection");
   assert.throws(() => observationIdentity(null), TypeError);
   assert.throws(() => observationIdentity({...first, unit:""}), TypeError);
   assert.throws(() => observationIdentity({...first, observedAt:"not-a-date"}), TypeError);
@@ -178,6 +180,18 @@ test("voids an active observation with a reason while retaining its full measure
  assert.throws(()=>voidObservation(result,result[0].id,"again","reviewer-2","2026-10-19T04:00:00Z"),/only an active observation/);
  assert.throws(()=>amendObservation(result,result[0].id,{...amendmentBase,value:63},"reason","reviewer-2","2026-10-19T04:00:00Z","after-void"),/only an active observation/);
 });
+test("rejects same-ID imports that alter record-entry time or amendment audit",()=>{
+ const original=normalizeObservationHistory([amendmentBase]);
+ const changedRecordTime=[{...original[0],recordedAt:"2026-10-18T02:00:00Z"}];
+ assert.throws(()=>mergeObservationHistories(original,changedRecordTime),/id collision/);
+
+ const amended=amendObservation(original,original[0].id,{...amendmentBase,value:64},
+  "Verified correction","reviewer-4","2026-10-19T02:00:00Z","obs-snapshot-001");
+ const changedAudit=amended.map(row=>({...row}));
+ changedAudit[1]={...changedAudit[1],amendmentReason:"altered audit reason"};
+ assert.throws(()=>mergeObservationHistories(amended,changedAudit),/id collision/);
+});
+
 test("merges imported amendment history without reverting superseded versions",()=>{
  const original=normalizeObservationHistory([amendmentBase]);
  const amended=amendObservation(original,original[0].id,{...amendmentBase,value:65},
