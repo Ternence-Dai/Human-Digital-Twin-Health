@@ -4,8 +4,8 @@ const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const html = fs.readFileSync('index.html', 'utf8') + '\n' + fs.readFileSync('assets/js/health-demo-data.js', 'utf8') + '\n' + fs.readFileSync('assets/js/legacy-app.js', 'utf8');
 const productCss = fs.readFileSync('assets/css/product-system.css', 'utf8');
-assert.ok(html.includes('product-system.css?v=20261019-v7'),
-  'health app must load the visible V6 product interface stylesheet');
+assert.ok(html.includes('product-system.css?v=20261019-v8'),
+  'health app must load the visible V8 product interface stylesheet');
 assert.match(productCss, /Health data workspace redesign/,
   'health product design layer must be explicitly versioned');
 for (const selector of [
@@ -18,6 +18,17 @@ assert.ok(productCss.includes('@media(max-width:860px)'),
   'health redesign must include tablet/mobile layout rules');
 assert.ok(productCss.includes('@media(max-width:520px)'),
   'health redesign must include narrow phone layout rules');
+
+assert.ok(productCss.includes('V4 · Human Digital Twin command workspace') &&
+          productCss.includes('.health-intro:after{') &&
+          productCss.includes('.product-workflow__grid{') &&
+          productCss.includes('.score-card:after{'),
+  'health V4 must implement the new editorial intro, four-step workflow and visual hero surface');
+assert.ok(productCss.includes('@media(max-width:860px)') &&
+          productCss.includes('@media(max-width:520px)') &&
+          productCss.includes('.product-workflow__item:hover'),
+  'health V4 must include responsive workflow layouts and interactive focus affordances');
+
 assert.match(productCss, /prefers-reduced-motion:reduce/,
   'health redesign must respect reduced-motion preferences');
 
