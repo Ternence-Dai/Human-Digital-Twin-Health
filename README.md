@@ -30,3 +30,8 @@ The modernization work is being applied directly to `main`. The verified data sl
 Remaining delivery work includes broader browser-level testing, consent and access-control workflows, secure backup/retention/deletion design, interoperability adapters, and validation with real user-approved source data. Storage is local to the current browser; it is not yet a synchronized clinical record service. The symptom helper is a local keyword-based aid, not an AI diagnosis or treatment system.
 
 See [the rebuild plan](docs/REBUILD_PLAN.md) and [domain rules, units and validation boundaries](docs/DOMAIN_CORE.md).
+
+
+## 开源项目深度对标
+
+本项目采用的上游参考、架构借鉴、实现边界与后续验收要求见 [docs/OPEN_SOURCE_BENCHMARKS.md](docs/OPEN_SOURCE_BENCHMARKS.md)。
