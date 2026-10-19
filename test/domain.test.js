@@ -158,7 +158,7 @@ test("rejects incomplete, ambiguous or tampered observation amendments",()=>{
  assert.throws(()=>amendObservation(base,id,{...amendmentBase,value:63},"reason","operator-1","2026-10-19T02:00:00Z",id),/already exists/);
  const amended=amendObservation(base,id,{...amendmentBase,value:63},"reason","operator-1","2026-10-19T02:00:00Z","obs-revision-004");
  assert.throws(()=>validateObservationHistory([...amended,{...amended[1],id:"obs-revision-005"}]),/only one direct successor/);
- assert.throws(()=>validateObservationHistory([{...amended[0],recordState:"active"},amended[1]]),/must be marked superseded/);
+ assert.throws(()=>validateObservationHistory([{...amended[0],recordState:"active"},amended[1]]),/cannot remain active/);
  assert.throws(()=>validateObservationHistory([{...amended[1],previousVersionId:"missing-parent"},amended[0]]),/previous version does not exist/);
  assert.throws(()=>validateObservationHistory([
   {...amended[0],previousVersionId:"obs-revision-004",amendmentReason:"cycle",amendedBy:"reviewer",amendedAt:"2026-10-19T02:00:00Z"},
