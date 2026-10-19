@@ -1,0 +1,53 @@
+/* Health Twin Workspace V5 — calm, provenance-first health data space */
+:root{--h-ink:#173a37;--h-deep:#123b36;--h-teal:#168b78;--h-mint:#dff2eb;--h-canvas:#f4f8f5;--h-border:#dbe8e1;--h-muted:#718880}
+body[data-workspace="health"]{background:var(--h-canvas)!important;color:var(--h-ink)!important;font-family:Inter,"Segoe UI","Microsoft YaHei",sans-serif}
+body[data-workspace="health"] .shell{min-height:100vh;background:var(--h-canvas)!important}
+body[data-workspace="health"] .sidebar{width:258px;padding:25px 17px 18px;background:linear-gradient(180deg,#153f39,#102f2c);border-right:1px solid #27564e;box-shadow:12px 0 34px #173e3510}
+body[data-workspace="health"] .brand{padding:8px 10px 28px}
+body[data-workspace="health"] .brand .logo{font-size:15px;font-weight:850;color:#f0fbf6;letter-spacing:.1px}
+body[data-workspace="health"] .brand .en{font-size:9px;letter-spacing:1.8px;color:#8bb7a9;margin-top:7px}
+body[data-workspace="health"] .nav{gap:6px}
+body[data-workspace="health"] .nav-item{border-radius:10px;min-height:44px;padding:10px 13px;color:#a7c5b8;border:1px solid transparent}
+body[data-workspace="health"] .nav-item:hover{background:#ffffff0c;color:#f4fffa}
+body[data-workspace="health"] .nav-item.active{background:#d7f1e51b;border-color:#8dd4bd42;color:#effff8;box-shadow:inset 3px 0 #6ed6b3}
+body[data-workspace="health"] .nav-item .ico{color:#8ce0c4}
+body[data-workspace="health"] .nav-foot{border-top:1px solid #ffffff20;color:#8fb4a8;font-size:10px;line-height:1.9}
+body[data-workspace="health"] .main{background:var(--h-canvas)!important;min-width:0}
+body[data-workspace="health"] .topbar{height:72px;min-height:72px;padding:0 clamp(20px,3vw,42px);background:#fbfdfbeF;border-bottom:1px solid var(--h-border);backdrop-filter:blur(16px)}
+body[data-workspace="health"] .topbar .title{color:#163c37;font-size:18px;font-weight:800}
+body[data-workspace="health"] .topbar .title small{color:#7c9a8e;letter-spacing:1.6px;font-size:9px}
+body[data-workspace="health"] .status-pill{background:#e5f4ed;border:1px solid #cce7d9;color:#31705c;border-radius:8px;padding:7px 11px;font-size:10px}
+body[data-workspace="health"] .avatar{background:#dcefe5;color:#286b56;border:1px solid #c6e2d4}
+body[data-workspace="health"] .pages{padding:24px clamp(18px,2.6vw,38px) 90px;background:transparent}
+body[data-workspace="health"] .health-intro{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:space-between;gap:24px;margin:0 0 20px;padding:28px 30px;border:1px solid #cfe3d8;border-radius:20px;background:radial-gradient(circle at 92% 15%,#6ccbaa26,transparent 27%),linear-gradient(115deg,#fff,#eff8f2 65%,#e8f5ee);box-shadow:0 10px 30px #1d57410b}
+body[data-workspace="health"] .health-intro:after{content:"HEALTH / DATA";position:absolute;right:22px;bottom:-5px;color:#276e570a;font-size:clamp(40px,6vw,78px);font-weight:900;letter-spacing:-4px;pointer-events:none}
+body[data-workspace="health"] .health-intro .eyebrow{color:#278c70;font-size:10px;letter-spacing:2px;font-weight:850}
+body[data-workspace="health"] .health-intro h2{color:#193e37;font-size:clamp(24px,2.6vw,34px);letter-spacing:-.8px}
+body[data-workspace="health"] .health-intro p{max-width:720px;color:#668178;font-size:12px;line-height:1.8}
+body[data-workspace="health"] .health-tags span{padding:6px 10px;background:#fff;border:1px solid #d4e9dc;border-radius:7px;color:#457765;font-size:10px}
+body[data-workspace="health"] .health-state{max-width:265px;padding:13px 15px;border:1px solid #c8e3d5;border-radius:12px;background:#f7fcf8;color:#477565;font-size:10px;line-height:1.7}
+body[data-workspace="health"] .product-workflow{margin:0 0 19px;padding:19px;border:1px solid var(--h-border);border-radius:17px;background:#fff;box-shadow:0 7px 22px #214b3b09}
+body[data-workspace="health"] .product-workflow__head h3{color:#1b4c40;font-size:16px}
+body[data-workspace="health"] .product-workflow__head p,body[data-workspace="health"] .product-workflow__foot{color:#7c968b}
+body[data-workspace="health"] .product-workflow__mode{background:#e5f4ec;border:1px solid #cee8da;color:#43806a}
+body[data-workspace="health"] .product-workflow__item{min-height:112px;border:1px solid #e1ece5;border-radius:12px;background:linear-gradient(145deg,#fff,#f5faf6)}
+body[data-workspace="health"] .product-workflow__item i{background:#e1f3e9;color:#258666}
+body[data-workspace="health"] .product-workflow__item b{color:#244d40}
+body[data-workspace="health"] .product-workflow__item small{color:#7c958a}
+body[data-workspace="health"] .product-workflow__item span{color:#26876a}
+body[data-workspace="health"] .page{color:#24483d}
+body[data-workspace="health"] .hero{border:1px solid #1f5d4d;border-radius:18px;background:linear-gradient(120deg,#173e36,#205c4b 65%,#1c7460);box-shadow:0 14px 30px #194f3b1b}
+body[data-workspace="health"] .score-card{background:#ffffff12;border:1px solid #ffffff25;border-radius:15px}
+body[data-workspace="health"] .metrics-grid{gap:13px}
+body[data-workspace="health"] .metric-card,body[data-workspace="health"] .card,body[data-workspace="health"] .glass,body[data-workspace="health"] .quick,body[data-workspace="health"] .list-item{border:1px solid #dce9e1;border-radius:14px;background:#fff;box-shadow:0 6px 18px #234d3908;color:#284b3f}
+body[data-workspace="health"] .sec-title{color:#3b6d59;font-size:11px;letter-spacing:1.2px;font-weight:850}
+body[data-workspace="health"] .tabbar{background:#fffffff2;border-top:1px solid #d9e8df;box-shadow:0 -8px 24px #24513d0d;backdrop-filter:blur(16px)}
+body[data-workspace="health"] .tabbar button,body[data-workspace="health"] .tabbar .tab{color:#769187}
+body[data-workspace="health"] .tabbar .active{color:#17866a}
+body[data-workspace="health"] :where(input,select,textarea){background:#fbfdfb;border:1px solid #cfdfd5;border-radius:9px;color:#234b3d}
+body[data-workspace="health"] .btn.primary{background:linear-gradient(110deg,#197d65,#2aab83);color:#fff;box-shadow:0 7px 17px #228c6e28}
+body[data-workspace="health"] .btn.ghost{background:#fff;border:1px solid #cfdfd6;color:#527568}
+body[data-workspace="health"] :where(button,input,select,textarea,a,[tabindex]):focus-visible{outline:3px solid #45b991!important;outline-offset:3px}
+@media(max-width:900px){body[data-workspace="health"] .sidebar{display:none}body[data-workspace="health"] .pages{padding:15px 13px 94px}body[data-workspace="health"] .health-intro{padding:20px 17px;min-height:0}body[data-workspace="health"] .health-state{max-width:210px}body[data-workspace="health"] .product-workflow{padding:14px 12px}body[data-workspace="health"] .product-workflow__grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){body[data-workspace="health"] .health-intro{display:block}body[data-workspace="health"] .health-state{max-width:none;margin-top:13px}body[data-workspace="health"] .health-intro h2{font-size:22px}body[data-workspace="health"] .product-workflow__grid{gap:8px}body[data-workspace="health"] .topbar{height:60px;min-height:60px;padding:0 13px}body[data-workspace="health"] .status-pill{font-size:9px;padding:6px 7px}}
+@media(prefers-reduced-motion:reduce){body[data-workspace="health"] *,body[data-workspace="health"] *:before,body[data-workspace="health"] *:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
