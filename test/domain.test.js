@@ -88,3 +88,19 @@ test("observation identity includes measurement value and provenance", async () 
   const sameInstant = {...first, observedAt:"2026-01-01T08:00:00+08:00"};
   assert.equal(observationIdentity(first), observationIdentity(sameInstant));
 });
+
+
+test("keeps measurement time separate from record-entry time while preserving legacy observations",()=>{
+ const base={metric:"blood-pressure",value:120,unit:"mmHg",
+  observedAt:"2026-10-18T08:00:00+08:00",source:"manual",quality:"reported"};
+ const legacy=createObservation(base);
+ assert.equal(legacy.observedAt,"2026-10-18T00:00:00.000Z");
+ assert.equal(Object.hasOwn(legacy,"recordedAt"),false,
+  "legacy records without recordedAt remain valid and are not assigned a fabricated entry time");
+ const backfilled=createObservation({...base,recordedAt:"2026-10-19T09:30:00+08:00"});
+ assert.equal(backfilled.recordedAt,"2026-10-19T01:30:00.000Z");
+ assert.notEqual(backfilled.observedAt,backfilled.recordedAt);
+ assert.ok(Object.isFrozen(backfilled));
+ assert.throws(()=>createObservation({...base,recordedAt:"2026-02-30T09:30:00Z"}),TypeError);
+ assert.throws(()=>createObservation({...base,recordedAt:"2026-10-19T09:30:00"}),TypeError);
+});
