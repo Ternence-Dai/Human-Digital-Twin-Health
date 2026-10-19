@@ -35,7 +35,7 @@ const TABBAR = ['home','body','ai','report','me'];
 
 /* ---------------- 初始化 ---------------- */
 window.addEventListener('load', async () => {
-  try { window.HealthDomain = await import('../../src/domain/index.js'); }
+  try { window.HealthDomain = await import('../../src/domain/index.js?v=20261019-health-record-v2'); }
   catch (error) {
     observationDomainUnavailable = true;
     console.error('Health domain core unavailable', error);
