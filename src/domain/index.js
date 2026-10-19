@@ -78,3 +78,196 @@ export function observationIdentity(observation) {
     validated.observedAt, validated.source, validated.quality
   ]);
 }
+
+
+const observationVersionStates = new Set(["active", "superseded", "voided"]);
+function requiredObservationAuditText(value, field, maxLength = 240) {
+  if (typeof value !== "string" || !value.trim()) throw new TypeError(field + " is required");
+  const text = value.trim();
+  if (text.length > maxLength) throw new RangeError(field + " exceeds " + maxLength + " characters");
+  if (/[\x00-\x1F\x7F]/.test(text)) throw new TypeError(field + " must not contain control characters");
+  return text;
+}
+
+function buildObservationEvent(row, index, allowLegacyId) {
+  if (!row || typeof row !== "object" || Array.isArray(row)) {
+    throw new TypeError("observation history entries must be objects");
+  }
+  const base = createObservation(row);
+  const id = row.id === undefined && allowLegacyId
+    ? "legacy-observation-" + String(index + 1).padStart(6, "0")
+    : requiredObservationAuditText(row.id, "observation id", 120);
+  const recordState = row.recordState === undefined && allowLegacyId
+    ? "active" : row.recordState;
+  if (!observationVersionStates.has(recordState)) {
+    throw new RangeError("observation recordState must be active, superseded or voided");
+  }
+  const event = { ...base, id, recordState };
+
+  if (row.previousVersionId !== undefined) {
+    event.previousVersionId = requiredObservationAuditText(row.previousVersionId, "previousVersionId", 120);
+  }
+  if (row.amendmentReason !== undefined) {
+    event.amendmentReason = requiredObservationAuditText(row.amendmentReason, "amendmentReason", 1000);
+  }
+  if (row.amendedBy !== undefined) {
+    event.amendedBy = requiredObservationAuditText(row.amendedBy, "amendedBy", 120);
+  }
+  if (row.amendedAt !== undefined) event.amendedAt = parseObservedAt(row.amendedAt);
+  if (row.voidReason !== undefined) {
+    event.voidReason = requiredObservationAuditText(row.voidReason, "voidReason", 1000);
+  }
+  if (row.voidedBy !== undefined) {
+    event.voidedBy = requiredObservationAuditText(row.voidedBy, "voidedBy", 120);
+  }
+  if (row.voidedAt !== undefined) event.voidedAt = parseObservedAt(row.voidedAt);
+  return Object.freeze(event);
+}
+
+export function validateObservationHistory(history) {
+  if (!Array.isArray(history)) throw new TypeError("observation history must be an array");
+  const rows = history.map((row, index) => buildObservationEvent(row, index, false));
+  const byId = new Map();
+  const children = new Map();
+
+  for (const row of rows) {
+    if (byId.has(row.id)) throw new RangeError("observation ids must be unique");
+    byId.set(row.id, row);
+    if (row.previousVersionId) {
+      if (row.previousVersionId === row.id) throw new RangeError("observation cannot reference itself as a previous version");
+      if (!row.amendmentReason || !row.amendedBy || !row.amendedAt) {
+        throw new TypeError("amended observations require reason, actor and amendment time");
+      }
+      if (children.has(row.previousVersionId)) {
+        throw new RangeError("an observation version can have only one direct successor");
+      }
+      children.set(row.previousVersionId, row.id);
+    } else if (row.amendmentReason !== undefined || row.amendedBy !== undefined || row.amendedAt !== undefined) {
+      throw new TypeError("amendment audit fields require previousVersionId");
+    }
+    if (row.recordState === "voided") {
+      if (!row.voidReason || !row.voidedBy || !row.voidedAt) {
+        throw new TypeError("voided observations require reason, actor and void time");
+      }
+    } else if (row.voidReason !== undefined || row.voidedBy !== undefined || row.voidedAt !== undefined) {
+      throw new TypeError("void audit fields are only valid on voided observations");
+    }
+  }
+
+  for (const row of rows) {
+    const successorId = children.get(row.id);
+    if (row.recordState === "superseded" && !successorId) {
+      throw new RangeError("superseded observations must reference a replacement version");
+    }
+    if (row.recordState === "active" && successorId) {
+      throw new RangeError("an observation with a successor cannot remain active");
+    }
+    if (row.recordState === "voided" && successorId) {
+      throw new RangeError("a voided observation cannot have a replacement successor");
+    }
+    if (row.previousVersionId) {
+      const previous = byId.get(row.previousVersionId);
+      if (!previous) throw new RangeError("observation previous version does not exist");
+      if (previous.recordState !== "superseded") {
+        throw new RangeError("previous observation version must be marked superseded");
+      }
+      if (previous.metric !== row.metric) {
+        throw new RangeError("an amendment must retain the original observation metric");
+      }
+      if (previous.recordedAt && Date.parse(row.amendedAt) < Date.parse(previous.recordedAt)) {
+        throw new RangeError("amendment time cannot precede the previous record-entry time");
+      }
+    }
+  }
+
+  for (const row of rows) {
+    const visited = new Set([row.id]);
+    let cursor = row;
+    while (cursor.previousVersionId) {
+      if (visited.has(cursor.previousVersionId)) throw new RangeError("observation version history cannot contain cycles");
+      visited.add(cursor.previousVersionId);
+      cursor = byId.get(cursor.previousVersionId);
+      if (!cursor) break;
+    }
+  }
+  return Object.freeze(rows);
+}
+
+export function normalizeObservationHistory(history) {
+  if (!Array.isArray(history)) throw new TypeError("observation history must be an array");
+  const events = history.map((row, index) => buildObservationEvent(row, index, true));
+  return validateObservationHistory(events);
+}
+
+export function amendObservation(history, targetId, replacement, amendmentReason, amendedBy, amendedAt, newId) {
+  const current = normalizeObservationHistory(history);
+  const target = current.find(row => row.id === targetId);
+  if (!target) throw new RangeError("observation to amend was not found");
+  if (target.recordState !== "active") throw new RangeError("only an active observation can be amended");
+  const id = requiredObservationAuditText(newId, "new observation id", 120);
+  if (current.some(row => row.id === id)) throw new RangeError("new observation id already exists");
+  const reason = requiredObservationAuditText(amendmentReason, "amendment reason", 1000);
+  const actor = requiredObservationAuditText(amendedBy, "amendment actor", 120);
+  const timestamp = parseObservedAt(amendedAt);
+  const base = createObservation({
+    ...replacement,
+    recordedAt: replacement && replacement.recordedAt !== undefined ? replacement.recordedAt : timestamp
+  });
+  if (base.metric !== target.metric) {
+    throw new RangeError("an amendment must retain the original observation metric");
+  }
+  const updated = current.map(row => row.id === target.id
+    ? Object.freeze({ ...row, recordState: "superseded" })
+    : row);
+  const next = Object.freeze({
+    ...base,
+    id,
+    recordState: "active",
+    previousVersionId: target.id,
+    amendmentReason: reason,
+    amendedBy: actor,
+    amendedAt: timestamp
+  });
+  return validateObservationHistory([...updated, next]);
+}
+
+export function voidObservation(history, targetId, voidReason, voidedBy, voidedAt) {
+  const current = normalizeObservationHistory(history);
+  const target = current.find(row => row.id === targetId);
+  if (!target) throw new RangeError("observation to void was not found");
+  if (target.recordState !== "active") throw new RangeError("only an active observation can be voided");
+  const reason = requiredObservationAuditText(voidReason, "void reason", 1000);
+  const actor = requiredObservationAuditText(voidedBy, "void actor", 120);
+  const timestamp = parseObservedAt(voidedAt);
+  const updated = current.map(row => row.id === target.id
+    ? Object.freeze({ ...row, recordState: "voided", voidReason: reason, voidedBy: actor, voidedAt: timestamp })
+    : row);
+  return validateObservationHistory(updated);
+}
+
+export function mergeObservationHistories(existingHistory, importedHistory) {
+  const existing = normalizeObservationHistory(existingHistory);
+  const imported = normalizeObservationHistory(importedHistory);
+  const merged = [...existing];
+  const indexes = new Map(merged.map((row, index) => [row.id, index]));
+  for (const incoming of imported) {
+    if (!indexes.has(incoming.id)) {
+      indexes.set(incoming.id, merged.length);
+      merged.push(incoming);
+      continue;
+    }
+    const index = indexes.get(incoming.id);
+    const current = merged[index];
+    if (observationIdentity(current) !== observationIdentity(incoming)) {
+      throw new RangeError("observation id collision: imported record content does not match the existing version");
+    }
+    if (current.recordState !== incoming.recordState) {
+      if (current.recordState === "active" && incoming.recordState !== "active") {
+        merged[index] = incoming;
+      } else if (incoming.recordState !== "active") {
+        throw new RangeError("conflicting non-active observation version states in imported history");
+      }
+    }
+  }
+  return validateObservationHistory(merged);
+}
