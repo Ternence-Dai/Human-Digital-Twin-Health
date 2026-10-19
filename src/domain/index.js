@@ -33,7 +33,7 @@ function parseObservedAt(value) {
 
 export function createObservation(input) {
   if (!input || typeof input !== "object" || Array.isArray(input)) throw new TypeError("observation must be an object");
-  const { metric, value, unit, observedAt, source, quality } = input;
+  const { metric, value, unit, observedAt, recordedAt, source, quality } = input;
   if (typeof metric !== "string" || !metric.trim()) throw new TypeError("metric is required");
   if (metric.trim().length > 80) throw new RangeError("metric must not exceed 80 characters");
   if (/[\x00-\x1F\x7F]/.test(metric)) throw new TypeError("metric must not contain control characters");
@@ -42,11 +42,20 @@ export function createObservation(input) {
   if (unit.trim().length > 24) throw new RangeError("unit must not exceed 24 characters");
   if (/[\x00-\x1F\x7F]/.test(unit)) throw new TypeError("unit must not contain control characters");
   const canonicalObservedAt = parseObservedAt(observedAt);
+  // Ingestion time is distinct from measurement time: a manually backfilled
+  // reading must retain when it was entered, not appear to have been entered
+  // at the time it was measured. Keep this optional for legacy backup files.
+  const canonicalRecordedAt = recordedAt === undefined ? undefined : parseObservedAt(recordedAt);
   if (typeof source !== "string" || !source.trim()) throw new TypeError("source is required");
   if (source.trim().length > 180) throw new RangeError("source must not exceed 180 characters");
   if (/[\x00-\x1F\x7F]/.test(source)) throw new TypeError("source must not contain control characters");
   if (!allowedQuality.has(quality)) throw new RangeError("quality must identify the provenance class");
-  return Object.freeze({ metric:metric.trim(), value, unit:unit.trim(), observedAt:canonicalObservedAt, source:source.trim(), quality });
+  const observation = {
+    metric:metric.trim(), value, unit:unit.trim(), observedAt:canonicalObservedAt,
+    source:source.trim(), quality
+  };
+  if (canonicalRecordedAt !== undefined) observation.recordedAt = canonicalRecordedAt;
+  return Object.freeze(observation);
 }
 
 export function chronologicalObservations(observations) {
