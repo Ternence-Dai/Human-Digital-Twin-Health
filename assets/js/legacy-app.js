@@ -518,7 +518,7 @@ function saveObservation(event){
     });
     const identity = window.HealthDomain.observationIdentity;
     if(existing.some(row => identity(row) === identity(observation))){
-      alert('这条测量记录与已有记录完全相同（指标、数值、单位、时间和来源均一致），未重复保存。');
+      alert('这条测量记录与已有记录重复（指标、数值、单位、测量时间、来源和质量标记一致），未重复保存。');
       return false;
     }
     const next = window.HealthDomain.normalizeObservationHistory([...existing, observation]);
