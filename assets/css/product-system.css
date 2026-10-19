@@ -562,3 +562,97 @@ input::placeholder,textarea::placeholder{color:#91a3aa}
 @media(max-width:900px){.product-workflow__grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.product-workflow{margin:12px 12px 18px;padding:16px;border-radius:17px}.product-workflow__head{display:block}.product-workflow__mode{display:inline-flex;margin-top:11px}.product-workflow__grid{gap:8px}.product-workflow__item{min-height:122px;padding:12px}.product-workflow__item b{font-size:13px}}
 @media(prefers-reduced-motion:reduce){.product-workflow__item{transition:none}.product-workflow__item:hover{transform:none}}
+
+
+/* V4 · Human Digital Twin command workspace */
+.pages{max-width:1680px;margin:0 auto}
+.health-intro{
+  position:relative;isolation:isolate;overflow:hidden;
+  min-height:196px;padding:30px clamp(22px,3vw,42px);
+  border:1px solid #c8e1e2;border-radius:20px;
+  background:
+    radial-gradient(circle at 84% 16%,rgba(59,165,163,.19),transparent 24%),
+    radial-gradient(circle at 96% 92%,rgba(82,144,180,.12),transparent 28%),
+    linear-gradient(115deg,#fff 0%,#f0faf8 55%,#eaf5f5 100%);
+  box-shadow:0 12px 34px rgba(23,78,83,.065);
+}
+.health-intro:after{
+  content:"TWIN";position:absolute;z-index:-1;right:4%;top:16%;
+  font-size:clamp(68px,9vw,126px);font-weight:900;letter-spacing:-7px;
+  color:rgba(26,117,119,.055);line-height:1;
+}
+.health-intro>div:first-child{max-width:820px}
+.health-intro .eyebrow{font-size:10px;letter-spacing:2.1px;color:#16828a}
+.health-intro h2{font-size:clamp(25px,3vw,36px);letter-spacing:-1px;margin:8px 0;color:#173c4b}
+.health-intro p{font-size:13px;max-width:720px;color:#54717c;line-height:1.85}
+.health-intro .health-tags span{padding:6px 11px;font-size:10px;font-weight:700;background:rgba(255,255,255,.8)}
+.health-intro .health-state{position:relative;z-index:1;max-width:270px;background:#fff9ed;border-color:#eedeb9;box-shadow:0 5px 16px rgba(105,81,31,.045)}
+.product-workflow{
+  margin:0 0 20px;padding:21px 22px;border-radius:18px;
+  border:1px solid #d7e6e9;background:#fff;
+  box-shadow:0 8px 24px rgba(27,70,82,.045);
+}
+.product-workflow__head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:15px}
+.product-workflow__head .eyebrow{font-size:9px;letter-spacing:1.8px;color:#16828a;font-weight:850}
+.product-workflow__head h3{font-size:17px;color:#24495a;margin:4px 0}
+.product-workflow__head p{font-size:11px;color:#728994;line-height:1.65}
+.product-workflow__mode{white-space:nowrap;padding:6px 10px;border-radius:30px;background:#eef7f6;color:#43827d;font-size:9px;font-weight:800;letter-spacing:.7px}
+.product-workflow__grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.product-workflow__item{
+  display:flex;flex-direction:column;align-items:flex-start;gap:7px;min-height:118px;
+  padding:14px;border:1px solid #e0eaed;border-radius:13px;background:linear-gradient(145deg,#fff,#f7fbfc);
+  text-align:left;transition:transform .18s,border-color .18s,box-shadow .18s;
+}
+.product-workflow__item:hover{transform:translateY(-3px);border-color:#add4d5;box-shadow:0 10px 22px rgba(30,103,108,.075)}
+.product-workflow__item i{display:grid;place-items:center;width:27px;height:27px;border-radius:8px;background:#eaf6f4;color:#18817f;font-size:10px;font-style:normal;font-weight:850}
+.product-workflow__item b{font-size:12px;color:#294e5e}
+.product-workflow__item small{font-size:10px;color:#7a909a;line-height:1.5}
+.product-workflow__item span{margin-top:auto;color:#16828a;font-size:10px;font-weight:750}
+.product-workflow__foot{margin-top:13px;padding-top:10px;border-top:1px solid #edf1f2;color:#8a9ca3;font-size:9.5px;line-height:1.6}
+.score-card{
+  position:relative;overflow:hidden;min-height:220px;padding:28px clamp(20px,3vw,34px);
+  border:1px solid #164d61!important;border-radius:20px!important;
+  background:
+    radial-gradient(circle at 84% 15%,rgba(70,190,180,.2),transparent 28%),
+    linear-gradient(115deg,#12384b 0%,#17566a 58%,#1b6b70 100%)!important;
+  box-shadow:0 16px 36px rgba(20,73,88,.15)!important;
+}
+.score-card:after{content:"";position:absolute;right:5%;top:-40%;width:300px;height:300px;border:1px solid rgba(255,255,255,.12);border-radius:50%;box-shadow:0 0 0 22px rgba(255,255,255,.025),0 0 0 48px rgba(255,255,255,.02)}
+.score-card .ring-center .v{color:#e8ffff}
+.score-card .ring-center .u{color:#a9d1d2}
+.score-info h3{color:#f1ffff}
+.score-info .desc{color:#c0dadd}
+.score-info .home-action-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:15px}
+.score-info .btn.ghost{color:#e3f6f5;border-color:rgba(222,250,249,.25);background:rgba(255,255,255,.08)}
+.score-info .btn.primary{background:#d9f5ed;color:#155b5a;box-shadow:none}
+.metrics-grid{gap:13px}
+.metric-card{position:relative;overflow:hidden;min-height:124px;padding:17px 18px}
+.metric-card:after{content:"";position:absolute;right:-18px;top:-20px;width:74px;height:74px;border-radius:50%;background:rgba(39,145,145,.045)}
+.metric-card .vv{letter-spacing:-.7px}
+.quick-grid{gap:13px}
+.quick-item{min-height:142px;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:10px;text-align:left}
+.quick-item .qi{width:42px;height:42px}
+.quick-item .qt{font-size:12px}
+.quick-item .qd{font-size:10px;color:#82959e;line-height:1.55}
+.content,.page{min-width:0}
+.page .glass,.page .card{box-shadow:0 7px 22px rgba(26,67,81,.045)!important}
+.page .sec-title{margin-top:28px}
+.page .footer-note{margin-top:26px;padding:15px 17px;border:1px solid #dce8ec;border-radius:13px;background:#fff;color:#81949d;font-size:10px;line-height:1.8}
+@media(max-width:860px){
+ .health-intro{align-items:flex-start;flex-direction:column}
+ .health-intro .health-state{max-width:none;width:100%}
+ .product-workflow__grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .product-workflow__head{flex-direction:column}
+}
+@media(max-width:520px){
+ .health-intro{padding:21px 17px;border-radius:15px}
+ .health-intro:after{right:0;top:8%;font-size:65px}
+ .product-workflow{padding:16px 13px}
+ .product-workflow__grid{grid-template-columns:1fr 1fr;gap:7px}
+ .product-workflow__item{min-height:122px;padding:11px 9px}
+ .product-workflow__item small{font-size:9px}
+ .score-card{padding:19px 15px;gap:14px}
+ .score-info .home-action-row{display:grid;grid-template-columns:1fr}
+ .score-info .home-action-row .btn{width:100%}
+ .quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
