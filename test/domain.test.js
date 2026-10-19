@@ -48,7 +48,7 @@ test("rejects missing provenance and invalid measurements", () => {
 test("sorts a copy without mutating input", () => {
   const rows=[valid,{...valid,observedAt:"2025-01-01T00:00:00Z"}];
   const sorted=chronologicalObservations(rows);
-  assert.equal(sorted[0].observedAt,"2025-01-01T00:00:00Z");
+  assert.equal(sorted[0].observedAt,"2025-01-01T00:00:00.000Z");
   assert.equal(rows[0],valid);
 });
 test("chronological sorting rejects malformed measurement values and provenance", () => {
