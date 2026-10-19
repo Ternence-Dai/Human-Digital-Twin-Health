@@ -64,11 +64,12 @@ export function chronologicalObservations(observations) {
 
 // A measurement is a duplicate only when its value, unit, timestamp and provenance all match.
 export function observationIdentity(observation) {
-  if (!observation || typeof observation !== "object" || Array.isArray(observation)) {
-    throw new TypeError("observation identity requires a record object");
-  }
+  // Identity must use the same normalized contract as storage/import. This
+  // prevents equivalent timezone representations from becoming false uniques
+  // and malformed partial objects from collapsing into the same JSON key.
+  const validated = createObservation(observation);
   return JSON.stringify([
-    observation.metric, observation.value, observation.unit,
-    observation.observedAt, observation.source, observation.quality
+    validated.metric, validated.value, validated.unit,
+    validated.observedAt, validated.source, validated.quality
   ]);
 }
