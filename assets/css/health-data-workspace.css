@@ -1,0 +1,20 @@
+/* Human Digital Twin — privacy-first data workspace */
+body[data-workspace="health"]{background:radial-gradient(ellipse at 86% 0%,rgba(13,148,136,.13),transparent 36rem),#f1f7f6;color:#17333d}
+body[data-workspace="health"] .shell{background:transparent}
+body[data-workspace="health"] .sidebar{background:linear-gradient(180deg,#123b4a,#0b2938);box-shadow:10px 0 32px rgba(10,48,59,.08)}
+body[data-workspace="health"] .brand{padding:22px 20px;border-bottom:1px solid rgba(218,245,239,.13)}
+body[data-workspace="health"] .main{background:transparent;min-width:0}
+body[data-workspace="health"] .topbar{min-height:68px;padding:12px clamp(16px,3vw,38px);background:rgba(250,253,252,.9);border-bottom:1px solid #dce9e7;backdrop-filter:blur(16px)}
+body[data-workspace="health"] .health-intro{margin:20px clamp(14px,3vw,36px);padding:clamp(24px,3vw,40px);border-radius:24px;background:linear-gradient(120deg,#103e4b,#126b6b 65%,#218e83);color:#f2fffc;box-shadow:0 20px 50px rgba(13,79,79,.16)}
+body[data-workspace="health"] .health-intro h2{color:#fff;font-size:clamp(25px,3.2vw,39px);letter-spacing:-.04em}
+body[data-workspace="health"] .health-intro p{color:#c7e9e2;line-height:1.8}
+body[data-workspace="health"] .health-intro .eyebrow{color:#a2eee0;letter-spacing:.18em;font-weight:850}
+body[data-workspace="health"] .health-tags span{border:1px solid rgba(213,250,242,.2);background:rgba(255,255,255,.09);color:#e5fffa;border-radius:99px;padding:7px 11px}
+body[data-workspace="health"] .health-state{max-width:320px;padding:16px;border:1px solid rgba(227,255,248,.2);border-radius:16px;background:rgba(4,35,43,.22);color:#d4f2eb;line-height:1.7}
+body[data-workspace="health"] .pages{background:transparent}
+body[data-workspace="health"] .card,body[data-workspace="health"] .panel,body[data-workspace="health"] .metric-card{border:1px solid #dceae7;border-radius:17px;background:#fff;box-shadow:0 10px 28px rgba(24,66,65,.055)}
+body[data-workspace="health"] .btn.primary{background:linear-gradient(120deg,#0b9b8c,#08746f);box-shadow:0 8px 18px rgba(11,139,126,.17)}
+body[data-workspace="health"] .splash{background:radial-gradient(circle at 50% 45%,#1b6871,#102d43 70%)}
+body[data-workspace="health"] .login-card{border:1px solid rgba(213,240,235,.6);border-radius:22px;box-shadow:0 28px 80px rgba(9,47,58,.2)}
+body[data-workspace="health"] .nav-item.active{background:rgba(38,190,164,.17);box-shadow:inset 3px 0 #3bd0b1}
+@media(max-width:760px){body[data-workspace="health"] .health-intro{margin:14px;padding:22px}body[data-workspace="health"] .health-state{max-width:none;margin-top:14px}}
