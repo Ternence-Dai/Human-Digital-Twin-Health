@@ -99,3 +99,25 @@ body[data-workspace="health"] .w5-module-context__home,body[data-workspace="erp"
 body[data-workspace="health"] .w5-experiment-context,body[data-workspace="erp"] .w5-experiment-context,body[data-workspace="ekpo"] .w5-experiment-context{display:none}
 @media(max-width:640px){.w5-module-context{align-items:flex-start;padding:11px 12px}.w5-module-context__actions{flex-direction:column;align-items:flex-end;gap:5px}.w5-module-context__description{max-width:48ch}.w5-module-context__state{display:none}.w5-experiment-context{align-items:flex-start;flex-direction:column}.w5-experiment-context__tags{flex-wrap:wrap}}
 @media(prefers-reduced-motion:reduce){.w5-module-context__home{transition:none}}
+
+/* Health Twin V5.2 — observation version history and amendment workspace */
+body[data-workspace="health"] .observation-version{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:14px 15px;border:1px solid #dce9e1;border-radius:12px;background:#fff;margin:0 0 9px;box-shadow:0 4px 14px #24513d08}
+body[data-workspace="health"] .observation-version__main{min-width:0;flex:1}
+body[data-workspace="health"] .observation-version__title{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:5px}
+body[data-workspace="health"] .observation-version__title strong{color:#244c3f;font-size:12px;font-weight:850}
+body[data-workspace="health"] .observation-version__state{padding:4px 8px;border:1px solid #d5e6dc;border-radius:999px;background:#edf6ef;color:#41795e;font-size:9px;font-weight:800}
+body[data-workspace="health"] .observation-version__state.superseded{background:#f2f4f1;border-color:#dfe5df;color:#7b8980}
+body[data-workspace="health"] .observation-version__state.voided{background:#fff4e9;border-color:#f0dcc3;color:#9a6936}
+body[data-workspace="health"] .observation-version__audit{margin-top:7px;padding:8px 10px;border-left:3px solid #83b99b;border-radius:0 7px 7px 0;background:#f3f8f3;color:#628071;font-size:9px;line-height:1.6;overflow-wrap:anywhere}
+body[data-workspace="health"] .observation-version__id{margin-top:7px;color:#a0aea4;font-size:8px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+body[data-workspace="health"] .observation-version__actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+body[data-workspace="health"] .observation-version__actions .btn{min-width:124px;justify-content:center}
+body[data-workspace="health"] .observation-version.superseded{background:#fafcf9;border-style:dashed}
+body[data-workspace="health"] .observation-version.voided{background:#fffaf5;border-color:#ecdcc9}
+body[data-workspace="health"] .observation-amendment-fields{display:grid;grid-template-columns:1.4fr 1fr auto;align-items:end;gap:10px;padding:13px;border:1px solid #cfe4d7;border-radius:11px;background:#f1f8f3}
+body[data-workspace="health"] .observation-amendment-fields[hidden]{display:none}
+body[data-workspace="health"] .observation-amendment-fields label{display:grid;gap:5px;color:#547866;font-size:10px;font-weight:800}
+body[data-workspace="health"] .observation-amendment-fields textarea,body[data-workspace="health"] .observation-amendment-fields input{width:100%;min-height:38px;padding:8px 10px;border:1px solid #cfe0d4;border-radius:8px;background:#fff;color:#254b3d;font:inherit;font-size:11px}
+body[data-workspace="health"] .observation-amendment-note{grid-column:1/-1;margin:0;color:#668474;font-size:9px;line-height:1.6}
+body[data-workspace="health"] #observationForm>button[type="submit"]{min-height:42px}
+@media(max-width:700px){body[data-workspace="health"] .observation-version{flex-direction:column}body[data-workspace="health"] .observation-version__actions{width:100%;flex-direction:row;flex-wrap:wrap}body[data-workspace="health"] .observation-version__actions .btn{flex:1;min-width:0}body[data-workspace="health"] .observation-amendment-fields{grid-template-columns:1fr}body[data-workspace="health"] .observation-amendment-note{grid-column:auto}}
