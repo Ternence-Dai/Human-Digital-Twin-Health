@@ -50,3 +50,20 @@
 - `assets/js/legacy-app.js` 新建测量时记录实际录入时间，记录列表分别显示“测量时间”和“录入时间”。
 - 旧备份中没有 `recordedAt` 的历史记录继续合法读取；系统不会伪造历史录入时间。重复记录身份仍依据指标、数值、单位、测量时间和来源，不因重新导入时间不同而误判为新测量。
 - 回归测试覆盖旧记录兼容、时区归一化、无时区时间和无效日历日期。
+
+
+## 7. 扩展开源对标：FHIR 数据平台与个人健康记录
+
+> 覆盖说明：本节选取临床记录平台和 FHIR 开发平台作为数据模型参照；不表示当前单机演示页面已经获得这些项目的身份认证、服务器、合规或医疗能力。
+
+| 上游项目 | 可核查入口 | 可迁移产品/工程模式 | 对本项目的边界 |
+|---|---|---|---|
+| [OpenMRS](https://github.com/openmrs/openmrs-core) | [Obs.java](https://github.com/openmrs/openmrs-core/blob/master/api/src/main/java/org/openmrs/Obs.java)、[Encounter.java](https://github.com/openmrs/openmrs-core/blob/master/api/src/main/java/org/openmrs/Encounter.java) | 观察值结构化、测量与就诊上下文、值和概念分离、记录生命周期 | 不模拟医院病人主索引、医嘱、权限体系或临床流程 |
+| [Medplum](https://github.com/medplum/medplum) | [README 与架构组成](https://github.com/medplum/medplum/blob/main/README.md) | FHIR API/CDR、身份和权限边界、客户端 SDK 与 UI 组件分层；用于设计将来导入/同步接口 | 这是带服务端、FHIR、认证和权限的平台；当前 localStorage 不能宣称等价安全或互操作能力 |
+| [GNU Health](https://www.gnu.org/software/health/) | [项目主页](https://www.gnu.org/software/health/) | 个人健康/医疗数据的开放标准、模块化与用户数据控制理念 | 医疗信息系统部署和治理模式不直接适用于个人浏览器演示 |
+
+### 对本项目的实现映射
+- 观察值按“指标概念、值、单位、测量时间、录入时间、来源质量、备注”展示，并保留老记录兼容。
+- 首页流程按“记录 → 审阅报告 → 人体/器官教育图谱”排列；已移除没有真实依据的固定综合健康分。
+- 下一阶段把记录更正设计为带前值、原因和更正时间的版本链；未完成前不静默覆盖既有测量。
+- 若未来引入 FHIR 导入，先做 Observation/CodeableConcept/Quantity/Provenance 映射和数据质量提示；JSON 上传不等于 FHIR 互操作。
