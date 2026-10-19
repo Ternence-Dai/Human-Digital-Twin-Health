@@ -51,6 +51,20 @@ test("sorts a copy without mutating input", () => {
   assert.equal(sorted[0].observedAt,"2025-01-01T00:00:00Z");
   assert.equal(rows[0],valid);
 });
+test("chronological sorting rejects malformed measurement values and provenance", () => {
+  for (const patch of [
+    {metric:""}, {metric:"x".repeat(81)}, {value:NaN},
+    {unit:""}, {source:""}, {quality:"unknown"},
+    {source:"bad\\u0000source"}
+  ]) {
+    assert.throws(() => chronologicalObservations([{...valid,...patch}]));
+  }
+  const rows=[{...valid,metric:"  heart-rate  "},{...valid,observedAt:"2025-01-01T00:00:00Z"}];
+  const sorted=chronologicalObservations(rows);
+  assert.equal(sorted[1].metric,"heart-rate");
+  assert.equal(sorted[1].observedAt,"2026-01-01T00:00:00.000Z");
+  assert.equal(rows[0].metric,"  heart-rate  ");
+});
 test("rejects malformed rows rather than silently retaining unstable order", () => {
   assert.throws(() => chronologicalObservations([valid,{...valid,observedAt:"not-a-date"}]), TypeError);
   assert.throws(() => chronologicalObservations([valid,{...valid,observedAt:"2026-01-01T00:00:00"}]), TypeError);
