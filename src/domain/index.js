@@ -69,15 +69,19 @@ export function chronologicalObservations(observations) {
 
 // A measurement is a duplicate only when its value, unit, timestamp and provenance all match.
 export function observationIdentity(observation) {
-  // Identity must use the same normalized contract as storage/import. This
-  // prevents equivalent timezone representations from becoming false uniques
-  // and malformed partial objects from collapsing into the same JSON key.
+  // Measurement identity deliberately excludes ingestion time: entering the
+  // same observation twice at different moments must still be deduplicated.
+  // The record-entry timestamp remains part of the immutable backup snapshot
+  // checked by mergeObservationHistories below.
   const validated = createObservation(observation);
   return JSON.stringify([
     validated.metric, validated.value, validated.unit,
-    validated.observedAt, validated.recordedAt ?? null,
-    validated.source, validated.quality
+    validated.observedAt, validated.source, validated.quality
   ]);
+}
+function observationSnapshotIdentity(observation) {
+  const { recordState, ...snapshot } = observation;
+  return JSON.stringify(snapshot);
 }
 
 
@@ -259,7 +263,10 @@ export function mergeObservationHistories(existingHistory, importedHistory) {
     }
     const index = indexes.get(incoming.id);
     const current = merged[index];
-    if (observationIdentity(current) !== observationIdentity(incoming)) {
+    // The same ID must retain every immutable source/audit field even
+    // though an imported version may legitimately advance recordState from
+    // active to superseded. This catches changed recordedAt and amendment data.
+    if (observationSnapshotIdentity(current) !== observationSnapshotIdentity(incoming)) {
       throw new RangeError("observation id collision: imported record content does not match the existing version");
     }
     if (current.recordState !== incoming.recordState) {
