@@ -42,6 +42,7 @@ window.addEventListener('load', async () => {
   }
   loadObservations();
   renderObservations();
+  buildObservationAmendmentControls();
   buildNav();
   buildQuickGrid();
   buildHomeMetrics();
@@ -98,7 +99,7 @@ function loadObservations(){
       console.error('健康记录校验模块不可用；原始缓存保持不变，记录读取与写入已暂停。');
       return;
     }
-    window.healthObservations = parsed.map(row => window.HealthDomain.createObservation(row));
+    window.healthObservations = window.HealthDomain.normalizeObservationHistory(parsed);
   }catch(error){
     observationStorageRecoveryRequired = true;
     if(raw !== null) preserveInvalidObservationStorage(raw);
@@ -120,20 +121,54 @@ function renderObservations(){
     host.innerHTML = '<div class="empty">检测到健康记录缓存异常。当前列表为空不代表原记录已丢失；常规记录写入和导出已暂停。请先导出原始恢复数据并妥善保管，再导入有效 JSON 备份或可读取的恢复包。<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="exportObservationRecovery()">导出原始恢复数据</button><button class="btn primary" onclick="importObservations()">导入备份并恢复</button></div></div>';
     return;
   }
-  const rows = window.HealthDomain.chronologicalObservations(
-    Array.isArray(window.healthObservations) ? window.healthObservations : []
-  ).reverse();
-  count.textContent = rows.length + ' 条';
-  if(!rows.length){ host.innerHTML='<div class="empty">暂无记录。新增测量后会显示在这里。</div>'; return; }
-  host.innerHTML = rows.map(row=>`
-    <div class="list-item" style="border-bottom:1px solid var(--line);padding:10px 0">
-      <div class="li-main">
-        <div class="li-t">${escHTML(row.metric)}：${escHTML(row.value)} ${escHTML(row.unit)}</div>
-        <div class="li-s">测量时间：${escHTML(row.observedAt)} · 来源：${escHTML(row.source)}</div>
-        ${row.recordedAt ? '<div class="li-s">录入时间：' + escHTML(row.recordedAt) + '</div>' : ''}
-        <div class="li-s">质量标记：${escHTML(row.quality)}</div>
-      </div>
-    </div>`).join('');
+  try{
+    const rows = window.HealthDomain.normalizeObservationHistory(
+      Array.isArray(window.healthObservations) ? window.healthObservations : []
+    ).slice().sort((a,b) =>
+      Date.parse(b.recordedAt || b.amendedAt || b.observedAt) -
+      Date.parse(a.recordedAt || a.amendedAt || a.observedAt)
+    );
+    window.healthObservations = rows;
+    const activeCount = rows.filter(row => row.recordState === 'active').length;
+    count.textContent = activeCount + ' 条有效 / ' + rows.length + ' 个版本';
+    if(!rows.length){ host.innerHTML='<div class="empty">暂无记录。新增测量后会显示在这里。</div>'; return; }
+    const stateLabels = {active:'当前有效',superseded:'已被更正',voided:'已作废'};
+    host.innerHTML = rows.map(row=>{
+      const stateLabel=stateLabels[row.recordState] || '状态未知';
+      const previous=row.previousVersionId
+        ? '<div class="observation-version__audit">更正自：'+escHTML(row.previousVersionId)+' · 原因：'+escHTML(row.amendmentReason)+' · 操作人：'+escHTML(row.amendedBy)+' · 时间：'+escHTML(row.amendedAt)+'</div>'
+        : '';
+      const voidAudit=row.recordState==='voided'
+        ? '<div class="observation-version__audit">作废原因：'+escHTML(row.voidReason)+' · 操作人：'+escHTML(row.voidedBy)+' · 时间：'+escHTML(row.voidedAt)+'</div>'
+        : '';
+      const actions=row.recordState==='active'
+        ? '<div class="observation-version__actions"><button type="button" class="btn sm" data-observation-action="amend" data-observation-id="'+escHTML(row.id)+'">更正并保留旧版本</button><button type="button" class="btn sm ghost" data-observation-action="void" data-observation-id="'+escHTML(row.id)+'">作废</button></div>'
+        : '';
+      return '<article class="observation-version '+escHTML(row.recordState)+'" data-observation-version="'+escHTML(row.id)+'">'+
+        '<div class="observation-version__main">'+
+          '<div class="observation-version__title"><strong>'+escHTML(row.metric)+'：'+escHTML(row.value)+' '+escHTML(row.unit)+'</strong>'+
+          '<span class="observation-version__state '+escHTML(row.recordState)+'">'+stateLabel+'</span></div>'+
+          '<div class="li-s">测量时间：'+escHTML(row.observedAt)+' · 来源：'+escHTML(row.source)+'</div>'+
+          (row.recordedAt ? '<div class="li-s">录入时间：'+escHTML(row.recordedAt)+'</div>' : '')+
+          '<div class="li-s">质量标记：'+escHTML(row.quality)+'</div>'+
+          previous+voidAudit+
+          '<div class="observation-version__id">记录 ID：'+escHTML(row.id)+'</div>'+
+        '</div>'+actions+'</article>';
+    }).join('');
+    host.querySelectorAll('[data-observation-action]').forEach(button=>{
+      button.addEventListener('click',()=>{
+        const id=button.dataset.observationId;
+        if(button.dataset.observationAction==='amend') beginObservationAmendment(id);
+        else if(button.dataset.observationAction==='void') voidObservationRecord(id);
+      });
+    });
+  }catch(error){
+    observationStorageRecoveryRequired = true;
+    preserveInvalidObservationStorage(localStorage.getItem(OBSERVATION_STORAGE_KEY));
+    window.healthObservations = [];
+    count.textContent = '待恢复';
+    host.textContent = '健康记录版本关系无法通过校验，已暂停写入以保护原始数据。请导出恢复数据并核查版本链。错误：' + error.message;
+  }
 }
 function exportObservationRecovery(){
   if(!observationStorageRecoveryRequired){
@@ -248,7 +283,7 @@ async function importObservations(){
               : stored && stored.schemaVersion === 1 && Array.isArray(stored.observations)
                 ? stored.observations : null;
             if(!rows || rows.length > 10000) continue;
-            restored = rows.map(row=>window.HealthDomain.createObservation(row));
+            restored = window.HealthDomain.normalizeObservationHistory(rows);
             break;
           }catch(candidateError){
             // Keep searching other preserved raw copies; never write an
@@ -265,28 +300,24 @@ async function importObservations(){
           throw new TypeError('备份格式无效或版本不受支持；需要 schemaVersion 1 和 observations 数组。');
         }
         if(payload.observations.length > 10000) throw new RangeError('单个备份最多允许 10000 条记录。');
-        imported = payload.observations.map(row => window.HealthDomain.createObservation(row));
+        imported = window.HealthDomain.normalizeObservationHistory(payload.observations);
       }
       const existing = recovering ? [] :
-        (Array.isArray(window.healthObservations) ? window.healthObservations : []);
-      const identity = window.HealthDomain.observationIdentity;
-      const known = new Set(existing.map(identity));
-      const additions = imported.filter(row => {
-        const key = identity(row);
-        if(known.has(key)) return false;
-        known.add(key);
-        return true;
-      });
-      const next = recovering ? additions : [...existing,...additions];
+        window.HealthDomain.normalizeObservationHistory(
+          Array.isArray(window.healthObservations) ? window.healthObservations : []
+        );
+      const next = recovering ? imported :
+        window.HealthDomain.mergeObservationHistories(existing, imported);
       if(next.length > 10000) throw new RangeError('合并后的健康记录不能超过 10000 条；请先导出并整理旧记录。');
+      const additions = next.filter(row=>!existing.some(old=>old.id===row.id)).length;
       localStorage.setItem(OBSERVATION_STORAGE_KEY,JSON.stringify(next));
       window.healthObservations = next;
       // Release the recovery lock only after the validated replacement is durable.
       observationStorageRecoveryRequired = false;
       renderObservations();
       alert((recovering ? '恢复完成：' : '导入校验完成：') +
-        '读取 ' + imported.length + ' 条，新增 ' + additions.length +
-        ' 条，跳过重复 ' + (imported.length-additions.length) + ' 条。');
+        '读取 ' + imported.length + ' 个版本，新增 ' + additions +
+        ' 个版本，当前共保留 ' + next.length + ' 个版本。');
       return true;
     }catch(error){
       alert('导入失败，未写入任何记录：' + (error && error.message ? error.message : '备份校验失败'));
