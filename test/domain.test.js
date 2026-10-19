@@ -77,7 +77,8 @@ test("observation identity includes measurement value and provenance", async () 
   assert.equal(observationIdentity(first), observationIdentity({...first}));
   for (const change of [
     {value:63}, {unit:"Hz"}, {observedAt:"2026-01-02T00:00:00Z"},
-    {source:"manual"}, {quality:"reported"}, {metric:"blood-pressure"}
+    {source:"manual"}, {quality:"reported"}, {metric:"blood-pressure"},
+    {recordedAt:"2026-01-02T00:00:00Z"}
   ]) {
     assert.notEqual(observationIdentity(first), observationIdentity({...first,...change}));
   }
