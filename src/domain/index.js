@@ -75,7 +75,8 @@ export function observationIdentity(observation) {
   const validated = createObservation(observation);
   return JSON.stringify([
     validated.metric, validated.value, validated.unit,
-    validated.observedAt, validated.source, validated.quality
+    validated.observedAt, validated.recordedAt ?? null,
+    validated.source, validated.quality
   ]);
 }
 
