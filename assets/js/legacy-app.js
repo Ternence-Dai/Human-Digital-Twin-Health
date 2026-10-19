@@ -352,6 +352,119 @@ function parseLocalObservationDateTime(value){
   return parsed.toISOString();
 }
 
+let observationEditingId = null;
+function createObservationRecordId(){
+  const token = window.crypto && typeof window.crypto.randomUUID === 'function'
+    ? window.crypto.randomUUID()
+    : Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,12);
+  return 'obs-' + token;
+}
+function buildObservationAmendmentControls(){
+  const form=document.getElementById('observationForm');
+  if(!form || document.getElementById('observationAmendmentFields')) return;
+  const audit=document.createElement('section');
+  audit.id='observationAmendmentFields';
+  audit.className='observation-amendment-fields';
+  audit.hidden=true;
+  const note=document.createElement('p');
+  note.className='observation-amendment-note';
+  note.textContent='更正会新增一个版本，并将原版本保留为“已被更正”；不会覆盖原始测量。操作人由录入者自填，本地演示环境不提供身份认证。';
+  const reasonLabel=document.createElement('label');
+  reasonLabel.textContent='更正原因（必填）';
+  const reason=document.createElement('textarea');
+  reason.id='observationAmendmentReason';
+  reason.rows=2;
+  reason.maxLength=1000;
+  reason.placeholder='说明更正依据，例如核对原始报告后发现录入数值有误';
+  reasonLabel.append(reason);
+  const actorLabel=document.createElement('label');
+  actorLabel.textContent='操作人（自填，必填）';
+  const actor=document.createElement('input');
+  actor.id='observationAmendmentActor';
+  actor.maxLength=120;
+  actor.placeholder='姓名 / 工号';
+  actorLabel.append(actor);
+  const cancel=document.createElement('button');
+  cancel.type='button';
+  cancel.className='btn sm ghost';
+  cancel.textContent='取消更正';
+  cancel.addEventListener('click',cancelObservationAmendment);
+  audit.append(note,reasonLabel,actorLabel,cancel);
+  const submit=form.querySelector('button[type="submit"]');
+  if(submit) form.insertBefore(audit,submit);
+}
+function localObservationInputTime(iso){
+  const date=new Date(iso);
+  const pad=value=>String(value).padStart(2,'0');
+  return date.getFullYear()+'-'+pad(date.getMonth()+1)+'-'+pad(date.getDate())+
+    'T'+pad(date.getHours())+':'+pad(date.getMinutes());
+}
+function beginObservationAmendment(id){
+  const row=(window.healthObservations||[]).find(item=>item.id===id);
+  if(!row || row.recordState!=='active'){
+    alert('只能更正当前有效版本。');
+    return false;
+  }
+  const form=document.getElementById('observationForm');
+  buildObservationAmendmentControls();
+  if(!form) return false;
+  observationEditingId=id;
+  form.elements.namedItem('metric').value=row.metric;
+  form.elements.namedItem('value').value=String(row.value);
+  form.elements.namedItem('unit').value=row.unit;
+  form.elements.namedItem('observedAt').value=localObservationInputTime(row.observedAt);
+  form.elements.namedItem('source').value=row.source;
+  form.elements.namedItem('quality').value=row.quality;
+  const audit=document.getElementById('observationAmendmentFields');
+  audit.hidden=false;
+  document.getElementById('observationAmendmentReason').required=true;
+  document.getElementById('observationAmendmentActor').required=true;
+  const submit=form.querySelector('button[type="submit"]');
+  if(submit) submit.textContent='保存更正版本';
+  form.scrollIntoView({behavior:'smooth',block:'center'});
+  return true;
+}
+function cancelObservationAmendment(){
+  observationEditingId=null;
+  const form=document.getElementById('observationForm');
+  if(!form) return;
+  form.reset();
+  const audit=document.getElementById('observationAmendmentFields');
+  if(audit){
+    audit.hidden=true;
+    const reason=document.getElementById('observationAmendmentReason');
+    const actor=document.getElementById('observationAmendmentActor');
+    if(reason){reason.required=false;reason.value='';}
+    if(actor){actor.required=false;actor.value='';}
+  }
+  const submit=form.querySelector('button[type="submit"]');
+  if(submit) submit.textContent='保存记录';
+}
+function voidObservationRecord(id){
+  const row=(window.healthObservations||[]).find(item=>item.id===id);
+  if(!row || row.recordState!=='active'){
+    alert('只能作废当前有效版本。');
+    return false;
+  }
+  const reason=window.prompt('请填写作废原因；原记录会保留在历史中。');
+  if(!reason || !reason.trim()) return false;
+  const actor=window.prompt('请填写实际操作人姓名 / 工号（本地自填，不代表身份认证）。');
+  if(!actor || !actor.trim()) return false;
+  if(!window.confirm('确认将此记录标记为已作废？不会删除原始记录。')) return false;
+  try{
+    const next=window.HealthDomain.voidObservation(
+      window.healthObservations,id,reason,actor,new Date().toISOString()
+    );
+    localStorage.setItem(OBSERVATION_STORAGE_KEY,JSON.stringify(next));
+    window.healthObservations=next;
+    renderObservations();
+    alert('记录已标记为作废，历史内容与原因仍然保留。');
+    return true;
+  }catch(error){
+    alert('作废失败：'+error.message);
+    return false;
+  }
+}
 function saveObservation(event){
   if(event) event.preventDefault();
   if(observationDomainUnavailable){
@@ -370,23 +483,45 @@ function saveObservation(event){
   const localDate = String(fields.get('observedAt') || '');
   try{
     const observedAt = parseLocalObservationDateTime(localDate);
-    const observation = window.HealthDomain.createObservation({
+    const recordedAt = new Date().toISOString();
+    const replacement = {
       metric:String(fields.get('metric') || ''),
       value,
       unit:String(fields.get('unit') || ''),
       observedAt,
-      recordedAt:new Date().toISOString(),
+      recordedAt,
       source:String(fields.get('source') || ''),
       quality:String(fields.get('quality') || '')
+    };
+    const existing = window.HealthDomain.normalizeObservationHistory(
+      Array.isArray(window.healthObservations) ? window.healthObservations : []
+    );
+    if(observationEditingId){
+      const reason=document.getElementById('observationAmendmentReason')?.value || '';
+      const actor=document.getElementById('observationAmendmentActor')?.value || '';
+      const next=window.HealthDomain.amendObservation(
+        existing,observationEditingId,replacement,reason,actor,recordedAt,createObservationRecordId()
+      );
+      if(next.length>10000) throw new RangeError('本地健康记录最多保存 10000 个版本；请先导出并整理旧记录。');
+      localStorage.setItem(OBSERVATION_STORAGE_KEY,JSON.stringify(next));
+      window.healthObservations=next;
+      cancelObservationAmendment();
+      renderObservations();
+      alert('更正已保存为新版本。旧版本未被覆盖，且已保留更正原因、操作人和时间。');
+      return false;
+    }
+    const observation = window.HealthDomain.createObservation({
+      ...replacement,
+      id:createObservationRecordId(),
+      recordState:'active'
     });
-    const existing = Array.isArray(window.healthObservations) ? window.healthObservations : [];
     const identity = window.HealthDomain.observationIdentity;
     if(existing.some(row => identity(row) === identity(observation))){
       alert('这条测量记录与已有记录完全相同（指标、数值、单位、时间和来源均一致），未重复保存。');
       return false;
     }
-    const next = [...existing, observation];
-    if(next.length > 10000) throw new RangeError('本地健康记录最多保存 10000 条；请先导出并整理旧记录。');
+    const next = window.HealthDomain.normalizeObservationHistory([...existing, observation]);
+    if(next.length > 10000) throw new RangeError('本地健康记录最多保存 10000 个版本；请先导出并整理旧记录。');
     localStorage.setItem(OBSERVATION_STORAGE_KEY, JSON.stringify(next));
     window.healthObservations = next;
     form.reset();
