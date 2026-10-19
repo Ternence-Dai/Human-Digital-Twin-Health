@@ -69,4 +69,9 @@ test("observation identity includes measurement value and provenance", async () 
     assert.notEqual(observationIdentity(first), observationIdentity({...first,...change}));
   }
   assert.throws(() => observationIdentity(null), TypeError);
+  assert.throws(() => observationIdentity({...first, unit:""}), TypeError);
+  assert.throws(() => observationIdentity({...first, observedAt:"not-a-date"}), TypeError);
+  assert.throws(() => observationIdentity({...first, value:NaN}), TypeError);
+  const sameInstant = {...first, observedAt:"2026-01-01T08:00:00+08:00"};
+  assert.equal(observationIdentity(first), observationIdentity(sameInstant));
 });
