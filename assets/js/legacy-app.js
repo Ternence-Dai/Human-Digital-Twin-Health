@@ -510,8 +510,9 @@ function saveObservation(event){
       alert('更正已保存为新版本。旧版本未被覆盖，且已保留更正原因、操作人和时间。');
       return false;
     }
-    const observation = window.HealthDomain.createObservation({
-      ...replacement,
+    const baseObservation = window.HealthDomain.createObservation(replacement);
+    const observation = Object.freeze({
+      ...baseObservation,
       id:createObservationRecordId(),
       recordState:'active'
     });
