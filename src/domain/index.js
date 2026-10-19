@@ -51,13 +51,9 @@ export function createObservation(input) {
 
 export function chronologicalObservations(observations) {
   if (!Array.isArray(observations)) throw new TypeError("observations must be an array");
-  const validated = observations.map((row) => {
-    if (!row || typeof row !== "object" || Array.isArray(row)) {
-      throw new TypeError("every observation must be an object with a valid observedAt timestamp");
-    }
-    parseObservedAt(row.observedAt);
-    return row;
-  });
+  // Sorting is also a trust boundary: validate and canonicalize every field,
+  // not just the timestamp, before exposing records to charts or summaries.
+  const validated = observations.map((row) => createObservation(row));
   return validated.sort((a,b) => Date.parse(a.observedAt)-Date.parse(b.observedAt));
 }
 
