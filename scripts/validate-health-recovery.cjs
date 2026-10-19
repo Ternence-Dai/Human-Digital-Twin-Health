@@ -11,7 +11,7 @@ const end = app.indexOf('function parseLocalObservationDateTime',start);
 if(start<0 || end<=start) throw new Error('Health observation import handler not found');
 const importSource = app.slice(start,end);
 const domainContext = vm.createContext({});
-vm.runInContext(domainSource + '\nthis.HealthDomain={createObservation,chronologicalObservations,observationIdentity};',domainContext);
+vm.runInContext(domainSource + '\nthis.HealthDomain={createObservation,chronologicalObservations,observationIdentity,normalizeObservationHistory,mergeObservationHistories};',domainContext);
 const HealthDomain = domainContext.HealthDomain;
 
 function observation(metric, value, date='2026-10-18T08:30:00Z') {
