@@ -310,3 +310,9 @@ test("rejects an amendment timestamp earlier than the original measurement",()=>
   "Corrected source reading","reviewer-chronology","2025-12-31T23:59:59Z","amendment-early-001"
  ),/amendment time cannot precede the original observation time/);
 });
+
+
+test("rejects void audit timestamps earlier than record entry",()=>{
+ const row=createObservation({...valid,recordedAt:"2026-01-02T00:00:00Z"});
+ assert.throws(()=>voidObservation([row],row.id,{reason:"duplicate",actor:"reviewer",voidedAt:"2026-01-01T00:00:00Z"}),RangeError);
+});
