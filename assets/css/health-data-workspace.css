@@ -18,3 +18,12 @@ body[data-workspace="health"] .splash{background:radial-gradient(circle at 50% 4
 body[data-workspace="health"] .login-card{border:1px solid rgba(213,240,235,.6);border-radius:22px;box-shadow:0 28px 80px rgba(9,47,58,.2)}
 body[data-workspace="health"] .nav-item.active{background:rgba(38,190,164,.17);box-shadow:inset 3px 0 #3bd0b1}
 @media(max-width:760px){body[data-workspace="health"] .health-intro{margin:14px;padding:22px}body[data-workspace="health"] .health-state{max-width:none;margin-top:14px}}
+
+/* Versioned measurement history: compact, keyboard-accessible state filtering. */
+body[data-workspace="health"] .observation-history-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0 12px;padding:11px 13px;border:1px solid #dceae7;border-radius:13px;background:rgba(255,255,255,.82)}
+body[data-workspace="health"] .observation-history-tools label{font-size:12px;font-weight:750;color:#45636a}
+body[data-workspace="health"] .observation-history-tools select{min-width:190px;max-width:100%;padding:9px 34px 9px 11px;border:1px solid #c9dcd7;border-radius:9px;background:#fff;color:#17333d;font:inherit;font-size:12px}
+body[data-workspace="health"] .observation-history-tools select:focus-visible{outline:3px solid rgba(13,148,136,.22);outline-offset:2px}
+body[data-workspace="health"] .observation-history-tools select:disabled{opacity:.55;cursor:not-allowed}
+body[data-workspace="health"] #observationFilterSummary{margin-left:auto;color:#668087;font-size:11px;font-variant-numeric:tabular-nums}
+@media(max-width:520px){body[data-workspace="health"] .observation-history-tools{align-items:stretch}body[data-workspace="health"] .observation-history-tools label{width:100%}body[data-workspace="health"] .observation-history-tools select{width:100%;min-width:0}body[data-workspace="health"] #observationFilterSummary{margin-left:0}}

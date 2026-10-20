@@ -132,3 +132,56 @@ async function importPayload(state,payload) {
 
   console.log('Health observation recovery regression checks passed (restore, cancel, invalid backup, quota failure, raw recovery envelope, merge/deduplication).');
 })().catch(error=>{console.error(error);process.exitCode=1;});
+
+
+(function validateObservationHistoryFilters(){
+  const start=app.indexOf('function renderObservations(){');
+  const end=app.indexOf('\nfunction ',start+25);
+  assert.ok(start>=0&&end>start,'observation renderer must remain extractable for filter regression tests');
+  const source=app.slice(start,end);
+  assert.ok(index.includes('id="observationStateFilter"')&&
+            index.includes('id="observationFilterSummary"'),
+    'records page must expose the version-state filter and visible result count');
+  assert.ok(source.includes('stateCounts.superseded')&&source.includes('stateCounts.voided')&&
+            source.includes('rows.filter(row => row.recordState === selectedFilter)'),
+    'filter counts and results must be calculated from the validated version history');
+  const sample=[
+    {id:'active-1',recordState:'active',metric:'heart-rate',value:72,unit:'bpm',observedAt:'2026-10-20T08:00:00Z',recordedAt:'2026-10-20T08:01:00Z',source:'watch',quality:'measured'},
+    {id:'old-1',recordState:'superseded',metric:'heart-rate',value:70,unit:'bpm',observedAt:'2026-10-19T08:00:00Z',recordedAt:'2026-10-19T08:01:00Z',source:'watch',quality:'measured'},
+    {id:'void-1',recordState:'voided',metric:'weight',value:68,unit:'kg',observedAt:'2026-10-18T08:00:00Z',recordedAt:'2026-10-18T08:01:00Z',source:'scale',quality:'reported'}
+  ];
+  function runFilter(value){
+    const host={innerHTML:'',textContent:'',querySelectorAll:()=>[]};
+    const count={textContent:''};
+    const filter={value,innerHTML:'',disabled:false};
+    const summary={textContent:''};
+    const context={
+      document:{getElementById:id=>({
+        observationList:host,observationCount:count,
+        observationStateFilter:filter,observationFilterSummary:summary
+      }[id]||null)},
+      window:{healthObservations:sample,HealthDomain:{normalizeObservationHistory:rows=>rows}},
+      observationDomainUnavailable:false,observationStorageRecoveryRequired:false,
+      escHTML:value=>String(value??'').replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch])),
+      Date,Array,localStorage:{getItem:()=>null},OBSERVATION_STORAGE_KEY:'health-observations',
+      preserveInvalidObservationStorage:()=>{},console
+    };
+    vm.runInNewContext(source+'\nthis.renderObservations=renderObservations;',context);
+    context.renderObservations();
+    return {html:host.innerHTML,count:count.textContent,summary:summary.textContent,options:filter.innerHTML};
+  }
+  const active=runFilter('active');
+  assert.ok(active.html.includes('active-1')&&!active.html.includes('old-1')&&!active.html.includes('void-1'),
+    'active filter must show current versions only');
+  assert.ok(active.options.includes('已被更正（1）')&&active.options.includes('已作废（1）'),
+    'filter options must disclose counts for every retained audit state');
+  assert.equal(active.summary,'显示 1 / 3 个版本');
+  const superseded=runFilter('superseded');
+  assert.ok(superseded.html.includes('old-1')&&!superseded.html.includes('active-1'));
+  assert.equal(superseded.summary,'显示 1 / 3 个版本');
+  const voided=runFilter('voided');
+  assert.ok(voided.html.includes('void-1')&&!voided.html.includes('active-1'));
+  const all=runFilter('all');
+  assert.ok(all.html.includes('active-1')&&all.html.includes('old-1')&&all.html.includes('void-1'));
+  assert.equal(all.summary,'显示 3 / 3 个版本');
+})();

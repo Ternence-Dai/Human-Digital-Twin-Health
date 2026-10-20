@@ -110,13 +110,19 @@ function loadObservations(){
 function renderObservations(){
   const host = document.getElementById('observationList');
   const count = document.getElementById('observationCount');
+  const filter = document.getElementById('observationStateFilter');
+  const filterSummary = document.getElementById('observationFilterSummary');
   if(!host || !count) return;
   if(observationDomainUnavailable){
+    if(filter) filter.disabled = true;
+    if(filterSummary) filterSummary.textContent = '列表校验不可用';
     count.textContent = '校验模块不可用';
     host.innerHTML = '<div class="empty">健康记录校验模块尚未加载。为避免显示未经校验的数据，当前记录列表暂不可用；原始浏览器缓存未修改。请刷新页面后重试。常规写入与导出已暂停。</div>';
     return;
   }
   if(observationStorageRecoveryRequired){
+    if(filter) filter.disabled = true;
+    if(filterSummary) filterSummary.textContent = '恢复后可筛选';
     count.textContent = '待恢复';
     host.innerHTML = '<div class="empty">检测到健康记录缓存异常。当前列表为空不代表原记录已丢失；常规记录写入和导出已暂停。请先导出原始恢复数据并妥善保管，再导入有效 JSON 备份或可读取的恢复包。<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="exportObservationRecovery()">导出原始恢复数据</button><button class="btn primary" onclick="importObservations()">导入备份并恢复</button></div></div>';
     return;
@@ -129,11 +135,33 @@ function renderObservations(){
       Date.parse(a.recordedAt || a.amendedAt || a.observedAt)
     );
     window.healthObservations = rows;
-    const activeCount = rows.filter(row => row.recordState === 'active').length;
-    count.textContent = activeCount + ' 条有效 / ' + rows.length + ' 个版本';
+    const stateCounts = {
+      active: rows.filter(row => row.recordState === 'active').length,
+      superseded: rows.filter(row => row.recordState === 'superseded').length,
+      voided: rows.filter(row => row.recordState === 'voided').length
+    };
+    count.textContent = stateCounts.active + ' 条有效 / ' + rows.length + ' 个版本';
+    const allowedFilters = ['all','active','superseded','voided'];
+    const selectedFilter = filter && allowedFilters.includes(filter.value) ? filter.value : 'all';
+    if(filter){
+      filter.disabled = false;
+      filter.innerHTML =
+        '<option value="all">全部版本（' + rows.length + '）</option>' +
+        '<option value="active">当前有效（' + stateCounts.active + '）</option>' +
+        '<option value="superseded">已被更正（' + stateCounts.superseded + '）</option>' +
+        '<option value="voided">已作废（' + stateCounts.voided + '）</option>';
+      filter.value = selectedFilter;
+    }
+    const visibleRows = selectedFilter === 'all'
+      ? rows : rows.filter(row => row.recordState === selectedFilter);
+    if(filterSummary) filterSummary.textContent = '显示 ' + visibleRows.length + ' / ' + rows.length + ' 个版本';
     if(!rows.length){ host.innerHTML='<div class="empty">暂无记录。新增测量后会显示在这里。</div>'; return; }
+    if(!visibleRows.length){
+      host.innerHTML = '<div class="empty">当前状态没有记录。切换到“全部版本”可查看完整审计历史。</div>';
+      return;
+    }
     const stateLabels = {active:'当前有效',superseded:'已被更正',voided:'已作废'};
-    host.innerHTML = rows.map(row=>{
+    host.innerHTML = visibleRows.map(row=>{
       const stateLabel=stateLabels[row.recordState] || '状态未知';
       const previous=row.previousVersionId
         ? '<div class="observation-version__audit">更正自：'+escHTML(row.previousVersionId)+' · 原因：'+escHTML(row.amendmentReason)+' · 操作人：'+escHTML(row.amendedBy)+' · 时间：'+escHTML(row.amendedAt)+'</div>'

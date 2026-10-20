@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="./assets/css/product-system.css?v=20261019-v8">
   <link rel="stylesheet" href="./assets/css/workspace-v5.css?v=20261019-v5">
   <link rel="stylesheet" href="./assets/css/product-system-v9.css?v=20261019-v9">
-<link rel="stylesheet" href="./assets/css/health-data-workspace.css?v=20261019-v1">
+<link rel="stylesheet" href="./assets/css/health-data-workspace.css?v=20261020-v2">
 </head>
 <body data-workspace="health">
 
@@ -309,6 +309,16 @@
         <div class="sec-title"><span class="bar"></span>历史记录 <span class="more" id="observationCount">0 条</span><button class="btn sm" type="button" onclick="importObservations()">导入 JSON 备份</button>
           <button class="btn sm" type="button" onclick="exportObservations()" style="margin-left:auto">导出 JSON 备份</button>
           <input id="observationImportFile" type="file" accept="application/json,.json" hidden></div>
+        <div class="observation-history-tools">
+          <label for="observationStateFilter">记录状态</label>
+          <select id="observationStateFilter" onchange="renderObservations()" aria-label="按版本状态筛选健康测量记录">
+            <option value="all">全部版本</option>
+            <option value="active">当前有效</option>
+            <option value="superseded">已被更正</option>
+            <option value="voided">已作废</option>
+          </select>
+          <span id="observationFilterSummary" aria-live="polite">显示全部版本</span>
+        </div>
         <div id="observationList" class="glass" style="padding:14px"></div>
       </section>
 
@@ -409,7 +419,7 @@
 </div>
 
 <script src="./assets/js/health-demo-data.js"></script>
-<script src="./assets/js/legacy-app.js?v=20261020-health-active-duplicate-v3"></script>
+<script src="./assets/js/legacy-app.js?v=20261020-health-history-filter-v4"></script>
   <script src="./assets/js/workspace-v5.js?v=20261019-v5"></script>
   <script src="./assets/js/workspace-v5-context.js?v=20261019-v51"></script>
 </body>
