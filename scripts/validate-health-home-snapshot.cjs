@@ -76,7 +76,7 @@ assert.doesNotMatch(result.html,/72 bpm|126\/82|98%/,
 result=run({rows:[
   {id:'h1',metric:'心率',value:72,unit:'bpm',observedAt:'2026-10-20T08:00:00+08:00',source:'手环',quality:'measured',recordState:'active'},
   {id:'h0',metric:'心率',value:69,unit:'bpm',observedAt:'2026-10-19T08:00:00+08:00',source:'手环',quality:'measured',recordState:'superseded'},
-  {id:'b1',metric:'血压',value:120,unit:'mmHg',observedAt:'2026-10-20T07:30:00+08:00',source:'家用血压计',quality:'reported',recordState:'active'},
+  {id:'b1',metric:'血压',value:120,unit:'mmHg',observedAt:'2026-10-20T07:30:00+08:00',source:'家用血压计 CSV 备份',quality:'imported',recordState:'active'},
   {id:'g1',metric:'空腹血糖',value:5.2,unit:'mmol/L',observedAt:'2026-10-18T07:30:00+08:00',source:'导入文件',quality:'imported',recordState:'voided',voidReason:'样本错误'}
 ]});
 assert.match(result.html,/>2</,'snapshot must count two current active records');
@@ -84,7 +84,7 @@ assert.match(result.html,/>2<\/strong><small>已更正或已作废/,'snapshot mu
 assert.match(result.html,/心率/);
 assert.match(result.html,/72/);
 assert.match(result.html,/血压/);
-assert.match(result.html,/家用血压计/);
+assert.match(result.html,/家用血压计 CSV 备份/);
 assert.match(result.html,/设备\/仪器测量/);
 assert.match(result.html,/文件导入/);
 assert.equal(result.normalizeCalls,1,'each summary refresh should normalize the complete versioned history once');
