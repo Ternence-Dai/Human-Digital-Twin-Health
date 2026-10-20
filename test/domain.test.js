@@ -281,3 +281,13 @@ test("merging the same audited void snapshot repeatedly is idempotent",()=>{
   "replaying an identical void event must not change the authoritative audit history");
  assert.equal(mergeObservationHistories(twice,original)[0].recordState,"voided");
 });
+
+
+test("rejects conflicting void audit metadata for the same observation ID",()=>{
+ const original=normalizeObservationHistory([{...amendmentBase,id:"void-audit-conflict"}]);
+ const first=voidObservation(original,"void-audit-conflict","Invalid source","reviewer-a","2026-10-20T07:10:00Z");
+ const conflicting=voidObservation(original,"void-audit-conflict","Different reason","reviewer-b","2026-10-20T07:11:00Z");
+ const merged=mergeObservationHistories(original,first);
+ assert.throws(()=>mergeObservationHistories(merged,conflicting),/id collision/,
+  "a replay with altered void reason, actor or timestamp must not overwrite the accepted audit event");
+});
