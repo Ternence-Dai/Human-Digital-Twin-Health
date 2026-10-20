@@ -332,3 +332,9 @@ test("validates long linear observation amendment chains without recursion",()=>
   }
   assert.equal(validateObservationHistory(rows).length,1200);
 });
+
+
+test("observation history rejects unsupported imported fields instead of silently discarding them",()=>{
+ const row={id:"OBS-STRICT-1",metric:"weight",value:70,unit:"kg",observedAt:"2026-10-20T09:00:00Z",source:"scale",quality:"measured",recordState:"active",clinicalOverride:true};
+ assert.throws(()=>normalizeObservationHistory([row]),/unsupported fields/);
+});
