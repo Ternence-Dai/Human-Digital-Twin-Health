@@ -107,12 +107,59 @@ function loadObservations(){
     window.healthObservations = [];
   }
 }
+function renderPersonalRecordSnapshot(){
+  const host = document.getElementById('personalRecordSnapshot');
+  if(!host) return;
+  if(observationDomainUnavailable || !window.HealthDomain || typeof window.HealthDomain.normalizeObservationHistory !== 'function'){
+    host.innerHTML = '<div class="personal-record-state is-warning" role="status"><strong>记录校验模块不可用</strong><span>为避免显示未经验证的记录，个人记录快照暂不可用；原始本机缓存未修改。</span><button type="button" class="btn sm ghost" onclick="go(\'records\')">查看恢复入口</button></div>';
+    return;
+  }
+  if(observationStorageRecoveryRequired){
+    host.innerHTML = '<div class="personal-record-state is-warning" role="alert"><strong>个人记录待恢复</strong><span>检测到本机记录缓存异常。当前空白不代表记录已丢失；请先导出恢复数据，再导入有效备份。</span><button type="button" class="btn sm" onclick="go(\'records\')">前往记录恢复</button></div>';
+    return;
+  }
+  try{
+    const rows = window.HealthDomain.normalizeObservationHistory(Array.isArray(window.healthObservations) ? window.healthObservations : []);
+    const active = rows.filter(row => row.recordState === 'active');
+    const supersededCount = rows.filter(row => row.recordState === 'superseded').length;
+    const voidedCount = rows.filter(row => row.recordState === 'voided').length;
+    const metricCount = new Set(active.map(row => row.metric.trim().toLocaleLowerCase())).size;
+    const demoCount = active.filter(row => row.quality === 'demo').length;
+    const recent = active.slice().sort((a,b) => Date.parse(b.observedAt) - Date.parse(a.observedAt)).slice(0,3);
+    const qualityLabels = {measured:'设备/仪器测量',reported:'手动自述',imported:'文件导入',demo:'示例数据'};
+    const stats = [
+      {label:'当前有效记录',value:active.length,detail:'通过来源与版本校验'},
+      {label:'历史版本',value:supersededCount + voidedCount,detail:'已更正或已作废'},
+      {label:'指标类别',value:metricCount,detail:'当前有效记录覆盖'},
+      {label:'示例来源',value:demoCount,detail:'单独标记，不作真实测量'}
+    ];
+    const statsHtml = '<div class="personal-record-stats">' + stats.map(item =>
+      '<div class="personal-record-stat"><span>' + item.label + '</span><strong>' + item.value + '</strong><small>' + item.detail + '</small></div>'
+    ).join('') + '</div>';
+    const recentHtml = recent.length ? '<div class="personal-record-recent"><div class="personal-record-recent__head"><strong>最近测量</strong><span>按测量时间排序 · 最多显示 3 条</span></div>' +
+      recent.map(row => {
+        const measuredAt = new Date(row.observedAt);
+        const observedLabel = Number.isFinite(measuredAt.getTime()) ? measuredAt.toLocaleString('zh-CN',{hour12:false}) : row.observedAt;
+        const provenance = qualityLabels[row.quality] || row.quality;
+        return '<article class="personal-record-row"><div class="personal-record-row__main"><strong>' + escHTML(row.metric) + '</strong><b>' + escHTML(row.value) + ' <small>' + escHTML(row.unit) + '</small></b></div>' +
+          '<div class="personal-record-row__meta"><span>测量 ' + escHTML(observedLabel) + '</span><span>来源 ' + escHTML(row.source) + '</span><span>质量 ' + escHTML(provenance) + '</span></div></article>';
+      }).join('') + '</div>' : '<div class="personal-record-empty"><strong>尚无当前有效观察值</strong><span>' + (rows.length ? '历史版本已保留，但目前没有可作为当前值展示的有效记录。' : '录入或导入第一条健康观察值后，这里会显示测量时间、来源与质量标记。') + '</span><button type="button" class="btn sm" onclick="go(\'records\')">记录第一条观察值</button></div>';
+    host.innerHTML = '<div class="personal-record-panel">' + statsHtml + recentHtml +
+      '<div class="personal-record-foot">只读取浏览器本机的已验证观察记录；不把演示体征、器官示例分值或健康教育内容混入个人记录。</div></div>';
+  }catch(error){
+    observationStorageRecoveryRequired = true;
+    try{ const raw = localStorage.getItem(OBSERVATION_STORAGE_KEY); if(raw !== null) preserveInvalidObservationStorage(raw); }catch(storageError){ console.error('无法读取个人健康记录恢复副本',storageError); }
+    console.error('个人记录快照校验失败；已暂停常规写入。',error);
+    host.innerHTML = '<div class="personal-record-state is-warning" role="alert"><strong>个人记录校验失败</strong><span>已暂停显示和写入以保护原始记录。请前往健康记录页面导出恢复数据。</span><button type="button" class="btn sm" onclick="go(\'records\')">前往恢复</button></div>';
+  }
+}
 function renderObservations(){
   const host = document.getElementById('observationList');
   const count = document.getElementById('observationCount');
   const filter = document.getElementById('observationStateFilter');
   const filterSummary = document.getElementById('observationFilterSummary');
   if(!host || !count) return;
+  renderPersonalRecordSnapshot();
   if(observationDomainUnavailable){
     if(filter) filter.disabled = true;
     if(filterSummary) filterSummary.textContent = '列表校验不可用';
@@ -193,6 +240,7 @@ function renderObservations(){
   }catch(error){
     observationStorageRecoveryRequired = true;
     preserveInvalidObservationStorage(localStorage.getItem(OBSERVATION_STORAGE_KEY));
+    renderPersonalRecordSnapshot();
     window.healthObservations = [];
     count.textContent = '待恢复';
     host.textContent = '健康记录版本关系无法通过校验，已暂停写入以保护原始数据。请导出恢复数据并核查版本链。错误：' + error.message;

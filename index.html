@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="./assets/css/product-system.css?v=20261019-v8">
   <link rel="stylesheet" href="./assets/css/workspace-v5.css?v=20261019-v5">
   <link rel="stylesheet" href="./assets/css/product-system-v9.css?v=20261019-v9">
-<link rel="stylesheet" href="./assets/css/health-data-workspace.css?v=20261020-v2">
+<link rel="stylesheet" href="./assets/css/health-data-workspace.css?v=20261020-v3">
 </head>
 <body data-workspace="health">
 
@@ -135,6 +135,11 @@
 
         <div class="sec-title"><span class="bar"></span>今日体征 <span class="more">演示数据 · 非实时同步</span></div>
         <div class="metrics-grid" id="homeMetrics"></div>
+
+        <div class="sec-title"><span class="bar"></span>本机个人记录 <span class="more">独立于上方示例体征 · 仅显示本机已验证记录</span></div>
+        <section id="personalRecordSnapshot" class="personal-record-snapshot" aria-live="polite">
+          <div class="personal-record-empty">正在读取本机已验证的观察值…</div>
+        </section>
 
         <div class="sec-title"><span class="bar"></span>功能导航</div>
         <div class="quick-grid" id="quickGrid"></div>
@@ -419,7 +424,7 @@
 </div>
 
 <script src="./assets/js/health-demo-data.js"></script>
-<script src="./assets/js/legacy-app.js?v=20261020-health-history-filter-v4"></script>
+<script src="./assets/js/legacy-app.js?v=20261020-health-home-snapshot-v1"></script>
   <script src="./assets/js/workspace-v5.js?v=20261019-v5"></script>
   <script src="./assets/js/workspace-v5-context.js?v=20261019-v51"></script>
 </body>

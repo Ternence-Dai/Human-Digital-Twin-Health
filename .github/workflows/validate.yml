@@ -23,6 +23,8 @@ jobs:
         run: node scripts/validate-health-demo.cjs
       - name: Validate health observation recovery
         run: node scripts/validate-health-recovery.cjs
+      - name: Validate health home record snapshot
+        run: node scripts/validate-health-home-snapshot.cjs
       - name: Parse embedded JavaScript
         run: |
           node <<'NODE'

@@ -27,3 +27,32 @@ body[data-workspace="health"] .observation-history-tools select:focus-visible{ou
 body[data-workspace="health"] .observation-history-tools select:disabled{opacity:.55;cursor:not-allowed}
 body[data-workspace="health"] #observationFilterSummary{margin-left:auto;color:#668087;font-size:11px;font-variant-numeric:tabular-nums}
 @media(max-width:520px){body[data-workspace="health"] .observation-history-tools{align-items:stretch}body[data-workspace="health"] .observation-history-tools label{width:100%}body[data-workspace="health"] .observation-history-tools select{width:100%;min-width:0}body[data-workspace="health"] #observationFilterSummary{margin-left:0}}
+
+
+/* Home snapshot: validated user observations remain visually separate from demo vitals. */
+body[data-workspace="health"] .personal-record-snapshot{margin:0 0 22px}
+body[data-workspace="health"] .personal-record-panel{padding:15px;border:1px solid #dceae7;border-radius:17px;background:rgba(255,255,255,.9);box-shadow:0 10px 28px rgba(24,66,65,.045)}
+body[data-workspace="health"] .personal-record-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+body[data-workspace="health"] .personal-record-stat{display:flex;flex-direction:column;gap:5px;min-width:0;padding:12px;border:1px solid #e2ece9;border-radius:12px;background:#f7fbfa}
+body[data-workspace="health"] .personal-record-stat span{color:#60777c;font-size:11px;font-weight:700}
+body[data-workspace="health"] .personal-record-stat strong{color:#123e44;font-size:24px;font-variant-numeric:tabular-nums;line-height:1.05}
+body[data-workspace="health"] .personal-record-stat small{color:#87999b;font-size:10px;line-height:1.4}
+body[data-workspace="health"] .personal-record-recent{margin-top:15px}
+body[data-workspace="health"] .personal-record-recent__head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+body[data-workspace="health"] .personal-record-recent__head strong{color:#254c52;font-size:12px}
+body[data-workspace="health"] .personal-record-recent__head span{color:#8a9c9e;font-size:10px}
+body[data-workspace="health"] .personal-record-row{padding:11px 12px;border:1px solid #e7efed;border-radius:11px;background:#fff}
+body[data-workspace="health"] .personal-record-row+.personal-record-row{margin-top:7px}
+body[data-workspace="health"] .personal-record-row__main{display:flex;align-items:center;justify-content:space-between;gap:12px}
+body[data-workspace="health"] .personal-record-row__main strong{color:#274d52;font-size:12px}
+body[data-workspace="health"] .personal-record-row__main b{color:#0c766e;font-size:17px;font-variant-numeric:tabular-nums}
+body[data-workspace="health"] .personal-record-row__main b small{color:#648186;font-size:10px;font-weight:600}
+body[data-workspace="health"] .personal-record-row__meta{display:flex;flex-wrap:wrap;gap:5px 13px;margin-top:6px;color:#788e91;font-size:10px;line-height:1.5}
+body[data-workspace="health"] .personal-record-empty,body[data-workspace="health"] .personal-record-state{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:15px;border:1px dashed #cfe0dc;border-radius:12px;background:#f8fcfb;color:#6c8587}
+body[data-workspace="health"] .personal-record-empty strong,body[data-workspace="health"] .personal-record-state strong{color:#254c52;font-size:12px}
+body[data-workspace="health"] .personal-record-empty span,body[data-workspace="health"] .personal-record-state span{flex:1 1 100%;font-size:11px;line-height:1.7}
+body[data-workspace="health"] .personal-record-state.is-warning{border-style:solid;border-color:#e7c58a;background:#fffaf0}
+body[data-workspace="health"] .personal-record-state.is-warning strong{color:#805719}
+body[data-workspace="health"] .personal-record-foot{margin-top:12px;padding-top:10px;border-top:1px solid #e7efed;color:#849699;font-size:10px;line-height:1.65}
+@media(max-width:760px){body[data-workspace="health"] .personal-record-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:420px){body[data-workspace="health"] .personal-record-panel{padding:11px}body[data-workspace="health"] .personal-record-stat{padding:10px}body[data-workspace="health"] .personal-record-row__main{align-items:flex-start;flex-direction:column;gap:4px}body[data-workspace="health"] .personal-record-recent__head{align-items:flex-start;flex-direction:column}}
