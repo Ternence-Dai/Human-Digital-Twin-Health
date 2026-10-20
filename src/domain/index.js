@@ -287,6 +287,9 @@ export function voidObservation(history, targetId, voidReason, voidedBy, voidedA
   const reason = requiredObservationAuditText(voidReason, "void reason", 1000);
   const actor = requiredObservationAuditText(voidedBy, "void actor", 120);
   const timestamp = parseObservedAt(voidedAt);
+  if (Date.parse(timestamp) < Date.parse(target.observedAt)) {
+    throw new RangeError("void time cannot precede the original observation time");
+  }
   const updated = current.map(row => row.id === target.id
     ? Object.freeze({ ...row, recordState: "voided", voidReason: reason, voidedBy: actor, voidedAt: timestamp })
     : row);
