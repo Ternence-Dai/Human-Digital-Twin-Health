@@ -195,6 +195,9 @@ export function validateObservationHistory(history) {
       if (previous.recordedAt && Date.parse(row.amendedAt) < Date.parse(previous.recordedAt)) {
         throw new RangeError("amendment time cannot precede the previous record-entry time");
       }
+      if (row.recordedAt && Date.parse(row.recordedAt) > Date.parse(row.amendedAt)) {
+        throw new RangeError("replacement record-entry time cannot follow its amendment time");
+      }
     }
   }
 
