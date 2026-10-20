@@ -244,6 +244,20 @@ test("rejects same-ID imports that alter record-entry time or amendment audit",(
  assert.throws(()=>mergeObservationHistories(amended,changedAudit),/id collision/);
 });
 
+test("merges an audited void transition without allowing measurement tampering",()=>{
+ const original=normalizeObservationHistory([{...amendmentBase,id:"void-sync-record"}]);
+ const voided=voidObservation(original,"void-sync-record",
+  "Source record was invalidated","reviewer-sync","2026-10-20T06:00:00Z");
+ const merged=mergeObservationHistories(original,voided);
+ assert.equal(merged[0].recordState,"voided");
+ assert.equal(merged[0].voidReason,"Source record was invalidated");
+ assert.equal(mergeObservationHistories(merged,original)[0].recordState,"voided",
+  "an older active copy must not reactivate a voided observation");
+ const tampered=voided.map(row=>({...row,value:999}));
+ assert.throws(()=>mergeObservationHistories(original,tampered),/id collision/,
+  "a void transition must not conceal changes to immutable measurement fields");
+});
+
 test("merges imported amendment history without reverting superseded versions",()=>{
  const original=normalizeObservationHistory([amendmentBase]);
  const amended=amendObservation(original,original[0].id,{...amendmentBase,value:65},
