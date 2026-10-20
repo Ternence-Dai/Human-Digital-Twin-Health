@@ -351,9 +351,10 @@
         <div class="sec-title"><span class="bar"></span>一般健康建议（本地预设内容）</div>
         <div id="adviceList"></div>
 
-        <div class="sec-title"><span class="bar"></span>近 3 次检测趋势（演示）</div>
+        <div class="sec-title"><span class="bar"></span>近期真实记录趋势</div>
         <div class="glass" style="padding:20px">
-          <svg id="trendSvg" viewBox="0 0 320 120" style="width:100%"></svg>
+          <div id="trendSummary" style="font-size:12px;color:var(--tx2);margin-bottom:10px">只显示当前有效的本地观察记录；不会用演示体征填充。</div>
+          <svg id="trendSvg" role="img" aria-label="根据当前有效健康观察记录绘制的近期趋势" viewBox="0 0 320 120" style="width:100%"></svg>
         </div>
 
         <div class="footer-note">
@@ -424,7 +425,7 @@
 </div>
 
 <script src="./assets/js/health-demo-data.js"></script>
-<script src="./assets/js/legacy-app.js?v=20261020-health-home-snapshot-v1"></script>
+<script src="./assets/js/legacy-app.js?v=20261020-health-real-trend-v2"></script>
   <script src="./assets/js/workspace-v5.js?v=20261019-v5"></script>
   <script src="./assets/js/workspace-v5-context.js?v=20261019-v51"></script>
 </body>
