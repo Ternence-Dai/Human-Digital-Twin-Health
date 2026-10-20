@@ -232,6 +232,12 @@ test("rejects amendment chains whose timestamps move backwards",()=>{
  /amendment time cannot precede the previous version's amendment time/);
 });
 
+test("normalization enforces the history size limit before traversing records",()=>{
+ const oversized=new Array(50001);
+ Object.defineProperty(oversized,"0",{get(){throw new Error("records must not be traversed before size validation");}});
+ assert.throws(()=>normalizeObservationHistory(oversized),/50000-record validation limit/);
+});
+
 test("rejects same-ID imports that alter record-entry time or amendment audit",()=>{
  const original=normalizeObservationHistory([amendmentBase]);
  const changedRecordTime=[{...original[0],recordedAt:"2026-10-18T02:00:00Z"}];
