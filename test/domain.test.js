@@ -291,3 +291,13 @@ test("rejects conflicting void audit metadata for the same observation ID",()=>{
  assert.throws(()=>mergeObservationHistories(merged,conflicting),/id collision/,
   "a replay with altered void reason, actor or timestamp must not overwrite the accepted audit event");
 });
+
+
+test("rejects void audit timestamps earlier than the immutable record-entry time",()=>{
+ const original=normalizeObservationHistory([{
+  ...valid,id:"void-time-order",recordedAt:"2026-10-19T04:00:00Z"
+ }]);
+ assert.throws(()=>voidObservation(
+  original,"void-time-order","Invalid source record","reviewer-1","2026-10-19T03:59:59Z"
+ ),/void time cannot precede the observation record-entry time/);
+});
