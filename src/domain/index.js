@@ -243,6 +243,9 @@ export function amendObservation(history, targetId, replacement, amendmentReason
   const reason = requiredObservationAuditText(amendmentReason, "amendment reason", 1000);
   const actor = requiredObservationAuditText(amendedBy, "amendment actor", 120);
   const timestamp = parseObservedAt(amendedAt);
+  if (Date.parse(timestamp) < Date.parse(target.observedAt)) {
+    throw new RangeError("amendment time cannot precede the original observation time");
+  }
   const base = createObservation({
     ...replacement,
     recordedAt: replacement && replacement.recordedAt !== undefined ? replacement.recordedAt : timestamp
