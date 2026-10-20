@@ -118,6 +118,8 @@ function buildObservationEvent(row, index, allowLegacyId) {
   if (!row || typeof row !== "object" || Array.isArray(row)) {
     throw new TypeError("observation history entries must be objects");
   }
+  const allowedFields = new Set(["metric","value","unit","observedAt","recordedAt","source","quality","id","recordState","previousVersionId","amendmentReason","amendedBy","amendedAt","voidReason","voidedBy","voidedAt"]);
+  if (Object.keys(row).some(field => !allowedFields.has(field))) throw new TypeError("observation history entry contains unsupported fields");
   const base = createObservation(row);
   const id = row.id === undefined && allowLegacyId
     ? "legacy-observation-" + String(index + 1).padStart(6, "0")
@@ -151,6 +153,7 @@ function buildObservationEvent(row, index, allowLegacyId) {
 
 export function validateObservationHistory(history) {
   if (!Array.isArray(history)) throw new TypeError("observation history must be an array");
+  if (history.length > 50000) throw new RangeError("observation history exceeds the 50000-record validation limit");
   const rows = history.map((row, index) => buildObservationEvent(row, index, false));
   const byId = new Map();
   const children = new Map();
@@ -173,6 +176,9 @@ export function validateObservationHistory(history) {
     if (row.recordState === "voided") {
       if (!row.voidReason || !row.voidedBy || !row.voidedAt) {
         throw new TypeError("voided observations require reason, actor and void time");
+      }
+      if (row.recordedAt && Date.parse(row.voidedAt) < Date.parse(row.recordedAt)) {
+        throw new RangeError("void time cannot precede the observation record-entry time");
       }
     } else if (row.voidReason !== undefined || row.voidedBy !== undefined || row.voidedAt !== undefined) {
       throw new TypeError("void audit fields are only valid on voided observations");
@@ -211,15 +217,23 @@ export function validateObservationHistory(history) {
     }
   }
 
+  // Walk each version chain once. Reusing completed nodes keeps validation
+  // linear for long audit histories instead of revisiting every shared prefix.
+  const completed = new Set();
   for (const row of rows) {
-    const visited = new Set([row.id]);
+    if (completed.has(row.id)) continue;
+    const path = [];
+    const visiting = new Set();
     let cursor = row;
-    while (cursor.previousVersionId) {
-      if (visited.has(cursor.previousVersionId)) throw new RangeError("observation version history cannot contain cycles");
-      visited.add(cursor.previousVersionId);
-      cursor = byId.get(cursor.previousVersionId);
-      if (!cursor) break;
+    while (cursor && !completed.has(cursor.id)) {
+      if (visiting.has(cursor.id)) {
+        throw new RangeError("observation version history cannot contain cycles");
+      }
+      visiting.add(cursor.id);
+      path.push(cursor.id);
+      cursor = cursor.previousVersionId ? byId.get(cursor.previousVersionId) : null;
     }
+    for (const id of path) completed.add(id);
   }
   return Object.freeze(rows);
 }
@@ -240,6 +254,9 @@ export function amendObservation(history, targetId, replacement, amendmentReason
   const reason = requiredObservationAuditText(amendmentReason, "amendment reason", 1000);
   const actor = requiredObservationAuditText(amendedBy, "amendment actor", 120);
   const timestamp = parseObservedAt(amendedAt);
+  if (Date.parse(timestamp) < Date.parse(target.observedAt)) {
+    throw new RangeError("amendment time cannot precede the original observation time");
+  }
   const base = createObservation({
     ...replacement,
     recordedAt: replacement && replacement.recordedAt !== undefined ? replacement.recordedAt : timestamp
@@ -270,6 +287,9 @@ export function voidObservation(history, targetId, voidReason, voidedBy, voidedA
   const reason = requiredObservationAuditText(voidReason, "void reason", 1000);
   const actor = requiredObservationAuditText(voidedBy, "void actor", 120);
   const timestamp = parseObservedAt(voidedAt);
+  if (Date.parse(timestamp) < Date.parse(target.observedAt)) {
+    throw new RangeError("void time cannot precede the original observation time");
+  }
   const updated = current.map(row => row.id === target.id
     ? Object.freeze({ ...row, recordState: "voided", voidReason: reason, voidedBy: actor, voidedAt: timestamp })
     : row);

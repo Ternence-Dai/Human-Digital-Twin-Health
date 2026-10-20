@@ -269,3 +269,86 @@ test("merges imported amendment history without reverting superseded versions",(
  assert.equal(mergeObservationHistories(merged,original)[0].recordState,"superseded");
  assert.throws(()=>mergeObservationHistories(original,[{...original[0],value:999}]),/id collision/);
 });
+
+
+test("merging the same audited void snapshot repeatedly is idempotent",()=>{
+ const original=normalizeObservationHistory([{...amendmentBase,id:"void-idempotent-record"}]);
+ const voided=voidObservation(original,"void-idempotent-record",
+  "Duplicate source entry","reviewer-idempotent","2026-10-20T07:00:00Z");
+ const once=mergeObservationHistories(original,voided);
+ const twice=mergeObservationHistories(once,voided);
+ assert.deepEqual(twice,once,
+  "replaying an identical void event must not change the authoritative audit history");
+ assert.equal(mergeObservationHistories(twice,original)[0].recordState,"voided");
+});
+
+
+test("rejects conflicting void audit metadata for the same observation ID",()=>{
+ const original=normalizeObservationHistory([{...amendmentBase,id:"void-audit-conflict"}]);
+ const first=voidObservation(original,"void-audit-conflict","Invalid source","reviewer-a","2026-10-20T07:10:00Z");
+ const conflicting=voidObservation(original,"void-audit-conflict","Different reason","reviewer-b","2026-10-20T07:11:00Z");
+ const merged=mergeObservationHistories(original,first);
+ assert.throws(()=>mergeObservationHistories(merged,conflicting),/id collision/,
+  "a replay with altered void reason, actor or timestamp must not overwrite the accepted audit event");
+});
+
+
+test("rejects void audit timestamps earlier than the immutable record-entry time",()=>{
+ const original=normalizeObservationHistory([{
+  ...valid,id:"void-time-order",recordedAt:"2026-10-19T04:00:00Z"
+ }]);
+ assert.throws(()=>voidObservation(
+  original,"void-time-order","Invalid source record","reviewer-1","2026-10-19T03:59:59Z"
+ ),/void time cannot precede the observation record-entry time/);
+});
+
+
+test("rejects an amendment timestamp earlier than the original measurement",()=>{
+ const original=normalizeObservationHistory([{...valid,id:"amendment-before-measurement"}]);
+ assert.throws(()=>amendObservation(
+  original,"amendment-before-measurement",{...valid,value:63},
+  "Corrected source reading","reviewer-chronology","2025-12-31T23:59:59Z","amendment-early-001"
+ ),/amendment time cannot precede the original observation time/);
+});
+
+
+test("rejects void audit timestamps earlier than record entry",()=>{
+ const row=createObservation({...valid,recordedAt:"2026-01-02T00:00:00Z"});
+ assert.throws(()=>voidObservation([row],row.id,{reason:"duplicate",actor:"reviewer",voidedAt:"2026-01-01T00:00:00Z"}),RangeError);
+});
+
+test("validates long linear observation amendment chains without recursion",()=>{
+  const rows=[];
+  for(let index=0;index<1200;index++){
+    const id="obs-"+index;
+    rows.push({
+      ...valid,id,recordState:index===1199?"active":"superseded",
+      ...(index===0?{}:{
+        previousVersionId:"obs-"+(index-1),
+        amendmentReason:"correction",amendedBy:"reviewer",
+        amendedAt:new Date(Date.UTC(2026,0,1,0,0,index)).toISOString()
+      })
+    });
+  }
+  assert.equal(validateObservationHistory(rows).length,1200);
+});
+
+
+test("observation history rejects unsupported imported fields instead of silently discarding them",()=>{
+ const row={id:"OBS-STRICT-1",metric:"weight",value:70,unit:"kg",observedAt:"2026-10-20T09:00:00Z",source:"scale",quality:"measured",recordState:"active",clinicalOverride:true};
+ assert.throws(()=>normalizeObservationHistory([row]),/unsupported fields/);
+});
+
+
+test("observation history enforces a bounded import size before traversing version links",()=>{
+ const oversized=new Array(50001);
+ assert.throws(()=>validateObservationHistory(oversized),RangeError);
+});
+
+
+test("rejects void audit timestamps earlier than the original measurement",()=>{
+ const original=normalizeObservationHistory([{...valid,id:"void-before-observation",observedAt:"2026-10-20T08:00:00Z",recordedAt:"2026-10-20T07:00:00Z"}]);
+ assert.throws(()=>voidObservation(
+  original,"void-before-observation","Invalid chronology","reviewer-2","2026-10-20T07:30:00Z"
+ ),/void time cannot precede the original observation time/);
+});
