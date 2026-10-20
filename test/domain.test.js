@@ -364,3 +364,22 @@ test("merged observation histories enforce the combined record cap before normal
  assert.throws(()=>mergeObservationHistories(new Array(25001),new Array(25000)),RangeError);
  assert.throws(()=>mergeObservationHistories([],null),TypeError);
 });
+
+test("large observation merges use indexed active-measurement duplicate detection",()=>{
+ const imported=Array.from({length:5000},(_,index)=>({
+  ...valid,id:"bulk-observation-"+index,metric:"bulk-metric-"+index
+ }));
+ const merged=mergeObservationHistories([],imported);
+ assert.equal(merged.length,5000);
+ assert.equal(merged[4999].id,"bulk-observation-4999");
+});
+
+test("a void transition releases its measurement identity for a verified re-entry in the same merge",()=>{
+ const original=normalizeObservationHistory([{...amendmentBase,id:"void-and-reenter"}]);
+ const voided=voidObservation(original,"void-and-reenter",
+  "Source record was invalidated","reviewer-reentry","2026-10-20T08:00:00Z");
+ const reentered={...amendmentBase,id:"verified-reentry"};
+ const merged=mergeObservationHistories(original,[...voided,reentered]);
+ assert.equal(merged[0].recordState,"voided");
+ assert.equal(merged[1].recordState,"active");
+});
