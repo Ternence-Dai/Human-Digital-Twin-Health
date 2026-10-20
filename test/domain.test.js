@@ -344,3 +344,11 @@ test("observation history enforces a bounded import size before traversing versi
  const oversized=new Array(50001);
  assert.throws(()=>validateObservationHistory(oversized),RangeError);
 });
+
+
+test("rejects void audit timestamps earlier than the original measurement",()=>{
+ const original=normalizeObservationHistory([{...valid,id:"void-before-observation",observedAt:"2026-10-20T08:00:00Z",recordedAt:"2026-10-20T07:00:00Z"}]);
+ assert.throws(()=>voidObservation(
+  original,"void-before-observation","Invalid chronology","reviewer-2","2026-10-20T07:30:00Z"
+ ),/void time cannot precede the original observation time/);
+});
