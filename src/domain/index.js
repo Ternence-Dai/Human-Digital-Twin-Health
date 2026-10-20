@@ -240,6 +240,7 @@ export function validateObservationHistory(history) {
 
 export function normalizeObservationHistory(history) {
   if (!Array.isArray(history)) throw new TypeError("observation history must be an array");
+  if (history.length > 50000) throw new RangeError("observation history exceeds the 50000-record validation limit");
   const events = history.map((row, index) => buildObservationEvent(row, index, true));
   return validateObservationHistory(events);
 }
