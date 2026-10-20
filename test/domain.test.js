@@ -207,6 +207,20 @@ test("voids an active observation with a reason while retaining its full measure
  assert.throws(()=>voidObservation(result,result[0].id,"again","reviewer-2","2026-10-19T04:00:00Z"),/only an active observation/);
  assert.throws(()=>amendObservation(result,result[0].id,{...amendmentBase,value:63},"reason","reviewer-2","2026-10-19T04:00:00Z","after-void"),/only an active observation/);
 });
+test("rejects amendment histories where the replacement was recorded after its amendment",()=>{
+ const original=normalizeObservationHistory([amendmentBase]);
+ assert.throws(()=>amendObservation(original,original[0].id,{
+  ...amendmentBase,value:63,recordedAt:"2026-10-19T03:00:00Z"
+ },"Verified correction","reviewer-5","2026-10-19T02:00:00Z","obs-time-order-001"),
+ /replacement record-entry time cannot follow its amendment time/);
+ const valid=amendObservation(original,original[0].id,{...amendmentBase,value:64},
+  "Verified correction","reviewer-5","2026-10-19T02:00:00Z","obs-time-order-002");
+ const tampered=valid.map(row=>({...row}));
+ tampered[1]={...tampered[1],recordedAt:"2026-10-19T03:00:00.000Z"};
+ assert.throws(()=>validateObservationHistory(tampered),
+  /replacement record-entry time cannot follow its amendment time/);
+});
+
 test("rejects same-ID imports that alter record-entry time or amendment audit",()=>{
  const original=normalizeObservationHistory([amendmentBase]);
  const changedRecordTime=[{...original[0],recordedAt:"2026-10-18T02:00:00Z"}];
