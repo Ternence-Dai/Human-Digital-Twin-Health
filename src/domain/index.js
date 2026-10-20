@@ -97,6 +97,13 @@ function observationSnapshotIdentity(observation) {
   return JSON.stringify(snapshot);
 }
 
+function observationMeasurementSnapshotIdentity(observation) {
+  const {
+    recordState, voidReason, voidedBy, voidedAt, ...snapshot
+  } = observation;
+  return JSON.stringify(snapshot);
+}
+
 
 const observationVersionStates = new Set(["active", "superseded", "voided"]);
 function requiredObservationAuditText(value, field, maxLength = 240) {
@@ -292,7 +299,12 @@ export function mergeObservationHistories(existingHistory, importedHistory) {
     // though an imported version may legitimately advance recordState from
     // active to superseded. This catches changed recordedAt and amendment data.
     if (observationSnapshotIdentity(current) !== observationSnapshotIdentity(incoming)) {
-      throw new RangeError("observation id collision: imported record content does not match the existing version");
+      const isAuditedVoidTransition = current.recordState === "active" &&
+        incoming.recordState === "voided" &&
+        observationMeasurementSnapshotIdentity(current) === observationMeasurementSnapshotIdentity(incoming);
+      if (!isAuditedVoidTransition) {
+        throw new RangeError("observation id collision: imported record content does not match the existing version");
+      }
     }
     if (current.recordState !== incoming.recordState) {
       if (current.recordState === "active" && incoming.recordState !== "active") {
