@@ -118,6 +118,8 @@ function buildObservationEvent(row, index, allowLegacyId) {
   if (!row || typeof row !== "object" || Array.isArray(row)) {
     throw new TypeError("observation history entries must be objects");
   }
+  const allowedFields = new Set(["metric","value","unit","observedAt","recordedAt","source","quality","id","recordState","previousVersionId","amendmentReason","amendedBy","amendedAt","voidReason","voidedBy","voidedAt"]);
+  if (Object.keys(row).some(field => !allowedFields.has(field))) throw new TypeError("observation history entry contains unsupported fields");
   const base = createObservation(row);
   const id = row.id === undefined && allowLegacyId
     ? "legacy-observation-" + String(index + 1).padStart(6, "0")
