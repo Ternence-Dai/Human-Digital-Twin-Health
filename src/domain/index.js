@@ -174,6 +174,9 @@ export function validateObservationHistory(history) {
       if (!row.voidReason || !row.voidedBy || !row.voidedAt) {
         throw new TypeError("voided observations require reason, actor and void time");
       }
+      if (row.recordedAt && Date.parse(row.voidedAt) < Date.parse(row.recordedAt)) {
+        throw new RangeError("void time cannot precede the observation record-entry time");
+      }
     } else if (row.voidReason !== undefined || row.voidedBy !== undefined || row.voidedAt !== undefined) {
       throw new TypeError("void audit fields are only valid on voided observations");
     }
