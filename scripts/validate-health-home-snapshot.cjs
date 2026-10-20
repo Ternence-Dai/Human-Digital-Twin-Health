@@ -11,7 +11,7 @@ assert.ok(html.includes('id="personalRecordSnapshot"') &&
           html.includes('本机个人记录') &&
           html.includes('独立于上方示例体征'),
   'home must expose a separate local-observation area, not merge personal measurements into demo vitals');
-assert.ok(html.includes('legacy-app.js?v=20261020-health-home-snapshot-v1') &&
+assert.ok(html.includes('legacy-app.js?v=20261020-health-real-trend-v2') &&
           html.includes('health-data-workspace.css?v=20261020-v3'),
   'home snapshot must load the cache-busted runtime and stylesheet');
 for (const selector of [
