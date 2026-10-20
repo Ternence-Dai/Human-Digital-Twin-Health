@@ -308,13 +308,29 @@ export function mergeObservationHistories(existingHistory, importedHistory) {
   const imported = normalizeObservationHistory(importedHistory);
   const merged = [...existing];
   const indexes = new Map(merged.map((row, index) => [row.id, index]));
+  // Build the active-measurement index once. Re-scanning and re-validating the
+  // growing history for every imported row made large merges quadratic.
+  const activeIdentityCounts = new Map();
+  for (const row of merged) {
+    if (row.recordState !== "active") continue;
+    const identity = observationIdentity(row);
+    activeIdentityCounts.set(identity, (activeIdentityCounts.get(identity) || 0) + 1);
+  }
+  const removeActiveIdentity = row => {
+    if (row.recordState !== "active") return;
+    const identity = observationIdentity(row);
+    const count = activeIdentityCounts.get(identity) || 0;
+    if (count <= 1) activeIdentityCounts.delete(identity);
+    else activeIdentityCounts.set(identity, count - 1);
+  };
   for (const incoming of imported) {
     if (!indexes.has(incoming.id)) {
-      if (incoming.recordState === "active" && merged.some(row =>
-        row.recordState === "active" &&
-        observationIdentity(row) === observationIdentity(incoming)
-      )) {
-        throw new RangeError("imported active observation duplicates an existing measurement under a different record id");
+      if (incoming.recordState === "active") {
+        const identity = observationIdentity(incoming);
+        if (activeIdentityCounts.has(identity)) {
+          throw new RangeError("imported active observation duplicates an existing measurement under a different record id");
+        }
+        activeIdentityCounts.set(identity, 1);
       }
       indexes.set(incoming.id, merged.length);
       merged.push(incoming);
@@ -338,6 +354,7 @@ export function mergeObservationHistories(existingHistory, importedHistory) {
     }
     if (current.recordState !== incoming.recordState) {
       if (current.recordState === "active" && incoming.recordState !== "active") {
+        removeActiveIdentity(current);
         merged[index] = incoming;
       } else if (incoming.recordState !== "active") {
         throw new RangeError("conflicting non-active observation version states in imported history");
