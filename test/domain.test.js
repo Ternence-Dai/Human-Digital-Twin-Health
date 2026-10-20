@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createObservation, chronologicalObservations, normalizeObservationHistory, validateObservationHistory, amendObservation, voidObservation, mergeObservationHistories } from "../src/domain/index.js";
+import { createObservation, chronologicalObservations, normalizeObservationHistory, validateObservationHistory, amendObservation, voidObservation, mergeObservationHistories, hasActiveObservationDuplicate } from "../src/domain/index.js";
 const valid = {metric:"resting-heart-rate",value:62,unit:"bpm",observedAt:"2026-01-01T00:00:00Z",source:"wearable",quality:"measured"};
 
 test("stores explicit provenance and canonical timestamp", () => assert.equal(createObservation(valid).quality,"measured"));
@@ -70,6 +70,33 @@ test("rejects malformed rows rather than silently retaining unstable order", () 
   assert.throws(() => chronologicalObservations([null]), TypeError);
 });
 
+
+test("duplicate detection only considers current active observation versions",()=>{
+ const active=normalizeObservationHistory([{...amendmentBase,id:"active-current"}]);
+ const sameMeasurement={...amendmentBase,recordedAt:"2026-10-20T04:00:00Z"};
+ assert.equal(hasActiveObservationDuplicate(active,sameMeasurement),true,
+  "an identical measurement already marked active must be blocked");
+
+ const voided=voidObservation(active,"active-current","Source record was invalidated","reviewer","2026-10-20T05:00:00Z");
+ assert.equal(hasActiveObservationDuplicate(voided,sameMeasurement),false,
+  "a voided historical observation must not block a newly verified re-entry");
+
+ const amended=amendObservation(active,"active-current",{...amendmentBase,value:64},
+  "Corrected transcription","reviewer","2026-10-20T05:00:00Z","active-replacement");
+ assert.equal(hasActiveObservationDuplicate(amended,amendmentBase),false,
+  "a superseded historical value must not block a new current observation");
+ assert.equal(hasActiveObservationDuplicate(amended,{...amendmentBase,value:64}),true,
+  "the current replacement must still block an exact duplicate");
+});
+
+test("merging refuses active duplicate measurements that have different record IDs",()=>{
+ const existing=normalizeObservationHistory([{...amendmentBase,id:"existing-device-record"}]);
+ const imported=normalizeObservationHistory([{...amendmentBase,id:"imported-device-record"}]);
+ assert.throws(()=>mergeObservationHistories(existing,imported),/duplicates an existing measurement/,
+  "cross-device IDs must not create two simultaneously active copies of the same measurement");
+ const sameId=mergeObservationHistories(existing,normalizeObservationHistory([{...amendmentBase,id:"existing-device-record"}]));
+ assert.equal(sameId.length,1,"the same record ID must remain an idempotent merge");
+});
 
 test("observation identity includes measurement value and provenance", async () => {
   const { observationIdentity } = await import("../src/domain/index.js");

@@ -35,7 +35,7 @@ const TABBAR = ['home','body','ai','report','me'];
 
 /* ---------------- 初始化 ---------------- */
 window.addEventListener('load', async () => {
-  try { window.HealthDomain = await import('../../src/domain/index.js?v=20261019-health-record-v2'); }
+  try { window.HealthDomain = await import('../../src/domain/index.js?v=20261020-health-active-duplicate-v3'); }
   catch (error) {
     observationDomainUnavailable = true;
     console.error('Health domain core unavailable', error);
@@ -516,8 +516,7 @@ function saveObservation(event){
       id:createObservationRecordId(),
       recordState:'active'
     });
-    const identity = window.HealthDomain.observationIdentity;
-    if(existing.some(row => identity(row) === identity(observation))){
+    if(window.HealthDomain.hasActiveObservationDuplicate(existing,observation)){
       alert('这条测量记录与已有记录重复（指标、数值、单位、测量时间、来源和质量标记一致），未重复保存。');
       return false;
     }

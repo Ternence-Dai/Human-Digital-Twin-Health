@@ -11,7 +11,7 @@ const end = app.indexOf('function parseLocalObservationDateTime',start);
 if(start<0 || end<=start) throw new Error('Health observation import handler not found');
 const importSource = app.slice(start,end);
 const domainContext = vm.createContext({});
-vm.runInContext(domainSource + '\nthis.HealthDomain={createObservation,chronologicalObservations,observationIdentity,normalizeObservationHistory,mergeObservationHistories};',domainContext);
+vm.runInContext(domainSource + '\nthis.HealthDomain={createObservation,chronologicalObservations,observationIdentity,normalizeObservationHistory,mergeObservationHistories,hasActiveObservationDuplicate};',domainContext);
 const HealthDomain = domainContext.HealthDomain;
 
 function observation(metric, value, date='2026-10-18T08:30:00Z') {
@@ -54,6 +54,8 @@ async function importPayload(state,payload) {
     'a visible import control must remain available in the records page');
   assert.ok(app.includes('onclick="importObservations()"'),
     'the recovery panel must expose the import/restore action');
+  assert.ok(app.includes('window.HealthDomain.hasActiveObservationDuplicate(existing,observation)'),
+    'new readings must deduplicate against active versions only, not voided or superseded audit history');
   assert.ok(importSource.includes('if(recovering && !confirm('),
     'recovery import must require explicit confirmation before replacing corrupt cache');
   assert.ok(importSource.includes('observationStorageRecoveryRequired = false;'),
@@ -115,6 +117,18 @@ async function importPayload(state,payload) {
   assert.equal(state.context.window.healthObservations.length,2,
     'normal import must merge records and skip exact duplicates');
   assert.equal(state.context.observationStorageRecoveryRequired,false);
+
+  state=harness({locked:false,existing:[{
+    ...observation('heart-rate',72),id:'existing-device-record',recordState:'active'
+  }]});
+  const duplicateFromAnotherDevice={schemaVersion:1,observations:[{
+    ...observation('heart-rate',72),id:'imported-device-record',recordState:'active'
+  }]};
+  await importPayload(state,duplicateFromAnotherDevice);
+  assert.equal(state.writes,0,
+    'a duplicate active measurement with a different device-generated ID must not be imported alongside the existing reading');
+  assert.ok(state.alerts.some(message=>message.includes('duplicates an existing measurement')),
+    'cross-device duplicate import must explain the conflict');
 
   console.log('Health observation recovery regression checks passed (restore, cancel, invalid backup, quota failure, raw recovery envelope, merge/deduplication).');
 })().catch(error=>{console.error(error);process.exitCode=1;});

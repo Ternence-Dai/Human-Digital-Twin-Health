@@ -79,6 +79,19 @@ export function observationIdentity(observation) {
     validated.observedAt, validated.source, validated.quality
   ]);
 }
+
+// Duplicate detection is scoped to the current authoritative versions. A
+// superseded or voided event remains in the audit trail, but must not prevent
+// a user from entering a newly verified measurement with the same content.
+export function hasActiveObservationDuplicate(history, candidate) {
+  const rows = normalizeObservationHistory(history);
+  const candidateIdentity = observationIdentity(candidate);
+  return rows.some(row =>
+    row.recordState === "active" &&
+    observationIdentity(row) === candidateIdentity
+  );
+}
+
 function observationSnapshotIdentity(observation) {
   const { recordState, ...snapshot } = observation;
   return JSON.stringify(snapshot);
@@ -257,6 +270,12 @@ export function mergeObservationHistories(existingHistory, importedHistory) {
   const indexes = new Map(merged.map((row, index) => [row.id, index]));
   for (const incoming of imported) {
     if (!indexes.has(incoming.id)) {
+      if (incoming.recordState === "active" && merged.some(row =>
+        row.recordState === "active" &&
+        observationIdentity(row) === observationIdentity(incoming)
+      )) {
+        throw new RangeError("imported active observation duplicates an existing measurement under a different record id");
+      }
       indexes.set(incoming.id, merged.length);
       merged.push(incoming);
       continue;
