@@ -301,3 +301,12 @@ test("rejects void audit timestamps earlier than the immutable record-entry time
   original,"void-time-order","Invalid source record","reviewer-1","2026-10-19T03:59:59Z"
  ),/void time cannot precede the observation record-entry time/);
 });
+
+
+test("rejects an amendment timestamp earlier than the original measurement",()=>{
+ const original=normalizeObservationHistory([{...valid,id:"amendment-before-measurement"}]);
+ assert.throws(()=>amendObservation(
+  original,"amendment-before-measurement",{...valid,value:63},
+  "Corrected source reading","reviewer-chronology","2025-12-31T23:59:59Z","amendment-early-001"
+ ),/amendment time cannot precede the original observation time/);
+});
