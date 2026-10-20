@@ -162,6 +162,7 @@ async function importPayload(state,payload) {
       }[id]||null)},
       window:{healthObservations:sample,HealthDomain:{normalizeObservationHistory:rows=>rows}},
       observationDomainUnavailable:false,observationStorageRecoveryRequired:false,
+      renderPersonalRecordSnapshot:()=>{},
       escHTML:value=>String(value??'').replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch])),
       Date,Array,localStorage:{getItem:()=>null},OBSERVATION_STORAGE_KEY:'health-observations',
       preserveInvalidObservationStorage:()=>{},console
