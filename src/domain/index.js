@@ -153,6 +153,7 @@ function buildObservationEvent(row, index, allowLegacyId) {
 
 export function validateObservationHistory(history) {
   if (!Array.isArray(history)) throw new TypeError("observation history must be an array");
+  if (history.length > 50000) throw new RangeError("observation history exceeds the 50000-record validation limit");
   const rows = history.map((row, index) => buildObservationEvent(row, index, false));
   const byId = new Map();
   const children = new Map();
