@@ -298,6 +298,12 @@ export function voidObservation(history, targetId, voidReason, voidedBy, voidedA
 }
 
 export function mergeObservationHistories(existingHistory, importedHistory) {
+  if (!Array.isArray(existingHistory) || !Array.isArray(importedHistory)) {
+    throw new TypeError("observation histories must be arrays");
+  }
+  if (existingHistory.length + importedHistory.length > 50000) {
+    throw new RangeError("merged observation history exceeds the 50000-record validation limit");
+  }
   const existing = normalizeObservationHistory(existingHistory);
   const imported = normalizeObservationHistory(importedHistory);
   const merged = [...existing];
