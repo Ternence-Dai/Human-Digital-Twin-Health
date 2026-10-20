@@ -316,3 +316,19 @@ test("rejects void audit timestamps earlier than record entry",()=>{
  const row=createObservation({...valid,recordedAt:"2026-01-02T00:00:00Z"});
  assert.throws(()=>voidObservation([row],row.id,{reason:"duplicate",actor:"reviewer",voidedAt:"2026-01-01T00:00:00Z"}),RangeError);
 });
+
+test("validates long linear observation amendment chains without recursion",()=>{
+  const rows=[];
+  for(let index=0;index<1200;index++){
+    const id="obs-"+index;
+    rows.push({
+      ...valid,id,recordState:index===1199?"active":"superseded",
+      ...(index===0?{}:{
+        previousVersionId:"obs-"+(index-1),
+        amendmentReason:"correction",amendedBy:"reviewer",
+        amendedAt:new Date(Date.UTC(2026,0,1,0,0,index)).toISOString()
+      })
+    });
+  }
+  assert.equal(validateObservationHistory(rows).length,1200);
+});
