@@ -221,6 +221,17 @@ test("rejects amendment histories where the replacement was recorded after its a
   /replacement record-entry time cannot follow its amendment time/);
 });
 
+test("rejects amendment chains whose timestamps move backwards",()=>{
+ const original=normalizeObservationHistory([amendmentBase]);
+ const first=amendObservation(original,original[0].id,{
+  ...amendmentBase,value:63,recordedAt:"2026-10-18T01:30:00Z"
+ },"Verified correction","reviewer-6","2026-10-19T02:00:00Z","obs-time-chain-001");
+ assert.throws(()=>amendObservation(first,"obs-time-chain-001",{
+  ...amendmentBase,value:64,recordedAt:"2026-10-18T01:45:00Z"
+ },"Second correction","reviewer-7","2026-10-18T02:00:00Z","obs-time-chain-002"),
+ /amendment time cannot precede the previous version's amendment time/);
+});
+
 test("rejects same-ID imports that alter record-entry time or amendment audit",()=>{
  const original=normalizeObservationHistory([amendmentBase]);
  const changedRecordTime=[{...original[0],recordedAt:"2026-10-18T02:00:00Z"}];
