@@ -338,3 +338,9 @@ test("observation history rejects unsupported imported fields instead of silentl
  const row={id:"OBS-STRICT-1",metric:"weight",value:70,unit:"kg",observedAt:"2026-10-20T09:00:00Z",source:"scale",quality:"measured",recordState:"active",clinicalOverride:true};
  assert.throws(()=>normalizeObservationHistory([row]),/unsupported fields/);
 });
+
+
+test("observation history enforces a bounded import size before traversing version links",()=>{
+ const oversized=new Array(50001);
+ assert.throws(()=>validateObservationHistory(oversized),RangeError);
+});
