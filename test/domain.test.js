@@ -358,3 +358,9 @@ test("rejects void audit timestamps earlier than the original measurement",()=>{
   original,"void-before-observation","Invalid chronology","reviewer-2","2026-10-20T07:30:00Z"
  ),/void time cannot precede the original observation time/);
 });
+
+
+test("merged observation histories enforce the combined record cap before normalization",()=>{
+ assert.throws(()=>mergeObservationHistories(new Array(25001),new Array(25000)),RangeError);
+ assert.throws(()=>mergeObservationHistories([],null),TypeError);
+});
