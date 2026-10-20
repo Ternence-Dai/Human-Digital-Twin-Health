@@ -48,8 +48,10 @@ assert.match(html, /综合健康总分（演示）/,
   'the hard-coded total score must be labeled as demo data');
 assert.match(html, /六维能力雷达（演示）/,
   'static radar metrics must be labeled as demo data');
-assert.match(html, /近 3 次检测趋势（演示）/,
-  'static trend data must be labeled as demo data');
+assert.match(html, /近期真实记录趋势/,
+  'the dashboard trend must be identified as user-record-derived, not a static demo');
+assert.doesNotMatch(html, /近 3 次检测趋势（演示）/,
+  'the record-driven trend must not keep the old static-demo heading');
 assert.match(html, /图谱演示说明/,
   'digital human organ positions and state labels must be labeled as a visual demo');
 assert.match(html, /未连接真实设备/,
