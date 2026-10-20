@@ -269,3 +269,15 @@ test("merges imported amendment history without reverting superseded versions",(
  assert.equal(mergeObservationHistories(merged,original)[0].recordState,"superseded");
  assert.throws(()=>mergeObservationHistories(original,[{...original[0],value:999}]),/id collision/);
 });
+
+
+test("merging the same audited void snapshot repeatedly is idempotent",()=>{
+ const original=normalizeObservationHistory([{...amendmentBase,id:"void-idempotent-record"}]);
+ const voided=voidObservation(original,"void-idempotent-record",
+  "Duplicate source entry","reviewer-idempotent","2026-10-20T07:00:00Z");
+ const once=mergeObservationHistories(original,voided);
+ const twice=mergeObservationHistories(once,voided);
+ assert.deepEqual(twice,once,
+  "replaying an identical void event must not change the authoritative audit history");
+ assert.equal(mergeObservationHistories(twice,original)[0].recordState,"voided");
+});
