@@ -299,10 +299,13 @@ export function mergeObservationHistories(existingHistory, importedHistory) {
     // though an imported version may legitimately advance recordState from
     // active to superseded. This catches changed recordedAt and amendment data.
     if (observationSnapshotIdentity(current) !== observationSnapshotIdentity(incoming)) {
-      const isAuditedVoidTransition = current.recordState === "active" &&
-        incoming.recordState === "voided" &&
+      const sameMeasurementSnapshot =
         observationMeasurementSnapshotIdentity(current) === observationMeasurementSnapshotIdentity(incoming);
-      if (!isAuditedVoidTransition) {
+      const isAuditedVoidTransition = current.recordState === "active" &&
+        incoming.recordState === "voided" && sameMeasurementSnapshot;
+      const isStaleActiveCopy = current.recordState === "voided" &&
+        incoming.recordState === "active" && sameMeasurementSnapshot;
+      if (!isAuditedVoidTransition && !isStaleActiveCopy) {
         throw new RangeError("observation id collision: imported record content does not match the existing version");
       }
     }
