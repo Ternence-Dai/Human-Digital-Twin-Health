@@ -214,15 +214,23 @@ export function validateObservationHistory(history) {
     }
   }
 
+  // Walk each version chain once. Reusing completed nodes keeps validation
+  // linear for long audit histories instead of revisiting every shared prefix.
+  const completed = new Set();
   for (const row of rows) {
-    const visited = new Set([row.id]);
+    if (completed.has(row.id)) continue;
+    const path = [];
+    const visiting = new Set();
     let cursor = row;
-    while (cursor.previousVersionId) {
-      if (visited.has(cursor.previousVersionId)) throw new RangeError("observation version history cannot contain cycles");
-      visited.add(cursor.previousVersionId);
-      cursor = byId.get(cursor.previousVersionId);
-      if (!cursor) break;
+    while (cursor && !completed.has(cursor.id)) {
+      if (visiting.has(cursor.id)) {
+        throw new RangeError("observation version history cannot contain cycles");
+      }
+      visiting.add(cursor.id);
+      path.push(cursor.id);
+      cursor = cursor.previousVersionId ? byId.get(cursor.previousVersionId) : null;
     }
+    for (const id of path) completed.add(id);
   }
   return Object.freeze(rows);
 }
