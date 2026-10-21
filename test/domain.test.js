@@ -219,7 +219,7 @@ test("validates amendment audit time against legacy measurement time when record
  const legacy=normalizeObservationHistory([{...amendmentBase,recordedAt:undefined,id:"legacy-amend-time"}]);
  const tampered=[
   {...legacy[0],recordState:"superseded"},
-  {...amendmentBase,recordedAt:undefined,id:"legacy-amend-replacement",previousVersionId:"legacy-amend-time",
+  {...amendmentBase,recordedAt:undefined,id:"legacy-amend-replacement",recordState:"active",previousVersionId:"legacy-amend-time",
    amendmentReason:"Verified correction",amendedBy:"reviewer",
    amendedAt:"2026-10-17T23:59:59Z"}
  ];
