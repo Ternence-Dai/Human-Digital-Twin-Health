@@ -389,7 +389,7 @@ function requiredFhirText(value, field, maxLength = 500) {
 
 function requiredFhirUri(value, field) {
   const uri = requiredFhirText(value, field, 2048);
-  if (!/^(?:https?:\\/\\/|urn:)[^\\s]+$/i.test(uri)) {
+  if (!/^(?:https?:\/\/|urn:)[^\s]+$/i.test(uri)) {
     throw new TypeError(field + " must be an absolute HTTP(S) or URN URI");
   }
   return uri;
@@ -448,7 +448,7 @@ export function toFhirObservation(observation, mapping) {
   }
 
   const subjectReference = requiredFhirText(mapping.subjectReference, "FHIR subject reference", 2048);
-  if (!/^(?:[A-Z][A-Za-z]+\\/[A-Za-z0-9.-]{1,64}|https:\\/\\/[^\\s]+|urn:uuid:[0-9a-f-]{36}|#[A-Za-z0-9.-]+)$/i.test(subjectReference)) {
+  if (!/^(?:[A-Z][A-Za-z]+\/[A-Za-z0-9.-]{1,64}|https:\/\/[^\s]+|urn:uuid:[0-9a-f-]{36}|#[A-Za-z0-9.-]+)$/i.test(subjectReference)) {
     throw new TypeError("FHIR subject reference must be a valid relative, absolute or contained reference");
   }
 
