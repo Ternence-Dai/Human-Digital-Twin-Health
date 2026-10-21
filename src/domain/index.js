@@ -177,6 +177,9 @@ export function validateObservationHistory(history) {
       if (!row.voidReason || !row.voidedBy || !row.voidedAt) {
         throw new TypeError("voided observations require reason, actor and void time");
       }
+      if (Date.parse(row.voidedAt) < Date.parse(row.observedAt)) {
+        throw new RangeError("void time cannot precede the observation time");
+      }
       if (row.recordedAt && Date.parse(row.voidedAt) < Date.parse(row.recordedAt)) {
         throw new RangeError("void time cannot precede the observation record-entry time");
       }
@@ -204,6 +207,9 @@ export function validateObservationHistory(history) {
       }
       if (previous.metric !== row.metric) {
         throw new RangeError("an amendment must retain the original observation metric");
+      }
+      if (Date.parse(row.amendedAt) < Date.parse(previous.observedAt)) {
+        throw new RangeError("amendment time cannot precede the previous observation time");
       }
       if (previous.recordedAt && Date.parse(row.amendedAt) < Date.parse(previous.recordedAt)) {
         throw new RangeError("amendment time cannot precede the previous record-entry time");

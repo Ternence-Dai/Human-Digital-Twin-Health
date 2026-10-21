@@ -207,6 +207,26 @@ test("voids an active observation with a reason while retaining its full measure
  assert.throws(()=>voidObservation(result,result[0].id,"again","reviewer-2","2026-10-19T04:00:00Z"),/only an active observation/);
  assert.throws(()=>amendObservation(result,result[0].id,{...amendmentBase,value:63},"reason","reviewer-2","2026-10-19T04:00:00Z","after-void"),/only an active observation/);
 });
+test("validates void audit time against legacy measurement time when recordedAt is absent",()=>{
+ const legacy=normalizeObservationHistory([{...amendmentBase,recordedAt:undefined,id:"legacy-void-time"}]);
+ const tampered=[{...legacy[0],recordState:"voided",voidReason:"Invalid source",
+  voidedBy:"reviewer",voidedAt:"2026-10-17T23:59:59Z"}];
+ assert.throws(()=>validateObservationHistory(tampered),
+  /void time cannot precede the observation time/);
+});
+
+test("validates amendment audit time against legacy measurement time when recordedAt is absent",()=>{
+ const legacy=normalizeObservationHistory([{...amendmentBase,recordedAt:undefined,id:"legacy-amend-time"}]);
+ const tampered=[
+  {...legacy[0],recordState:"superseded"},
+  {...amendmentBase,recordedAt:undefined,id:"legacy-amend-replacement",recordState:"active",previousVersionId:"legacy-amend-time",
+   amendmentReason:"Verified correction",amendedBy:"reviewer",
+   amendedAt:"2026-10-17T23:59:59Z"}
+ ];
+ assert.throws(()=>validateObservationHistory(tampered),
+  /amendment time cannot precede the previous observation time/);
+});
+
 test("rejects amendment histories where the replacement was recorded after its amendment",()=>{
  const original=normalizeObservationHistory([amendmentBase]);
  assert.throws(()=>amendObservation(original,original[0].id,{
