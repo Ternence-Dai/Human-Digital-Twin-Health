@@ -16,7 +16,7 @@ const { chromium } = require('playwright');
     if (!(await page.locator('#login').innerText()).includes('没有接入真实账号')) {
       throw new Error('Health demo login must disclose that real identity verification is not connected');
     }
-    await page.locator('#login-actions button').click();
+    await page.locator('.login-actions button').click();
     await page.waitForFunction(() => document.querySelector('#shell')?.classList.contains('show'));
 
     await page.locator('#navList .nav-item[data-nav="records"]').click();
