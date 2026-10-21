@@ -457,5 +457,9 @@ test("FHIR export refuses guessed terminology, identity, status and extension na
   assert.throws(() => toFhirObservation(observation, { ...mapping, status: "measured" }), RangeError);
   assert.throws(() => toFhirObservation(observation, { ...mapping, qualityExtensionUrl: mapping.sourceExtensionUrl }), RangeError);
   assert.throws(() => toFhirObservation({ ...observation, recordState: "voided" }, mapping), RangeError);
-  assert.throws(() => toFhirObservation({ ...observation, recordState: "voided" }, { ...mapping, status: "entered-in-error" }), undefined);
+  assert.equal(
+    toFhirObservation({ ...observation, recordState: "voided" }, { ...mapping, status: "entered-in-error" }).status,
+    "entered-in-error"
+  );
+  assert.throws(() => toFhirObservation({ ...observation, recordState: "unknown" }, mapping), RangeError);
 });
