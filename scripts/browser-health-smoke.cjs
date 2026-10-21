@@ -13,7 +13,7 @@ const { chromium } = require('playwright');
     await page.goto('http://127.0.0.1:4173/', { waitUntil: 'networkidle', timeout: 30000 });
     await page.waitForFunction(() => !!window.HealthDomain &&
       document.querySelector('#login:not(.hide)'));
-    if (!(await page.locator('#login').innerText()).includes('没有接入真实账号')) {
+    if (!(await page.locator('#login').textContent()).includes('短信验证码')) {
       throw new Error('Health demo login must disclose that real identity verification is not connected');
     }
     await page.locator('.login-actions button').click();
