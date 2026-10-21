@@ -48,3 +48,16 @@ Observation metadata is bounded at the domain boundary: metric labels are limite
 - [HAPI FHIR](https://github.com/hapifhir/hapi-fhir) and [OpenMRS](https://github.com/openmrs/openmrs-core) are reference points for interoperable health-resource structures, identifiers, provenance, and explicit clinical-data boundaries. This browser-local project is not yet a FHIR server and must not imply clinical-system interoperability until adapters and conformance tests exist.
 - [SMART Health IT](https://github.com/smart-on-fhir) provides a useful reference for consent-aware authorization and scoped health-data access. It informs future access-control design; no OAuth/SMART workflow is claimed as implemented.
 - The current observation contract deliberately keeps measured, reported, estimated, imported, and demo records distinct. Reference implementations inform future resource mapping, not clinical interpretation or default normal ranges.
+
+
+## FHIR R4 export boundary
+
+`toFhirObservation(observation, mapping)` converts one validated numeric observation to a FHIR R4 `Observation` resource. It preserves the measurement time as `effectiveDateTime`, the entry time (when present) as `issued`, the numeric value as `valueQuantity`, and the local source/quality provenance in caller-configured extensions.
+
+The adapter deliberately requires the caller to supply:
+- A FHIR Observation status and subject reference.
+- A terminology coding for the observation (for example, a reviewed LOINC mapping).
+- A unit coding (for example, a reviewed UCUM code).
+- Two distinct canonical extension URLs for source and quality.
+
+It never guesses a patient/device identity, LOINC code, UCUM code, clinical status, or canonical extension namespace. Implementers must publish and govern the extension definitions and terminology mappings before exchanging resources with another organization. A local JSON export is not evidence of a connected FHIR server, patient consent, authorization, or production interoperability. Voided records require `entered-in-error`; superseded versions require an explicit `amended` or `corrected` status.
