@@ -381,7 +381,7 @@ function requiredFhirText(value, field, maxLength = 500) {
     throw new TypeError(field + " is required");
   }
   const normalized = value.trim();
-  if (normalized.length > maxLength || /[\\x00-\\x1F\\x7F]/.test(normalized)) {
+  if (normalized.length > maxLength || /[\x00-\x1F\x7F]/.test(normalized)) {
     throw new RangeError(field + " is invalid or too long");
   }
   return normalized;
