@@ -33,6 +33,49 @@ const { chromium } = require('playwright');
       throw new Error('Observation list and record count are missing');
     }
 
+    page.on('dialog', dialog => dialog.accept());
+    const observationForm = page.locator('#observationForm');
+    const submitObservation = async (value, observedAt) => {
+      await observationForm.locator('[name="metric"]').fill('browser-smoke-heart-rate');
+      await observationForm.locator('[name="value"]').fill(String(value));
+      await observationForm.locator('[name="unit"]').fill('bpm');
+      await observationForm.locator('[name="observedAt"]').fill(observedAt);
+      await observationForm.locator('[name="source"]').fill('Synthetic Playwright fixture');
+      await observationForm.locator('[name="quality"]').selectOption('demo');
+      await observationForm.locator('button[type="submit"]').click();
+    };
+    await submitObservation(68, '2026-10-19T09:00');
+    await page.waitForFunction(() => {
+      const rows = JSON.parse(localStorage.getItem('health-observations-v1') || '[]');
+      return rows.length === 1 && rows[0].metric === 'browser-smoke-heart-rate';
+    });
+    await submitObservation(72, '2026-10-20T09:00');
+    await page.waitForFunction(() => {
+      const rows = JSON.parse(localStorage.getItem('health-observations-v1') || '[]');
+      return rows.length === 2 && rows.every(row => row.quality === 'demo');
+    });
+
+    // The same record (including source, timestamp and quality) must be rejected as a duplicate.
+    await submitObservation(72, '2026-10-20T09:00');
+    await page.waitForTimeout(150);
+    const storedObservations = await page.evaluate(() =>
+      JSON.parse(localStorage.getItem('health-observations-v1') || '[]'));
+    if (storedObservations.length !== 2) {
+      throw new Error('Duplicate observation was persisted: ' + storedObservations.length + ' rows');
+    }
+    const recordListText = await page.locator('#observationList').innerText();
+    if (!recordListText.includes('browser-smoke-heart-rate') || !recordListText.includes('Synthetic Playwright fixture')) {
+      throw new Error('Saved synthetic observation and provenance were not rendered in the records list');
+    }
+    await page.locator('#navList .nav-item[data-nav="home"]').click();
+    await page.waitForFunction(() => {
+      const summary = document.querySelector('#trendSummary')?.textContent || '';
+      return summary.includes('browser-smoke-heart-rate') && summary.includes('最近 2 次');
+    });
+    if (await page.locator('#trendSvg circle').count() < 2) {
+      throw new Error('Two valid same-metric observations did not produce a two-point trend');
+    }
+
     await page.locator('#navList .nav-item[data-nav="report"]').click();
     await page.waitForFunction(() => document.querySelector('#pages .page.active[data-page="report"]'));
     const reportText = await page.locator('#pages .page.active').innerText();
