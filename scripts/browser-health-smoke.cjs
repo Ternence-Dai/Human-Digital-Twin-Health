@@ -21,7 +21,7 @@ const { chromium } = require('playwright');
 
     await page.locator('#navList .nav-item[data-nav="records"]').click();
     await page.waitForFunction(() => document.querySelector('#pages .page.active[data-page="records"]'));
-    if (!(await page.locator('#pages .page.active').innerText()).includes('健康记录')) {
+    if (!(await page.locator('#pages .page.active').innerText()).includes('健康测量记录')) {
       throw new Error('Observation records workspace did not render');
     }
     if (!(await page.locator('#observationList').count()) ||
