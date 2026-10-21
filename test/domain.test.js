@@ -463,3 +463,46 @@ test("FHIR export refuses guessed terminology, identity, status and extension na
   );
   assert.throws(() => toFhirObservation({ ...observation, recordState: "unknown" }, mapping), RangeError);
 });
+
+test("FHIR export requires UCUM as the Quantity code system", async () => {
+  const { toFhirObservation } = await import("../src/domain/index.js");
+  const observation = {
+    metric: "resting-heart-rate", value: 62, unit: "bpm",
+    observedAt: "2026-01-01T00:00:00Z", source: "manual-entry", quality: "reported"
+  };
+  const mapping = {
+    status: "final", subjectReference: "Patient/example",
+    code: { system: "http://loinc.org", code: "8867-4" },
+    unitCoding: { system: "http://unitsofmeasure.org", code: "/min" },
+    sourceExtensionUrl: "https://example.org/fhir/StructureDefinition/source",
+    qualityExtensionUrl: "https://example.org/fhir/StructureDefinition/quality"
+  };
+  assert.equal(toFhirObservation(observation, mapping).valueQuantity.system,
+    "http://unitsofmeasure.org");
+  for (const system of ["http://loinc.org", "https://example.org/codes/units", "urn:example:units"]) {
+    assert.throws(() => toFhirObservation(observation, {
+      ...mapping, unitCoding: { ...mapping.unitCoding, system }
+    }), /Quantity.system must identify the UCUM code system/);
+  }
+});
+
+test("FHIR export rejects malformed subject references and invalid coding URIs", async () => {
+  const { toFhirObservation } = await import("../src/domain/index.js");
+  const observation = {
+    metric: "resting-heart-rate", value: 62, unit: "bpm",
+    observedAt: "2026-01-01T00:00:00Z", source: "manual-entry", quality: "reported"
+  };
+  const mapping = {
+    status: "final", subjectReference: "Patient/example",
+    code: { system: "http://loinc.org", code: "8867-4" },
+    unitCoding: { system: "http://unitsofmeasure.org", code: "/min" },
+    sourceExtensionUrl: "https://example.org/fhir/StructureDefinition/source",
+    qualityExtensionUrl: "https://example.org/fhir/StructureDefinition/quality"
+  };
+  for (const subjectReference of ["Patient", "Patient/", "not-a-reference", "Patient/a b"]) {
+    assert.throws(() => toFhirObservation(observation, { ...mapping, subjectReference }));
+  }
+  assert.throws(() => toFhirObservation(observation, {
+    ...mapping, code: { ...mapping.code, system: "not-a-uri" }
+  }), /absolute HTTP\(S\) or URN URI/);
+});

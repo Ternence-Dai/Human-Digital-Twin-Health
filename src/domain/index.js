@@ -454,6 +454,9 @@ export function toFhirObservation(observation, mapping) {
 
   const code = validateFhirCoding(mapping.code, "FHIR observation code");
   const unitCoding = validateFhirCoding(mapping.unitCoding, "FHIR unit coding");
+  if (unitCoding.system !== "http://unitsofmeasure.org") {
+    throw new RangeError("FHIR Quantity.system must identify the UCUM code system");
+  }
   const sourceExtensionUrl = requiredFhirUri(mapping.sourceExtensionUrl, "source extension URL");
   const qualityExtensionUrl = requiredFhirUri(mapping.qualityExtensionUrl, "quality extension URL");
   if (sourceExtensionUrl === qualityExtensionUrl) {
