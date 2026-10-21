@@ -403,3 +403,63 @@ test("a void transition releases its measurement identity for a verified re-entr
  assert.equal(merged[0].recordState,"voided");
  assert.equal(merged[1].recordState,"active");
 });
+
+
+test("exports provenance-preserving numeric observations as explicit FHIR R4 resources", async () => {
+  const { toFhirObservation } = await import("../src/domain/index.js");
+  const resource = toFhirObservation({
+    id: "obs-001",
+    metric: "heart-rate",
+    value: 72,
+    unit: "bpm",
+    observedAt: "2026-01-01T08:00:00+08:00",
+    recordedAt: "2026-01-01T09:00:00+08:00",
+    source: "wearable",
+    quality: "measured",
+    recordState: "active"
+  }, {
+    status: "final",
+    subjectReference: "Patient/example",
+    code: { system: "http://loinc.org", code: "8867-4", display: "Heart rate" },
+    unitCoding: { system: "http://unitsofmeasure.org", code: "/min" },
+    sourceExtensionUrl: "https://example.org/fhir/StructureDefinition/observation-source",
+    qualityExtensionUrl: "https://example.org/fhir/StructureDefinition/observation-quality",
+    identifier: { system: "https://example.org/observation-id", value: "obs-001" }
+  });
+  assert.equal(resource.resourceType, "Observation");
+  assert.equal(resource.status, "final");
+  assert.equal(resource.subject.reference, "Patient/example");
+  assert.equal(resource.effectiveDateTime, "2026-01-01T00:00:00.000Z");
+  assert.equal(resource.issued, "2026-01-01T01:00:00.000Z");
+  assert.equal(resource.code.coding[0].code, "8867-4");
+  assert.equal(resource.valueQuantity.value, 72);
+  assert.equal(resource.valueQuantity.code, "/min");
+  assert.deepEqual(resource.extension.map(item => item.valueString || item.valueCode), ["wearable", "measured"]);
+  assert.equal(resource.identifier[0].value, "obs-001");
+  assert.ok(Object.isFrozen(resource) && Object.isFrozen(resource.valueQuantity));
+});
+
+test("FHIR export refuses guessed terminology, identity, status and extension namespaces", async () => {
+  const { toFhirObservation } = await import("../src/domain/index.js");
+  const observation = {
+    metric: "resting-heart-rate", value: 62, unit: "bpm",
+    observedAt: "2026-01-01T00:00:00Z", source: "manual-entry", quality: "reported"
+  };
+  const mapping = {
+    status: "final", subjectReference: "Patient/example",
+    code: { system: "http://loinc.org", code: "8867-4" },
+    unitCoding: { system: "http://unitsofmeasure.org", code: "/min" },
+    sourceExtensionUrl: "https://example.org/fhir/StructureDefinition/source",
+    qualityExtensionUrl: "https://example.org/fhir/StructureDefinition/quality"
+  };
+  assert.throws(() => toFhirObservation(observation, { ...mapping, code: { code: "8867-4" } }), TypeError);
+  assert.throws(() => toFhirObservation(observation, { ...mapping, subjectReference: "" }), TypeError);
+  assert.throws(() => toFhirObservation(observation, { ...mapping, status: "measured" }), RangeError);
+  assert.throws(() => toFhirObservation(observation, { ...mapping, qualityExtensionUrl: mapping.sourceExtensionUrl }), RangeError);
+  assert.throws(() => toFhirObservation({ ...observation, recordState: "voided" }, mapping), RangeError);
+  assert.equal(
+    toFhirObservation({ ...observation, recordState: "voided" }, { ...mapping, status: "entered-in-error" }).status,
+    "entered-in-error"
+  );
+  assert.throws(() => toFhirObservation({ ...observation, recordState: "unknown" }, mapping), RangeError);
+});

@@ -369,3 +369,128 @@ export function mergeObservationHistories(existingHistory, importedHistory) {
   }
   return validateObservationHistory(merged);
 }
+
+
+const fhirObservationStatuses = new Set([
+  "registered", "preliminary", "final", "amended", "corrected",
+  "cancelled", "entered-in-error", "unknown"
+]);
+
+function requiredFhirText(value, field, maxLength = 500) {
+  if (typeof value !== "string" || !value.trim()) {
+    throw new TypeError(field + " is required");
+  }
+  const normalized = value.trim();
+  if (normalized.length > maxLength || /[\x00-\x1F\x7F]/.test(normalized)) {
+    throw new RangeError(field + " is invalid or too long");
+  }
+  return normalized;
+}
+
+function requiredFhirUri(value, field) {
+  const uri = requiredFhirText(value, field, 2048);
+  if (!/^(?:https?:\/\/|urn:)[^\s]+$/i.test(uri)) {
+    throw new TypeError(field + " must be an absolute HTTP(S) or URN URI");
+  }
+  return uri;
+}
+
+function validateFhirCoding(value, field) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new TypeError(field + " must be a coding object");
+  }
+  const coding = {
+    system: requiredFhirUri(value.system, field + ".system"),
+    code: requiredFhirText(value.code, field + ".code", 128)
+  };
+  if (value.display !== undefined) {
+    coding.display = requiredFhirText(value.display, field + ".display", 500);
+  }
+  return coding;
+}
+
+function deepFreezeFhir(value) {
+  if (value && typeof value === "object" && !Object.isFrozen(value)) {
+    Object.values(value).forEach(deepFreezeFhir);
+    Object.freeze(value);
+  }
+  return value;
+}
+
+/**
+ * Convert one validated numeric observation into a FHIR R4 Observation.
+ * Terminology, subject identity and local provenance extension URLs are
+ * deliberately supplied by the caller; this function never guesses LOINC,
+ * UCUM, patient identity, clinical status or a canonical extension namespace.
+ */
+export function toFhirObservation(observation, mapping) {
+  const validated = createObservation(observation);
+  if (!mapping || typeof mapping !== "object" || Array.isArray(mapping)) {
+    throw new TypeError("FHIR mapping configuration is required");
+  }
+
+  const status = requiredFhirText(mapping.status, "FHIR Observation.status", 40);
+  if (!fhirObservationStatuses.has(status)) {
+    throw new RangeError("FHIR Observation.status is not a valid R4 status code");
+  }
+  const recordState = observation.recordState;
+  if (recordState !== undefined && !["active", "superseded", "voided"].includes(recordState)) {
+    throw new RangeError("observation recordState must be active, superseded or voided");
+  }
+  if (recordState === "voided" && status !== "entered-in-error") {
+    throw new RangeError("voided observations must export with entered-in-error status");
+  }
+  if (recordState === "superseded" && !["amended", "corrected"].includes(status)) {
+    throw new RangeError("superseded observations must export with amended or corrected status");
+  }
+  if (recordState === "active" && status === "entered-in-error") {
+    throw new RangeError("active observations cannot export with entered-in-error status");
+  }
+
+  const subjectReference = requiredFhirText(mapping.subjectReference, "FHIR subject reference", 2048);
+  if (!/^(?:[A-Z][A-Za-z]+\/[A-Za-z0-9.-]{1,64}|https:\/\/[^\s]+|urn:uuid:[0-9a-f-]{36}|#[A-Za-z0-9.-]+)$/i.test(subjectReference)) {
+    throw new TypeError("FHIR subject reference must be a valid relative, absolute or contained reference");
+  }
+
+  const code = validateFhirCoding(mapping.code, "FHIR observation code");
+  const unitCoding = validateFhirCoding(mapping.unitCoding, "FHIR unit coding");
+  const sourceExtensionUrl = requiredFhirUri(mapping.sourceExtensionUrl, "source extension URL");
+  const qualityExtensionUrl = requiredFhirUri(mapping.qualityExtensionUrl, "quality extension URL");
+  if (sourceExtensionUrl === qualityExtensionUrl) {
+    throw new RangeError("source and quality extensions must use different canonical URLs");
+  }
+
+  const resource = {
+    resourceType: "Observation",
+    status,
+    code: {
+      coding: [code],
+      text: validated.metric
+    },
+    subject: { reference: subjectReference },
+    effectiveDateTime: validated.observedAt,
+    valueQuantity: {
+      value: validated.value,
+      unit: validated.unit,
+      system: unitCoding.system,
+      code: unitCoding.code
+    },
+    extension: [
+      { url: sourceExtensionUrl, valueString: validated.source },
+      { url: qualityExtensionUrl, valueCode: validated.quality }
+    ]
+  };
+
+  if (validated.recordedAt !== undefined) resource.issued = validated.recordedAt;
+  if (mapping.identifier !== undefined) {
+    if (!mapping.identifier || typeof mapping.identifier !== "object" || Array.isArray(mapping.identifier)) {
+      throw new TypeError("FHIR identifier must be an object");
+    }
+    resource.identifier = [{
+      system: requiredFhirUri(mapping.identifier.system, "FHIR identifier system"),
+      value: requiredFhirText(mapping.identifier.value, "FHIR identifier value", 200)
+    }];
+  }
+
+  return deepFreezeFhir(resource);
+}
