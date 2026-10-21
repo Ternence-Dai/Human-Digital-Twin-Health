@@ -434,6 +434,9 @@ export function toFhirObservation(observation, mapping) {
     throw new RangeError("FHIR Observation.status is not a valid R4 status code");
   }
   const recordState = observation.recordState;
+  if (recordState !== undefined && !["active", "superseded", "voided"].includes(recordState)) {
+    throw new RangeError("observation recordState must be active, superseded or voided");
+  }
   if (recordState === "voided" && status !== "entered-in-error") {
     throw new RangeError("voided observations must export with entered-in-error status");
   }
