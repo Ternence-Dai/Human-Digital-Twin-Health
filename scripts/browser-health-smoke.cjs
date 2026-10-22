@@ -40,7 +40,11 @@ const { chromium } = require('playwright');
       throw new Error('Observation list and record count are missing');
     }
 
-    page.on('dialog', dialog => dialog.accept());
+    const promptAnswers = [];
+    page.on('dialog', async dialog => {
+      if (dialog.type() === 'prompt') await dialog.accept(promptAnswers.shift() || 'Synthetic Playwright operator');
+      else await dialog.accept();
+    });
     const observationForm = page.locator('#observationForm');
     const submitObservation = async (value, observedAt) => {
       await observationForm.locator('[name="metric"]').fill('browser-smoke-heart-rate');
@@ -82,6 +86,69 @@ const { chromium } = require('playwright');
     if (await page.locator('#trendSvg circle').count() < 2) {
       throw new Error('Two valid same-metric observations did not produce a two-point trend');
     }
+
+    // Amend the latest observation as a new version; the original must remain immutable in history.
+    await page.locator('#navList .nav-item[data-nav="records"]').click();
+    await page.waitForFunction(() => document.querySelector('#pages .page.active[data-page="records"]'));
+    const originalObservation = storedObservations.find(row => row.value === 72);
+    if (!originalObservation) throw new Error('Synthetic observation selected for amendment is missing');
+    await page.locator('#observationList [data-observation-action="amend"][data-observation-id="' + originalObservation.id + '"]').click();
+    await page.waitForFunction(() =>
+      document.querySelector('#observationAmendmentFields') &&
+      !document.querySelector('#observationAmendmentFields').hidden
+    );
+    await observationForm.locator('[name="value"]').fill('75');
+    await page.locator('#observationAmendmentReason').fill('Synthetic correction after source cross-check');
+    await page.locator('#observationAmendmentActor').fill('Playwright amendment operator');
+    await observationForm.locator('button[type="submit"]').click();
+    await page.waitForFunction(id => {
+      const rows = JSON.parse(localStorage.getItem('health-observations-v1') || '[]');
+      return rows.length === 3 &&
+        rows.some(row => row.id === id && row.recordState === 'superseded') &&
+        rows.some(row => row.value === 75 && row.recordState === 'active');
+    }, originalObservation.id, { timeout: 10000 });
+    let versionedObservations = await page.evaluate(() =>
+      JSON.parse(localStorage.getItem('health-observations-v1') || '[]'));
+    const supersededObservation = versionedObservations.find(row => row.id === originalObservation.id);
+    const amendedObservation = versionedObservations.find(row => row.value === 75 && row.recordState === 'active');
+    if (!supersededObservation || !amendedObservation ||
+        amendedObservation.previousVersionId !== originalObservation.id ||
+        amendedObservation.amendmentReason !== 'Synthetic correction after source cross-check' ||
+        amendedObservation.amendedBy !== 'Playwright amendment operator') {
+      throw new Error('Observation amendment did not preserve the original version and audit metadata');
+    }
+    await page.locator('#observationStateFilter').selectOption('superseded');
+    await page.waitForFunction(() =>
+      document.querySelectorAll('#observationList [data-observation-version]').length === 1 &&
+      document.querySelector('#observationList')?.textContent.includes('已被更正')
+    );
+    await page.locator('#observationStateFilter').selectOption('all');
+
+    // Void the corrected active version and verify that the audit chain is preserved rather than deleted.
+    promptAnswers.push('Synthetic void reason: source record withdrawn', 'Playwright void operator');
+    await page.locator('#observationList [data-observation-action="void"][data-observation-id="' + amendedObservation.id + '"]').click();
+    await page.waitForFunction(() => {
+      const rows = JSON.parse(localStorage.getItem('health-observations-v1') || '[]');
+      return rows.length === 3 && rows.some(row =>
+        row.value === 75 && row.recordState === 'voided' &&
+        row.voidReason === 'Synthetic void reason: source record withdrawn' &&
+        row.voidedBy === 'Playwright void operator'
+      );
+    }, undefined, { timeout: 10000 });
+    versionedObservations = await page.evaluate(() =>
+      JSON.parse(localStorage.getItem('health-observations-v1') || '[]'));
+    const voidedObservation = versionedObservations.find(row => row.id === amendedObservation.id);
+    if (!voidedObservation || !supersededObservation ||
+        versionedObservations.filter(row => row.recordState === 'active').length !== 1) {
+      throw new Error('Voiding an observation deleted history or left the voided version active');
+    }
+    await page.locator('#observationStateFilter').selectOption('voided');
+    await page.waitForFunction(() =>
+      document.querySelector('#observationList')?.textContent.includes('已作废') &&
+      document.querySelector('#observationList')?.textContent.includes('Synthetic void reason: source record withdrawn') &&
+      document.querySelector('#observationList')?.textContent.includes('Playwright void operator')
+    );
+    await page.locator('#observationStateFilter').selectOption('all');
 
     await page.locator('#navList .nav-item[data-nav="report"]').click();
     await page.waitForFunction(() => document.querySelector('#pages .page.active[data-page="report"]'));
