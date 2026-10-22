@@ -83,32 +83,54 @@
       <!-- ---------- 首页 ---------- -->
         
       <section class="page active" data-page="home">
-      
+        <section class="health-data-command" aria-label="个人健康数据工作台">
+          <div class="health-data-command__copy">
+            <span class="eyebrow">PERSONAL HEALTH RECORDS · FHIR-ALIGNED</span>
+            <h2>个人健康数据工作台</h2>
+            <p>以观察记录为中心组织数据：每条记录保留数值、单位、测量时间、来源和质量类型。没有有效来源的数据不进入个人趋势。</p>
+          </div>
+          <div class="health-data-command__actions">
+            <button type="button" class="primary" onclick="go('records')">＋ 新增观察记录</button>
+            <button type="button" onclick="go('report')">查看真实趋势</button>
+            <button type="button" onclick="exportObservations()">导出本机备份</button>
+          </div>
+        </section>
 
-        <section class="health-data-command" aria-label="个人健康记录工作区">
-  <div class="health-data-command__copy">
-    <span class="eyebrow">PERSONAL RECORDS · OBSERVATION FIRST</span>
-    <h3>个人健康记录工作区</h3>
-    <p>首页只呈现本机已校验的观察记录及其来源、测量时间和单位；不以演示数值填充个人健康数据。</p>
-  </div>
-  <div class="health-data-command__actions">
-    <button type="button" class="primary" onclick="go('records')">＋ 记录 / 导入观察值</button>
-    <button type="button" onclick="go('report')">查看趋势与报告</button>
-    <button type="button" onclick="go('body')">浏览人体图谱</button>
-  </div>
-</section>
+        <div class="health-home-dashboard">
+          <section class="health-home-primary">
+            <div class="health-home-section-head">
+              <div><span class="eyebrow">OBSERVATION REGISTER</span><h3>本机有效健康记录</h3><p>只显示当前浏览器中通过版本与来源校验的观察值。</p></div>
+              <span class="health-home-local-badge">LOCAL · TRACEABLE</span>
+            </div>
+            <section id="personalRecordSnapshot" class="personal-record-snapshot" aria-live="polite">
+              <div class="personal-record-empty"><strong>正在读取本机观察记录…</strong><span>此处不会使用预设演示体征填充个人数据。</span></div>
+            </section>
+          </section>
 
-        <div class="sec-title"><span class="bar"></span>本机个人记录 <span class="more">独立于上方示例体征 · 仅显示本机已验证记录</span></div>
-<section id="personalRecordSnapshot" class="personal-record-snapshot" aria-live="polite">
-          <div class="personal-record-<div class="sec-title"><span class="bar"></span>功能导航</div>
-        <div class="quick-grid" id="quickGrid"></div>
+          <aside class="health-home-aside">
+            <section class="health-home-trust">
+              <span class="eyebrow">DATA INTEGRITY</span>
+              <h3>数据边界</h3>
+              <ul>
+                <li>实测、本人报告、文件导入和演示数据分别标记。</li>
+                <li>更正与作废保留历史版本，不覆盖原始记录。</li>
+                <li>无经过验证的临床模型，不生成综合健康分或个体风险。</li>
+              </ul>
+              <span class="health-home-status">本机浏览器保存 · 未连接真实设备</span>
+            </section>
+            <section class="health-home-modules">
+              <div class="health-home-section-head"><div><span class="eyebrow">WORKSPACES</span><h3>功能工作区</h3></div></div>
+              <div class="quick-grid" id="quickGrid"></div>
+            </section>
+          </aside>
+        </div>
 
         <div class="footer-note">
-          <b>戴煜的疗养健康助手</b> · 人体数字孪生健康平台<br>
-          © 2025 戴煜的疗养健康助手 Platform. All Rights Reserved.<br>
-          本平台内容仅供健康参考，不能替代专业医疗诊断与治疗
+          <b>数字孪生健康工作台</b> · 当前为本机演示环境<br>
+          记录与图谱仅用于个人资料组织和健康教育，不替代临床检查、诊断或治疗。
         </div>
       </section>
+
 
       <!-- ---------- 数字人体 ---------- -->
       <section class="page" data-page="body">
@@ -169,51 +191,33 @@
 
       <!-- ---------- 血管循环 ---------- -->
       <section class="page" data-page="vessel">
-        <div class="sec-title"><span class="bar"></span>循环系统指标（演示）</div>
+        <div class="health-section-intro">
+          <span class="eyebrow">CIRCULATORY SYSTEM · OBSERVATION VIEW</span>
+          <h2>循环系统观察</h2>
+          <p>这里仅汇总本机录入的相关测量记录，不预填血压、血氧、心率或风险分值。</p>
+        </div>
+        <div class="sec-title"><span class="bar"></span>已记录的相关观察值 <span class="more">来自本机记录 · 非实时设备数据</span></div>
         <div class="metrics-grid" id="vesselMetrics"></div>
-
-        <div class="sec-title"><span class="bar"></span>血管图谱</div>
+        <div class="health-empty-note">暂无可显示的循环系统观察值时，请在“健康记录”中录入或导入有来源的测量结果。不会以示例数值代替真实记录。</div>
+        <div class="sec-title"><span class="bar"></span>血管解剖结构示意 <span class="more">教学模型 · 非影像检查</span></div>
         <div class="glass" style="padding:16px" id="vesselMap"></div>
-
-        <div class="sec-title"><span class="bar"></span>风险评估（演示）</div>
-        <div class="demo-note" style="margin:-3px 0 11px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;color:var(--tx3);font-size:10.5px;line-height:1.6">上述循环数值、血管状态和风险分值均为预设演示数据，不是实时设备测量、医学检查结果或个体化风险评估。</div>
-        <div class="list-item">
-          <div class="li-icon" style="background:rgba(251,191,36,.12);border-color:rgba(251,191,36,.25)">喝</div>
-          <div class="li-main">
-            <div class="li-t">心血管风险 <span class="tag wn">轻度</span></div>
-            <div class="li-s">综合血压、血脂、HRV 与动脉硬化指数评估</div>
-          </div>
-          <div class="li-v" style="color:var(--wn)">32</div>
-        </div>
-        <div class="list-item">
-          <div class="li-icon" style="background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.25)">變</div>
-          <div class="li-main">
-            <div class="li-t">血栓风险 <span class="tag ok">低</span></div>
-            <div class="li-s">血液流变学指标正常，微循环通畅</div>
-          </div>
-          <div class="li-v" style="color:var(--ok)">18</div>
-        </div>
-        <div class="list-item">
-          <div class="li-icon" style="background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.25)"></div>
-          <div class="li-main">
-            <div class="li-t">动脉硬化风险 <span class="tag ok">低</span></div>
-            <div class="li-s">baPWV 1180 cm/s，血管弹性良好</div>
-          </div>
-          <div class="li-v" style="color:var(--ok)">21</div>
-        </div>
       </section>
+
 
       <!-- ---------- 经络中心 ---------- -->
       <section class="page" data-page="meridian">
-        <div class="sec-title"><span class="bar"></span>经络热力图（演示）</div>
-        <div class="glass" style="padding:16px" id="meridianHeat"></div>
-
-        <div class="sec-title"><span class="bar"></span>十二正经（演示） <span class="more">子午流注</span></div>
+        <div class="health-section-intro">
+          <span class="eyebrow">TRADITIONAL MEDICINE · EDUCATIONAL REFERENCE</span>
+          <h2>经络路径参考</h2>
+          <p>展示传统中医理论中的经脉名称、循行描述与关联脏腑；不把经络路径或子午流注理论转换成生理测量、能量分值或疾病风险。</p>
+        </div>
+        <div class="sec-title"><span class="bar"></span>十二正经 · 理论路径</div>
         <div id="meridianList12"></div>
-
-        <div class="sec-title"><span class="bar"></span>奇经八脉（演示）</div>
+        <div class="sec-title"><span class="bar"></span>奇经八脉 · 理论路径</div>
         <div id="meridianList8"></div>
-     <div class="demo-note" style="margin:-3px 0 11px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;color:var(--tx3);font-size:10.5px;line-height:1.6">经络能量值、状态和热力图为预设展示值，不是生理检测结果，也不会由设备自动计算。</div> </section>
+        <div class="health-empty-note">以上内容属于传统医学理论资料和教学示意，不是现代医学影像或经络功能检测结果。</div>
+      </section>
+
 
       <!-- ---------- 穴位中心 ---------- -->
       <section class="page" data-page="acupoint">
@@ -272,87 +276,44 @@
 
       <!-- ---------- 健康报告 ---------- -->
       <section class="page" data-page="report">
-        <div role="note" style="padding:12px 14px;margin-bottom:14px;border:1px solid rgba(251,191,36,.28);border-radius:12px;background:rgba(146,64,14,.10);color:var(--tx2);font-size:11px;line-height:1.7">
-          <b style="color:#fbbf24">演示数据说明：</b>当前 84 分、各系统分值、器官风险标签、六维雷达图与近 3 次趋势均为内置示例，不来自本地健康记录、真实设备或医学检查，也不构成个人健康风险评估。请到“健康测量记录”查看手动录入或从备份导入、带有来源标记的记录。
+        <div class="health-report-integrity" role="note">
+          <div><span class="eyebrow">REPORTING RULES</span><h2>个人记录趋势报告</h2></div>
+          <p>目前不计算综合健康总分、器官分值或个体化疾病风险。报告只展示同一指标、同一单位下至少两次有效观察记录的变化，并保留记录来源。</p>
+          <span>当前有效记录 · 本机数据 · 无临床结论</span>
         </div>
-        <div class="report-grid">
-          <div class="glass" style="padding:20px">
-            <div class="sec-title" style="margin-top:0"><span class="bar"></span>演示评分构成</div>
-            <div id="scoreBars"></div>
-            <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between">
-              <span style="font-size:12.5px;color:var(--tx2)">综合健康总分（演示）</span>
-              <span style="font-size:26px;font-weight:800;background:linear-gradient(135deg,#67e8f9,#a78bfa);-webkit-background-clip:text;background-clip:text;color:transparent">84</span>
-            </div>
-          </div>
-
-          <div class="glass" style="padding:20px;display:flex;flex-direction:column;align-items:center;justify-content:center">
-            <div class="sec-title" style="margin-top:0;width:100%"><span class="bar"></span>六维能力雷达（演示）</div>
-            <svg id="radarSvg" viewBox="0 0 240 220" style="width:100%;max-width:270px"></svg>
-          </div>
-        </div>
-
-        <div class="sec-title"><span class="bar"></span>一般健康建议（本地预设内容）</div>
-        <div id="adviceList"></div>
-
-        <div class="sec-title"><span class="bar"></span>近期真实记录趋势</div>
+        <div class="sec-title"><span class="bar"></span>近期有效记录趋势</div>
         <div class="glass" style="padding:20px">
-          <div id="trendSummary" style="font-size:12px;color:var(--tx2);margin-bottom:10px">只显示当前有效的本地观察记录；不会用演示体征填充。</div>
-          <svg id="trendSvg" role="img" aria-label="根据当前有效健康观察记录绘制的近期趋势" viewBox="0 0 320 120" style="width:100%"></svg>
+          <div id="trendSummary" style="font-size:12px;color:var(--tx2);margin-bottom:10px">同一指标至少需要两次有效记录才会绘制趋势。</div>
+          <svg id="trendSvg" role="img" aria-label="根据当前有效健康观察记录绘制的趋势" viewBox="0 0 320 120" style="width:100%"></svg>
         </div>
-
-        <div class="footer-note">
-          示例报告时间：2025-07-12 08:24 · 数据来源：本地预设示例数据（未连接设备、未采集真实检测数据、未调用 AI 分析引擎）<br>
-          <b>本报告仅供健康管理参考，不作为临床诊断依据</b>
-        </div>
+        <div class="sec-title"><span class="bar"></span>一般健康教育</div>
+        <div id="adviceList"></div>
+        <div class="footer-note">任何图表都不代表诊断或风险评分；请结合真实检测结果并咨询合格医疗专业人员。</div>
       </section>
+
 
       <!-- ---------- 我的 ---------- -->
       <section class="page" data-page="me">
-        <div class="glass">
-          <div class="profile-head">
-            <div class="profile-av"></div>
-            <div>
-              <div class="pn">演示用户 <span class="tag cy" style="margin-left:6px">示例档案</span></div>
-              <div class="ps">示例档案 · 非真实身份或医疗记录</div>
-              <div class="ps">示例体征 · 非真实测量数据</div>
-            </div>
-          </div>
+        <div class="health-section-intro">
+          <span class="eyebrow">LOCAL PROFILE · PRIVACY FIRST</span>
+          <h2>数据与隐私</h2>
+          <p>当前版本把观察记录保存在此浏览器的本地存储中；更换设备或清理站点数据前，请先导出备份。</p>
         </div>
-
-        <div class="sec-title"><span class="bar"></span>会员权益</div>
-        <div class="vip-card">
-          <div style="position:relative;z-index:1">
-            <div style="font-size:15px;font-weight:800;letter-spacing:.5px">演示服务卡 · 不代表真实会员资格</div>
-            <div style="font-size:12px;color:#c4b5fd;margin-top:6px;line-height:1.8">
-              ✓ 本地症状关键词参考 &nbsp; ✓ 健康报告界面示意<br>
-              ✓ 体质测评流程示意 &nbsp;&nbsp; ✓ 一般健康科普提示
-            </div>
-            <button class="btn sm" style="margin-top:12px;background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.25);color:#fff">续费 / 升级企业版</button>
-          </div>
+        <div class="health-profile-data">
+          <article><span>存储位置</span><strong>当前浏览器</strong><small>尚未连接云端健康数据仓库</small></article>
+          <article><span>记录校验</span><strong>FHIR 风格 Observation</strong><small>保留来源、时间、单位和版本状态</small></article>
+          <article><span>设备同步</span><strong>未连接</strong><small>不把演示数据标记为实时测量</small></article>
         </div>
-
-        <div class="sec-title"><span class="bar"></span>健康档案</div>
-        <div class="glass" style="padding:0">
-          <div class="setting-row"><span class="si"></span>我的健康档案<span class="arrow">›</span></div>
-          <div class="setting-row"><span class="si">⌚</span>设备连接界面示意（未连接真实设备）<span class="tag ok" style="margin-left:auto">演示状态</span></div>
-          <div class="setting-row"><span class="si"></span>历史检测记录<span class="arrow">›</span></div>
-          <div class="setting-row"><span class="si">離</span>体质测评界面示意<span class="tag pu" style="margin-left:auto">未进行真实测评</span></div>
+        <div class="sec-title"><span class="bar"></span>数据操作</div>
+        <div class="glass health-profile-actions">
+          <button class="btn primary" type="button" onclick="go('records')">管理健康记录</button>
+          <button class="btn" type="button" onclick="exportObservations()">导出 JSON 备份</button>
+          <button class="btn" type="button" onclick="importObservations()">导入备份</button>
         </div>
-
-        <div class="sec-title"><span class="bar"></span>设置</div>
-        <div class="glass" style="padding:0">
-          <div class="setting-row"><span class="si"></span>健康预警推送<span class="arrow">›</span></div>
-          <div class="setting-row"><span class="si"></span>隐私与数据安全<span class="arrow">›</span></div>
-          <div class="setting-row"><span class="si">ℹ️</span>关于平台<span class="arrow">›</span></div>
-        </div>
-
-        <div class="footer-note" style="margin-top:20px">
-          <b>戴煜的疗养健康助手</b> · 人体数字孪生健康平台 V1.0.0<br>
-          技术架构：Flutter + AI 大模型 + 医疗知识图谱 + 数字孪生<br>
-          © 2025 戴煜的疗养健康助手 Platform. All Rights Reserved.<br>
-          本平台内容仅供健康参考，不能替代专业医疗诊断与治疗
-        </div>
+        <div class="footer-note">备份文件可能包含敏感健康信息，请妥善保管。当前界面不提供在线账户、会员订阅或真实设备连接功能。</div>
       </section>
+
+
 
     </div>
   </div>
