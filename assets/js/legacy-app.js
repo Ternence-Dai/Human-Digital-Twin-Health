@@ -922,6 +922,32 @@ function buildOrganGrid(){
     </button>`).join('');
 }
 
+
+let healthModalReturnFocus = null;
+
+function showModal(){
+  const modal = document.getElementById('modal');
+  if(!modal) return;
+  healthModalReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  modal.classList.add('show');
+  modal.setAttribute('aria-hidden','false');
+  const closeButton = modal.querySelector('.modal-close');
+  if(closeButton) closeButton.focus({preventScroll:true});
+}
+
+function closeModal(){
+  const modal = document.getElementById('modal');
+  if(!modal) return;
+  modal.classList.remove('show');
+  modal.setAttribute('aria-hidden','true');
+  const target = healthModalReturnFocus;
+  healthModalReturnFocus = null;
+  if(target && target.isConnected && typeof target.focus === 'function'){
+    target.focus({preventScroll:true});
+  }
+}
+window.closeModal = closeModal;
+
 function openOrgan(id){
   const o = ORGANS.find(x => x.id === id);
   if(!o) return;
@@ -943,7 +969,7 @@ function openOrgan(id){
     </section>
     <div class="health-knowledge-modal__source">解剖知识示意 · 非医学影像 · 非诊断结果</div>
   `;
-  document.getElementById('modal').classList.add('show');
+  showModal();
 }
 
 /* ---------------- 循环系统观察与结构参考 ---------------- */
@@ -1035,7 +1061,7 @@ function openMeridian(name,path,time,organ){
     <p class="health-knowledge-modal__description">${escHTML(path)}</p>
     <section class="health-knowledge-modal__boundary"><strong>医学边界说明</strong><p>经脉循行属于传统中医理论内容。本页面用于资料浏览与学习，不把经络概念解释为已经验证的解剖结构、实时生理能量或疾病诊断结果。</p></section>
   `;
-  document.getElementById('modal').classList.add('show');
+  showModal();
 }
 
 /* ---------------- 穴位中心 ---------------- */
@@ -1125,7 +1151,7 @@ function openAcupoint(id){
       穴位数据参考《针灸学》国家标准 GB/T 12346-2021<br>本内容仅供健康参考，不构成医疗建议
     </div>
   `;
-  document.getElementById('modal').classList.add('show');
+  showModal();
 }
 
 /* ---------------- 症状参考 ---------------- */
