@@ -9,7 +9,7 @@ body[data-workspace="health"] .pages{padding:18px 26px 34px;max-width:none}
 body[data-workspace="health"] .health-intro,
 body[data-workspace="health"] .product-workflow,
 body[data-workspace="health"] .health-section-intro{display:none!important}
-body[data-workspace="health"] .page.active{max-width:1480px;margin:0 auto}
+body[data-workspace="health"] .page{display:none}body[data-workspace="health"] .page.active{display:block!important;max-width:1480px;margin:0 auto}
 body[data-workspace="health"] .health-data-command{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:18px;margin-bottom:14px;padding:16px 18px;border:1px solid #d5e4e2;border-radius:10px;background:#fff}
 body[data-workspace="health"] .health-data-command__copy h2{margin:2px 0 5px;font-size:22px;letter-spacing:-.04em}
 body[data-workspace="health"] .health-data-command__actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
