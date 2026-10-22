@@ -26,7 +26,7 @@ const PAGES_META = [
   { key:'meridian', name:'经络中心', en:'MERIDIANS',   icon:'〰️' },
   { key:'acupoint', name:'穴位中心', en:'ACUPOINTS',   icon:'' },
   { key:'records',   name:'健康记录', en:'OBSERVATIONS', icon:'' },
-  { key:'ai',       name:'症状参考',  en:'SYMPTOM GUIDE',  icon:'烙' },
+  { key:'ai',       name:'症状资料',  en:'SYMPTOM SOURCES', icon:'ℹ' },
   { key:'report',   name:'健康报告', en:'REPORT',      icon:'' },
   { key:'me',       name:'我的',     en:'PROFILE',     icon:'' }
 ];
