@@ -15,7 +15,7 @@ const { chromium } = require('playwright');
     if (await referenceStylesheet.count() !== 1) throw new Error('FHIR clinical workspace stylesheet is not linked');
     const referenceCssResponse = await page.request.get(await referenceStylesheet.evaluate(node => node.href));
     const referenceCssText = await referenceCssResponse.text();
-    if (!referenceCssResponse.ok() || !referenceCssText.includes('--ehr-ink:#183c4d')) {
+    if (!referenceCssResponse.ok() || !referenceCssText.includes('--hr-bg:#eef4f3')) {
       throw new Error('FHIR clinical workspace stylesheet could not be loaded');
     }
     await page.waitForFunction(() => !!window.HealthDomain &&
@@ -54,7 +54,7 @@ const { chromium } = require('playwright');
       display: getComputedStyle(node).display,
       columns: getComputedStyle(node).gridTemplateColumns
     }));
-    if (healthLayout.display !== 'grid' || !healthLayout.columns.startsWith('252px')) {
+    if (healthLayout.display !== 'grid' || !healthLayout.columns.startsWith('254px')) {
       throw new Error('FHIR clinical record layout was not applied: ' + JSON.stringify(healthLayout));
     }
     await page.setViewportSize({ width: 1920, height: 1080 });
