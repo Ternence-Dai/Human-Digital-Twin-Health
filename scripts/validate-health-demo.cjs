@@ -73,17 +73,17 @@ assert.match(html, /function renderVesselMetrics\(/,
   'vascular metrics renderer must exist');
 assert.match(html, /row\.recordState === 'active'/,
   'vascular data must be drawn only from active observations');
-assert.match(html, /function runAnalysis\\(query\\)/,
+assert.ok(html.includes('function runAnalysis(query)'),
   'symptom navigation must use a non-diagnostic information-directory handler');
-assert.match(html, /escHTML\\(text\\)/,
+assert.ok(html.includes('escHTML(text)'),
   'user query text must be escaped before it is displayed beside official resources');
-assert.match(html, /escHTML\\(source\\.url\\)/,
+assert.ok(html.includes('escHTML(source.url)'),
   'public resource URLs must be escaped before insertion into trusted navigation markup');
 assert.doesNotMatch(html, /function matchSymptom\\(|const r = matchSymptom|关键词匹配完成|匹配人体器官图谱|匹配经络循行路径/,
   'the old organ/meridian symptom matcher and simulated analysis sequence must be removed');
 const symptomSource = anatomyData.slice(anatomyData.indexOf('const SYMPTOM_REFERENCE_SOURCES'));
-assert.match(symptomSource, /medlineplus\\.gov\\/symptoms\\.html/);
-assert.match(symptomSource, /nhs\\.uk\\/symptoms\\//);
+assert.ok(symptomSource.includes('https://medlineplus.gov/symptoms.html'));
+assert.ok(symptomSource.includes('https://www.nhs.uk/symptoms/'));
 assert.doesNotMatch(symptomSource, /risk:|lv:|meridian:|organ:/,
   'symptom reference sources must not carry unsupported risk or organ mappings');
 console.log('Health demo disclosure and symptom safety checks passed.');
