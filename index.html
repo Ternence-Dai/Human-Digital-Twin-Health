@@ -213,6 +213,7 @@
           <span class="eyebrow">TRADITIONAL MEDICINE · EDUCATIONAL REFERENCE</span>
           <h2>经络路径参考</h2>
           <p>展示传统中医理论中的经脉名称、循行描述与关联脏腑；不把经络路径或子午流注理论转换成生理测量、能量分值或疾病风险。</p>
+          <p class="health-traditional-boundary">WHO ICD-11 的传统医学章节仅供可选的双重分类与统计研究使用；WHO 明确说明该章节不代表对任何传统医学实践科学有效性或干预疗效的认可或判断。<a href="https://www.who.int/standards/classifications/frequently-asked-questions/traditional-medicine" target="_blank" rel="noopener noreferrer">查看 WHO 说明 ↗</a></p>
         </div>
         <div class="sec-title"><span class="bar"></span>十二正经 · 理论路径</div>
         <div id="meridianList12"></div>
@@ -233,14 +234,33 @@
         <div id="acuList"></div>
       </section>
 
-      <!-- ---------- 症状参考 ---------- -->
+      <!-- ---------- 官方症状资料导航 ---------- -->
       <section class="page" data-page="ai">
+        <div class="health-section-intro">
+          <span class="eyebrow">PUBLIC HEALTH INFORMATION · SOURCE DIRECTORY</span>
+          <h2>症状资料导航</h2>
+          <p>本页只提供 MedlinePlus 与 NHS 的公开症状资料入口，不对输入内容作疾病识别、器官归因、经络匹配或风险评级。</p>
+        </div>
+        <div class="health-knowledge-modal__boundary" role="note">
+          <strong>使用边界</strong>
+          <p>输入内容仅在当前浏览器中显示，不上传、不进入个人健康记录，也不会生成个体化诊疗建议。严重、突发或迅速加重的症状，请及时联系所在地急救或医疗服务，不要等待网页查询。</p>
+        </div>
+        <div class="symptom-reference-directory">
+          <a class="symptom-reference-link" href="https://medlineplus.gov/symptoms.html" target="_blank" rel="noopener noreferrer">
+            <strong>MedlinePlus · Symptoms ↗</strong><small>U.S. National Library of Medicine</small>
+            <span>官方症状目录，可进一步阅读相关健康主题与资料。</span>
+          </a>
+          <a class="symptom-reference-link" href="https://www.nhs.uk/symptoms/" target="_blank" rel="noopener noreferrer">
+            <strong>NHS · Symptoms A to Z ↗</strong><small>UK National Health Service</small>
+            <span>按症状索引查看公共健康信息与何时寻求帮助。</span>
+          </a>
+        </div>
         <div class="chat-wrap">
-          <div class="chat" id="chat"></div>
-          <div class="chips-bar" id="symptomChips"></div>
+          <div class="chat" id="chat" aria-live="polite"></div>
+          <div class="chips-bar" id="symptomChips" aria-label="常见主题快捷填入"></div>
           <div class="chat-input">
-            <input id="chatInput" placeholder="请描述您的症状，如：最近头晕、失眠…" onkeydown="if(event.key==='Enter')sendMsg()">
-            <button class="btn primary sm" onclick="sendMsg()" style="padding:9px 16px">发送</button>
+            <input id="chatInput" placeholder="输入一个症状主题词，只显示官方资料目录…" onkeydown="if(event.key==='Enter')sendMsg()">
+            <button class="btn primary sm" onclick="sendMsg()" style="padding:9px 16px">查看资料入口</button>
           </div>
         </div>
       </section>
