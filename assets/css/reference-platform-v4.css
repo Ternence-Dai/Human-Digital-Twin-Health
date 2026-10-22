@@ -47,3 +47,24 @@ body[data-workspace="health"] .clinical-reference-board__rail div{padding-top:7p
 body[data-workspace="health"] .clinical-reference-board__rail button{margin-top:auto;min-height:32px;border:1px solid #b8d8d3;border-radius:7px;background:#eaf6f3;color:#226a68;font-size:9px;font-weight:800}
 @media(max-width:900px){body[data-workspace="health"] .clinical-reference-board__grid{grid-template-columns:1fr}body[data-workspace="health"] .clinical-reference-board__summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:640px){body[data-workspace="health"] .clinical-reference-board__head{flex-direction:column}body[data-workspace="health"] .clinical-reference-board__actions{justify-content:flex-start}body[data-workspace="health"] .clinical-reference-board__summary{grid-template-columns:1fr 1fr}}
+
+/* Source-backed symptom information directory; deliberately not a diagnostic UI. */
+body[data-workspace="health"] .symptom-reference-directory,
+body[data-workspace="health"] .symptom-reference-result__links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}
+body[data-workspace="health"] .symptom-reference-link{display:flex;min-width:0;flex-direction:column;gap:7px;padding:16px 18px;border:1px solid #cfe2df;border-radius:10px;background:#fff;color:#214d58;text-decoration:none;box-shadow:0 5px 18px rgba(15,53,65,.04)}
+body[data-workspace="health"] .symptom-reference-link:hover{border-color:#83bcb2;background:#f8fcfb}
+body[data-workspace="health"] .symptom-reference-link strong{font-size:14px;color:#176c72}
+body[data-workspace="health"] .symptom-reference-link small{font-size:10px;color:#82969a}
+body[data-workspace="health"] .symptom-reference-link span{font-size:11px;line-height:1.7;color:#607b82}
+body[data-workspace="health"] .symptom-reference-result{display:flex;flex-direction:column;gap:9px}
+body[data-workspace="health"] .symptom-reference-result h3{margin:0;color:#1c4754;font-size:16px}
+body[data-workspace="health"] .symptom-reference-result p{margin:0;color:#5c7780;font-size:11px;line-height:1.7}
+body[data-workspace="health"] .symptom-reference-result__boundary{padding:9px 11px;border-left:3px solid #74aaa3;background:#f2f8f6}
+body[data-workspace="health"] .health-traditional-boundary{margin:12px 0;padding:10px 12px;border:1px solid #d8e7e2;border-left:3px solid #6b9b90;border-radius:7px;background:#f7faf8;color:#627b78;font-size:10px;line-height:1.7}
+body[data-workspace="health"] .health-traditional-boundary a{color:#1c7775;font-weight:700}
+body[data-workspace="health"] .symptom-reference-directory .symptom-reference-link{min-height:106px}
+@media(max-width:640px){
+ body[data-workspace="health"] .symptom-reference-directory,
+ body[data-workspace="health"] .symptom-reference-result__links{grid-template-columns:1fr}
+ body[data-workspace="health"] .symptom-reference-link{padding:14px}
+}
