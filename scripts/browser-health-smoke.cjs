@@ -86,6 +86,25 @@ const { chromium } = require('playwright');
     if (await page.locator('#trendSvg circle').count() < 2) {
       throw new Error('Two valid same-metric observations did not produce a two-point trend');
     }
+    const provenanceEvidence = await page.evaluate(() => {
+      const root = document.querySelector('#personalRecordSnapshot .personal-record-provenance');
+      const integrity = key => root?.querySelector('[data-integrity-metric="' + key + '"]');
+      const source = key => root?.querySelector('[data-quality-kind="' + key + '"]');
+      return {
+        visible: !!root && root.innerText.includes('数据来源与完整性'),
+        sourceCount: Number(integrity('source')?.dataset.count),
+        timestampCount: Number(integrity('measured-at')?.dataset.count),
+        unitCount: Number(integrity('unit')?.dataset.count),
+        demoCount: Number(source('demo')?.dataset.count),
+        disclaimer: root?.innerText.includes('不代表测量准确性') || false
+      };
+    });
+    if (!provenanceEvidence.visible || provenanceEvidence.sourceCount !== 2 ||
+        provenanceEvidence.timestampCount !== 2 || provenanceEvidence.unitCount !== 2 ||
+        provenanceEvidence.demoCount !== 2 || !provenanceEvidence.disclaimer) {
+      throw new Error('Observation provenance dashboard did not reflect the two validated synthetic records: ' +
+        JSON.stringify(provenanceEvidence));
+    }
 
     // Amend the latest observation as a new version; the original must remain immutable in history.
     await page.locator('#navList .nav-item[data-nav="records"]').click();
