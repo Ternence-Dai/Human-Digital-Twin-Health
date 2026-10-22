@@ -7,10 +7,11 @@ const app = fs.readFileSync('assets/js/legacy-app.js','utf8');
 const html = fs.readFileSync('index.html','utf8');
 const css = fs.readFileSync('assets/css/health-data-workspace.css','utf8');
 
-const scoreArc = html.match(/<circle cx="62" cy="62" r="52" fill="none" stroke="url\\(#ringGrad\\)"[^>]*>/);
+const scoreArcStart = html.indexOf('<circle cx="62" cy="62" r="52" fill="none" stroke="url(#ringGrad)"');
+const scoreArc = scoreArcStart >= 0 ? html.slice(scoreArcStart, html.indexOf('>', scoreArcStart) + 1) : '';
 assert.ok(html.includes('NO HEALTH SCORE') && scoreArc &&
-          /stroke-dasharray="326\\.7"/.test(scoreArc[0]) &&
-          /stroke-dashoffset="326\\.7"/.test(scoreArc[0]),
+          scoreArc.includes('stroke-dasharray="326.7"') &&
+          scoreArc.includes('stroke-dashoffset="326.7"'),
   'the demo home must not display a fabricated partial health-score ring when no validated score exists');
 
 assert.ok(html.includes('id="personalRecordSnapshot"') &&
