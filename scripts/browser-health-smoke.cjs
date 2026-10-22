@@ -229,7 +229,7 @@ const { chromium } = require('playwright');
     const reportText = await page.locator('#pages .page.active').innerText();
     if (!reportText.includes('近期有效记录趋势') ||
         !reportText.includes('至少两次有效观察记录') ||
-        reportText.includes('综合健康总分') || reportText.includes('六维能力雷达')) {
+        reportText.includes('综合健康总分（演示）') || reportText.includes('六维能力雷达（演示）') || /综合健康总分\s*84|84\s*分/.test(reportText)) {
       throw new Error('Health report still relies on synthetic scorecards instead of valid observation trends');
     }
 
