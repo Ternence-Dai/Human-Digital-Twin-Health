@@ -53,8 +53,6 @@ window.addEventListener('load', async () => {
   buildAcupointChips();
   renderAcupoints();
   buildSymptomChips();
-  renderScoreBars();
-  renderRadar();
   renderTrend();
   renderAdvice();
   renderVesselMetrics();
@@ -841,13 +839,13 @@ function buildHuman(){
   // 器官
   html += `<g class="layer-organ">`;
   ORGANS.forEach(o => {
-    const riskColor = o.lv === 1 ? '#34d399' : o.lv === 2 ? '#fbbf24' : '#f87171';
+    const anatomyStroke = '#63c3d1';
     const draw = (cx, cy) => `
       <g class="organ-node" data-organ="${o.id}" onclick="openOrgan('${o.id}')">
         <ellipse cx="${cx}" cy="${cy}" rx="${o.rx}" ry="${o.ry}" fill="url(#organGrad)"
-                 stroke="${riskColor}" stroke-width="1.3" opacity=".92"/>
+                 stroke="${anatomyStroke}" stroke-width="1.3" opacity=".92"/>
         <ellipse cx="${cx}" cy="${cy}" rx="${o.rx}" ry="${o.ry}" class="hit"/>
-        <title>${o.name} · 健康指数 ${o.score}</title>
+        <title>${o.name} · 解剖结构示意</title>
       </g>`;
     html += draw(o.x, o.y);
     if (o.dual) html += draw(o.x + (o.dualDx || 34), o.y);
@@ -908,219 +906,135 @@ document.addEventListener('input', e => {
   }
 });
 
-/* ---------------- 器官中心 ---------------- */
+/* ---------------- 器官解剖知识库 ---------------- */
 function buildOrganGrid(){
-  document.getElementById('organGrid').innerHTML = ORGANS.map(o => {
-    const cls = o.lv === 1 ? 'ok' : o.lv === 2 ? 'wn' : 'dg';
-    return `
-    <div class="organ-card glass" onclick="openOrgan('${o.id}')">
+  const host = document.getElementById('organGrid');
+  if(!host) return;
+  host.innerHTML = ORGANS.map(o => \`
+    <button type="button" class="organ-card glass" onclick="openOrgan('\${escHTML(o.id)}')">
       <div class="oc-top">
-        <div class="oc-icon">${o.icon}</div>
-        <div>
-          <div class="oc-name">${o.name}</div>
-          <div class="oc-en">${o.en}</div>
-        </div>
+        <div class="oc-icon">\${escHTML(o.icon)}</div>
+        <div><div class="oc-name">\${escHTML(o.name)}</div><div class="oc-en">\${escHTML(o.en)}</div></div>
       </div>
-      <div class="oc-score"><b>${o.score}</b><span>/100</span></div>
-      <div class="mini-bar"><i style="width:${o.score}%"></i></div>
-      <div style="margin-top:9px"><span class="tag ${cls}">${o.risk}</span></div>
-    </div>`;
-  }).join('');
+      <div class="organ-card__system">\${escHTML(o.sys)}</div>
+      <div class="organ-card__function">\${escHTML(o.fn)}</div>
+      <span class="tag cy">解剖知识</span>
+    </button>\`).join('');
 }
 
 function openOrgan(id){
   const o = ORGANS.find(x => x.id === id);
-  if (!o) return;
-  const cls = o.lv === 1 ? 'ok' : o.lv === 2 ? 'wn' : 'dg';
-  const maxS = Math.max(...o.history.map(h => h.s));
-  const minS = Math.min(...o.history.map(h => h.s));
-  const spark = sparkSVG(o.history.map(h => h.s), o.lv === 1 ? '#34d399' : o.lv === 2 ? '#fbbf24' : '#f87171');
-
-  document.getElementById('modalCard').innerHTML = `
+  if(!o) return;
+  document.getElementById('modalCard').innerHTML = \`
     <button class="modal-close" onclick="closeModal()">✕</button>
-    <div style="display:flex;align-items:center;gap:13px;margin-bottom:16px">
-      <div style="width:50px;height:50px;border-radius:15px;display:grid;place-items:center;font-size:24px;background:linear-gradient(135deg,rgba(34,211,238,.16),rgba(99,102,241,.16));border:1px solid rgba(34,211,238,.25)">${o.icon}</div>
-      <div>
-        <div style="font-size:18px;font-weight:800">${o.name} <span style="font-size:10px;color:var(--tx3);letter-spacing:1.5px">${o.en}</span></div>
-        <div style="font-size:11.5px;color:var(--tx3);margin-top:2px">${o.sys}</div>
-      </div>
-      <div style="margin-left:auto;text-align:right">
-        <div style="font-size:27px;font-weight:800;background:linear-gradient(135deg,#67e8f9,#a78bfa);-webkit-background-clip:text;background-clip:text;color:transparent">${o.score}</div>
-        <div style="font-size:9.5px;color:var(--tx3);letter-spacing:1px">健康指数</div>
-      </div>
+    <div class="health-knowledge-modal__head">
+      <div class="health-knowledge-modal__icon">\${escHTML(o.icon)}</div>
+      <div><h3>\${escHTML(o.name)} <small>\${escHTML(o.en)}</small></h3><span>\${escHTML(o.sys)}</span></div>
+      <span class="tag cy">结构知识</span>
     </div>
-
-    <div style="margin-bottom:14px"><span class="tag ${cls}">${o.risk}</span></div>
-
-    <div style="font-size:12.5px;line-height:1.8;color:var(--tx2);margin-bottom:14px">${o.desc}</div>
-
-    <div style="font-size:11.5px;color:var(--tx3);margin-bottom:6px">主要功能</div>
-    <div style="font-size:12.5px;color:#a5f3fc;margin-bottom:16px;padding:10px 12px;border-radius:10px;background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.14)">${o.fn}</div>
-
-    <div style="font-size:11.5px;color:var(--tx3);margin-bottom:8px">关键指标</div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:16px">
-      ${o.metrics.map(m => `
-        <div style="padding:10px;border-radius:11px;background:rgba(255,255,255,.035);border:1px solid var(--line);text-align:center">
-          <div style="font-size:10.5px;color:var(--tx3)">${m.k}</div>
-          <div style="font-size:13.5px;font-weight:700;margin-top:4px;color:var(--cy)">${m.v}</div>
-        </div>`).join('')}
-    </div>
-
-    <div style="font-size:11.5px;color:var(--tx3);margin-bottom:8px">检测趋势</div>
-    <div style="padding:12px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid var(--line);margin-bottom:16px">
-      <div style="height:36px">${spark}</div>
-      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--tx3);margin-top:6px">
-        ${o.history.map(h => `<span>${h.d} · ${h.s}</span>`).join('')}
-      </div>
-    </div>
-
-    <div style="font-size:11.5px;color:var(--tx3);margin-bottom:8px">改善建议</div>
-    ${o.advice.map(a => `
-      <div style="display:flex;gap:8px;font-size:12.5px;line-height:1.7;color:var(--tx2);margin-bottom:7px">
-        <span style="color:var(--cy)">▸</span><span>${a}</span>
-      </div>`).join('')}
-
-    <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--line);font-size:10px;color:#3d5570;text-align:center;line-height:1.7">
-      数据来源：AI 健康分析引擎 · 本内容仅供健康参考
-    </div>
-  `;
+    <p class="health-knowledge-modal__description">\${escHTML(o.desc)}</p>
+    <section class="health-knowledge-modal__function">
+      <small>主要生理功能 · 教育参考</small><strong>\${escHTML(o.fn)}</strong>
+    </section>
+    <section class="health-knowledge-modal__boundary">
+      <strong>与个人健康记录分开</strong>
+      <p>此卡片描述一般解剖与生理知识，不包含器官检测结果、健康指数、疾病风险或个体化改善建议。当前没有可验证的器官级临床数据输入。</p>
+      <button type="button" class="btn primary" onclick="closeModal();go('records')">查看本机观察记录</button>
+    </section>
+    <div class="health-knowledge-modal__source">解剖知识示意 · 非医学影像 · 非诊断结果</div>
+  \`;
   document.getElementById('modal').classList.add('show');
 }
 
-function closeModal(){
-  document.getElementById('modal').classList.remove('show');
-}
-
-/* ---------------- 血管循环 ---------------- */
-const VESSEL_METRICS = [
-  { lb:'血压', v:'126/82', u:'mmHg', c:'var(--ok)', d:'正常' },
-  { lb:'血氧', v:'98', u:'%', c:'var(--ok)', d:'稳定' },
-  { lb:'脉搏', v:'72', u:'bpm', c:'var(--ok)', d:'规律' },
-  { lb:'HRV', v:'46', u:'ms', c:'var(--wn)', d:'偏低' },
-  { lb:'循环指数', v:'88', u:'', c:'var(--cy)', d:'良好' },
-  { lb:'动脉硬化指数', v:'1.12', u:'', c:'var(--ok)', d:'正常' }
-];
-
+/* ---------------- 循环系统观察与结构参考 ---------------- */
 function renderVesselMetrics(){
-  document.getElementById('vesselMetrics').innerHTML = VESSEL_METRICS.map(m => `
-    <div class="metric-card glass">
-      <div class="lb">${m.lb}</div>
-      <div class="delta" style="color:${m.c}">${m.d}</div>
-      <div class="vv">${m.v}<small>${m.u}</small></div>
-    </div>`).join('');
+  const host = document.getElementById('vesselMetrics');
+  if(!host) return;
+  if(observationDomainUnavailable || observationStorageRecoveryRequired){
+    host.innerHTML = '<div class="health-observation-empty">记录校验暂不可用，已暂停显示观察值以保护本机数据。</div>';
+    return;
+  }
+  const keywords = /blood.?pressure|systolic|diastolic|heart.?rate|resting.?heart|pulse|spo2|oxygen.?saturation|hrv|血压|心率|脉搏|血氧|血氧饱和|心率变异/i;
+  const rows = (Array.isArray(window.healthObservations) ? window.healthObservations : [])
+    .filter(row => row && row.recordState === 'active' &&
+      typeof row.metric === 'string' && keywords.test(row.metric) &&
+      Number.isFinite(row.value) && typeof row.unit === 'string' && row.unit.trim())
+    .sort((a,b) => Date.parse(b.observedAt) - Date.parse(a.observedAt))
+    .slice(0,8);
+  if(!rows.length){
+    host.innerHTML = '<div class="health-observation-empty"><strong>暂无循环系统相关的有效观察值</strong><span>录入或导入具备来源、测量时间和单位的记录后，这里会显示原始值；不会填入默认血压、血氧或心率。</span><button type="button" class="btn sm" onclick="go(\\'records\\')">新增观察记录</button></div>';
+    return;
+  }
+  const labels = {measured:'实测',reported:'本人报告',imported:'文件导入',demo:'演示'};
+  host.innerHTML = rows.map(row => {
+    const date = new Date(row.observedAt);
+    const dateText = Number.isFinite(date.getTime()) ? date.toLocaleString('zh-CN',{hour12:false}) : row.observedAt;
+    return '<article class="metric-card glass health-observation-metric">' +
+      '<span class="lb">' + escHTML(row.metric) + '</span>' +
+      '<strong class="vv">' + escHTML(row.value) + '<small>' + escHTML(row.unit) + '</small></strong>' +
+      '<span class="health-observation-metric__meta">' + escHTML(dateText) + ' · ' +
+      escHTML(labels[row.quality] || row.quality || '来源未分类') + '</span>' +
+      '<span class="health-observation-metric__source">来源：' + escHTML(row.source) + '</span></article>';
+  }).join('');
 }
 
 function buildVesselPage(){
-  const vessels = [
-    { n:'脑血管', s:'血流速度 62 cm/s', st:'良好', lv:1 },
-    { n:'冠状动脉', s:'钙化积分 12', st:'良好', lv:1 },
-    { n:'主动脉', s:'内径 3.2 cm', st:'正常', lv:1 },
-    { n:'静脉系统', s:'回流功能良好', st:'正常', lv:1 },
-    { n:'微循环系统', s:'甲襞微循环 轻度异常', st:'需关注', lv:2 }
+  const host = document.getElementById('vesselMap');
+  if(!host) return;
+  const structures = [
+    ['主动脉','将血液从左心室输送至全身循环。'],
+    ['冠状动脉','为心肌组织提供血液供应。'],
+    ['颈动脉','为头颈部提供主要动脉供血。'],
+    ['脑血管','参与脑组织的动脉供血与静脉回流。'],
+    ['肺循环','连接右心与肺部气体交换血管床。'],
+    ['静脉系统','将外周血液回流至心脏。']
   ];
-  document.getElementById('vesselMap').innerHTML = vessels.map(v => `
-    <div style="display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--line)">
-      <div style="width:7px;height:7px;border-radius:50%;background:${v.lv===1?'var(--ok)':'var(--wn)'};box-shadow:0 0 9px ${v.lv===1?'var(--ok)':'var(--wn)'}"></div>
-      <div style="flex:1">
-        <div style="font-size:13px;font-weight:600">${v.n}</div>
-        <div style="font-size:11px;color:var(--tx3);margin-top:2px">${v.s}</div>
-      </div>
-      <span class="tag ${v.lv===1?'ok':'wn'}">${v.st}</span>
-    </div>`).join('');
+  host.innerHTML = '<div class="health-vessel-structure-grid">' + structures.map((item,index) =>
+    '<article><span>0' + (index + 1) + '</span><strong>' + escHTML(item[0]) +
+    '</strong><p>' + escHTML(item[1]) + '</p></article>'
+  ).join('') + '</div><p class="health-vessel-structure-note">结构描述仅用于解剖教育；本图不显示狭窄、钙化、血流速度或其他未由影像/检测报告证实的个体状态。</p>';
 }
 
-/* ---------------- 经络中心 ---------------- */
+/* ---------------- 经络路径教育参考 ---------------- */
 function buildMeridianPage(){
   renderMeridianHeat();
-
-  document.getElementById('meridianList12').innerHTML = MERIDIANS_12.map(m => {
-    const cls = m.energy >= 80 ? 'ok' : m.energy >= 72 ? 'wn' : 'dg';
-    return `
-    <div class="list-item" onclick="openMeridian('${m.name}', ${m.energy}, '${m.status}', '${m.path}', '${m.time}', '${m.organ}')">
-      <div class="li-icon">〰️</div>
-      <div class="li-main">
-        <div class="li-t">${m.name} <span class="tag ${cls}">${m.status}</span></div>
-        <div class="li-s">${m.time} · 关联器官：${m.organ}</div>
-      </div>
-      <div class="li-v" style="color:${m.energy>=80?'var(--ok)':m.energy>=72?'var(--wn)':'var(--dg)'}">${m.energy}</div>
-    </div>`;
-  }).join('');
-
-  document.getElementById('meridianList8').innerHTML = MERIDIANS_8.map(m => {
-    const cls = m.energy >= 80 ? 'ok' : m.energy >= 74 ? 'wn' : 'dg';
-    return `
-    <div class="list-item" onclick="openMeridian('${m.name}', ${m.energy}, '${m.status}', '${m.path}', '奇经八脉', '—')">
-      <div class="li-icon"></div>
-      <div class="li-main">
-        <div class="li-t">${m.name} <span class="tag ${cls}">${m.status}</span></div>
-        <div class="li-s">${m.path.slice(0, 30)}…</div>
-      </div>
-      <div class="li-v" style="color:${m.energy>=80?'var(--ok)':m.energy>=74?'var(--wn)':'var(--dg)'}">${m.energy}</div>
-    </div>`;
-  }).join('');
+  const renderList = (rows, category) => rows.map(m =>
+    '<button type="button" class="list-item meridian-reference-row" onclick="openMeridian(' +
+      "'" + escHTML(m.name) + "','" + escHTML(m.path) + "','" + escHTML(category === '十二正经' ? m.time : '奇经八脉') + "','" +
+      escHTML(m.organ || '传统理论分类') + "'" + ')">' +
+      '<span class="li-icon">〰️</span><span class="li-main"><strong>' + escHTML(m.name) + '</strong>' +
+      '<small>' + escHTML(m.time || m.path.slice(0,42) + '…') + '</small></span>' +
+      '<span class="tag cy">理论路径</span></button>'
+  ).join('');
+  document.getElementById('meridianList12').innerHTML = renderList(MERIDIANS_12,'十二正经');
+  document.getElementById('meridianList8').innerHTML = renderList(MERIDIANS_8,'奇经八脉');
 }
 
 function renderMeridianHeat(){
-  const el = document.getElementById('meridianHeat');
-  const items = [...MERIDIANS_12.slice(0, 8).map(m => ({ n:m.name, e:m.energy })),
-                 ...MERIDIANS_8.slice(0, 4).map(m => ({ n:m.name, e:m.energy }))];
-  el.innerHTML = `
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:9px">
-      ${items.map(it => {
-        const c = it.e >= 82 ? '#34d399' : it.e >= 74 ? '#22d3ee' : it.e >= 68 ? '#fbbf24' : '#f87171';
-        return `<div style="padding:10px 4px;border-radius:11px;text-align:center;
-            background:${c}1a;border:1px solid ${c}44;transition:.25s" title="能量值 ${it.e}">
-          <div style="font-size:12px;font-weight:600;color:${c}">${it.n}</div>
-          <div style="font-size:15px;font-weight:800;color:${c};margin-top:3px">${it.e}</div>
-        </div>`;
-      }).join('')}
-    </div>
-    <div style="display:flex;gap:14px;margin-top:14px;font-size:10.5px;color:var(--tx3);flex-wrap:wrap">
-      <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#34d399;margin-right:4px"></i>能量充足 ≥82</span>
-      <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#22d3ee;margin-right:4px"></i>正常 74–81</span>
-      <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#fbbf24;margin-right:4px"></i>需关注 68–73</span>
-      <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#f87171;margin-right:4px"></i>堵塞风险 &lt;68</span>
-    </div>`;
+  const host = document.getElementById('meridianHeat');
+  if(!host) return;
+  const items = [
+    ...MERIDIANS_12.map(m => ({name:m.name,group:'十二正经'})),
+    ...MERIDIANS_8.map(m => ({name:m.name,group:'奇经八脉'}))
+  ];
+  host.innerHTML = '<div class="health-meridian-reference-grid">' + items.map((item,index) =>
+    '<article><span>0' + (index + 1) + '</span><strong>' + escHTML(item.name) +
+    '</strong><small>' + item.group + '</small></article>'
+  ).join('') + '</div><p class="health-meridian-reference-note">此处为传统医学经脉名称索引，不存在“能量值”“堵塞分数”或基于个人体征推断的经络状态。</p>';
 }
 
-function openMeridian(name, energy, status, path, time, organ){
-  const cls = energy >= 80 ? 'ok' : energy >= 72 ? 'wn' : 'dg';
-  document.getElementById('modalCard').innerHTML = `
+function openMeridian(name,path,time,organ){
+  document.getElementById('modalCard').innerHTML = \`
     <button class="modal-close" onclick="closeModal()">✕</button>
-    <div style="display:flex;align-items:center;gap:13px;margin-bottom:16px">
-      <div style="width:50px;height:50px;border-radius:15px;display:grid;place-items:center;font-size:23px;background:linear-gradient(135deg,rgba(251,191,36,.14),rgba(34,211,238,.14));border:1px solid rgba(251,191,36,.25)">〰️</div>
-      <div>
-        <div style="font-size:18px;font-weight:800">${name}</div>
-        <div style="font-size:11.5px;color:var(--tx3);margin-top:2px">${time}</div>
-      </div>
-      <div style="margin-left:auto;text-align:right">
-        <div style="font-size:26px;font-weight:800;color:var(--cy)">${energy}</div>
-        <div style="font-size:9.5px;color:var(--tx3);letter-spacing:1px">演示能量值</div>
-      </div>
+    <div class="health-knowledge-modal__head">
+      <div class="health-knowledge-modal__icon">〰️</div>
+      <div><h3>\${escHTML(name)}</h3><span>\${escHTML(time)}</span></div>
+      <span class="tag cy">传统理论</span>
     </div>
-    <div style="margin-bottom:14px"><span class="tag ${cls}">${status}</span></div>
-    <div style="font-size:11.5px;color:var(--tx3);margin-bottom:6px">循行路线</div>
-    <div style="font-size:12.5px;line-height:1.85;color:var(--tx2);padding:12px;border-radius:11px;background:rgba(255,255,255,.03);border:1px solid var(--line);margin-bottom:16px">${path}</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
-      <div style="padding:12px;border-radius:11px;background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.16)">
-        <div style="font-size:10.5px;color:var(--tx3)">关联器官</div>
-        <div style="font-size:14px;font-weight:700;margin-top:4px">${organ}</div>
-      </div>
-      <div style="padding:12px;border-radius:11px;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2)">
-        <div style="font-size:10.5px;color:var(--tx3)">预设堵塞提示</div>
-        <div style="font-size:14px;font-weight:700;margin-top:4px;color:${cls==='dg'?'var(--dg)':cls==='wn'?'var(--wn)':'var(--ok)'}">
-          ${energy < 68 ? '高' : energy < 74 ? '中' : '低'}
-        </div>
-      </div>
-    </div>
-    <div style="font-size:11.5px;color:var(--tx3);margin-bottom:8px">调理建议</div>
-    <div style="font-size:12.5px;line-height:1.8;color:var(--tx2)">
-      ▸ 于当令时段（${time.split(' ')[0]}）保持静息或浅睡，利于经气运行<br>
-      ▸ 每日沿经络走向推按 3–5 分钟，力度以微酸胀为宜<br>
-      ▸ 配合对应原穴艾灸，每次 10–15 分钟<br>
-      ▸ 避免寒凉饮食与情绪剧烈波动
-    </div>
-  `;
+    <section class="health-knowledge-modal__function"><small>关联脏腑 · 理论分类</small><strong>\${escHTML(organ)}</strong></section>
+    <p class="health-knowledge-modal__description">\${escHTML(path)}</p>
+    <section class="health-knowledge-modal__boundary"><strong>医学边界说明</strong><p>经脉循行属于传统中医理论内容。本页面用于资料浏览与学习，不把经络概念解释为已经验证的解剖结构、实时生理能量或疾病诊断结果。</p></section>
+  \`;
   document.getElementById('modal').classList.add('show');
 }
 
@@ -1345,69 +1259,7 @@ function showResult(holder, r){
   document.getElementById('chat').scrollTop = 1e9;
 }
 
-/* ---------------- 健康报告 ---------------- */
-const SCORE_PARTS = [
-  { k:'器官健康', v:28, max:30, c:'#22d3ee' },
-  { k:'循环系统', v:16, max:20, c:'#3b82f6' },
-  { k:'经络系统', v:17, max:20, c:'#8b5cf6' },
-  { k:'睡眠质量', v:7,  max:10, c:'#34d399' },
-  { k:'运动指数', v:8,  max:10, c:'#fbbf24' },
-  { k:'心理压力', v:8,  max:10, c:'#f472b6' }
-];
-
-function renderScoreBars(){
-  document.getElementById('scoreBars').innerHTML = SCORE_PARTS.map(p => `
-    <div class="bar-row">
-      <div class="br-top"><span>${p.k}</span><b>${p.v} / ${p.max}</b></div>
-      <div class="bar-track"><i style="width:${(p.v / p.max * 100).toFixed(0)}%;background:linear-gradient(90deg,${p.c},${p.c}99);box-shadow:0 0 10px ${p.c}88"></i></div>
-    </div>`).join('');
-}
-
-function renderRadar(){
-  const cx = 120, cy = 108, R = 74;
-  const labels = ['器官','循环','经络','睡眠','运动','心理'];
-  const values = [0.93, 0.80, 0.85, 0.70, 0.80, 0.80];
-  const n = labels.length;
-
-  const pt = (i, r) => {
-    const a = -Math.PI / 2 + i * 2 * Math.PI / n;
-    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
-  };
-
-  let grid = '';
-  [0.25, 0.5, 0.75, 1].forEach(k => {
-    const pts = labels.map((_, i) => pt(i, R * k).join(',')).join(' ');
-    grid += `<polygon points="${pts}" fill="none" stroke="rgba(64,200,255,${k === 1 ? .3 : .12})" stroke-width="1"/>`;
-  });
-
-  let axes = '';
-  labels.forEach((l, i) => {
-    const [x, y] = pt(i, R);
-    axes += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="rgba(64,200,255,.14)" stroke-width="1"/>`;
-    const [lx, ly] = pt(i, R + 17);
-    axes += `<text x="${lx}" y="${ly + 3}" text-anchor="middle" font-size="10.5" fill="#8aa3c4">${l}</text>`;
-  });
-
-  const poly = values.map((v, i) => pt(i, R * v).join(',')).join(' ');
-  let dots = '';
-  values.forEach((v, i) => {
-    const [x, y] = pt(i, R * v);
-    dots += `<circle cx="${x}" cy="${y}" r="3.2" fill="#22d3ee" stroke="#04070f" stroke-width="1.5"/>`;
-  });
-
-  document.getElementById('radarSvg').innerHTML = `
-    <defs>
-      <linearGradient id="radarFill" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stop-color="#22d3ee" stop-opacity=".42"/>
-        <stop offset="100%" stop-color="#8b5cf6" stop-opacity=".32"/>
-      </linearGradient>
-    </defs>
-    ${grid}${axes}
-    <polygon points="${poly}" fill="url(#radarFill)" stroke="#22d3ee" stroke-width="1.8"
-             style="filter:drop-shadow(0 0 7px rgba(34,211,238,.6))"/>
-    ${dots}
-  `;
-}
+/* ---------------- 个人观察趋势报告（不计算未经验证的总分） ---------------- */
 
 function buildObservationTrendSeries(history, limit = 3) {
   if (!Array.isArray(history)) return null;
