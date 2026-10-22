@@ -209,47 +209,22 @@ const ACUPOINTS = ACU_RAW.map((a, i) => ({
   id: i + 1, meridian: a[0], name: a[1], position: a[2], effect: a[3], indications: a[4]
 }));
 
-const SYMPTOM_DB = [
-  { kw:['头晕','眩晕','头昏'], organ:'脑 / 肝脏', meridian:'肝经', risk:'中风险', lv:2,
-    note:'肝阳上亢或脑供血不足表现，与肝经能量下降相关',
-    advice:'监测血压与颈椎状况，避免熬夜，每日按压太冲穴 3 分钟' },
-  { kw:['头痛','偏头痛'], organ:'肝脏', meridian:'肝经 / 胆经', risk:'中风险', lv:2,
-    note:'情志不畅或胆经循行受阻常见',
-    advice:'规律作息，减少屏幕使用，可按摩风池、太阳穴' },
-  { kw:['失眠','睡不着','多梦','易醒'], organ:'心脏 / 肝脏', meridian:'心经 / 肝经', risk:'中风险', lv:2,
-    note:'心肝血虚或心肾不交，交感神经过度兴奋',
-    advice:'睡前 1 小时远离电子屏幕，按压神门穴与三阴交各 3 分钟' },
-  { kw:['胃胀','腹胀','消化不良','胃痛'], organ:'胃 / 脾', meridian:'胃经 / 脾经', risk:'中风险', lv:2,
-    note:'胃动力不足，胃经能量偏低',
-    advice:'少食多餐、细嚼慢咽，按揉足三里与中脘穴，饭后散步 15 分钟' },
-  { kw:['胸闷','心悸','心慌'], organ:'心脏', meridian:'心包经 / 心经', risk:'中风险', lv:2,
-    note:'心包经气机不畅，需关注心血管指标',
-    advice:'立即检测血压与心率，必要时进行心电图检查；按压内关穴' },
-  { kw:['咳嗽','气短','咳痰'], organ:'肺', meridian:'肺经', risk:'低风险', lv:1,
-    note:'肺经宣发肃降功能减弱',
-    advice:'保持室内湿度，进行腹式呼吸训练，可按揉肺俞与列缺穴' },
-  { kw:['乏力','疲劳','没力气','疲倦'], organ:'脾 / 肾', meridian:'脾经 / 肾经', risk:'中风险', lv:2,
-    note:'脾气虚弱、气血生化不足',
-    advice:'保证睡眠，补充优质蛋白与 B 族维生素，艾灸足三里与关元穴' },
-  { kw:['腰痛','腰酸','腰疼'], organ:'肾', meridian:'肾经 / 膀胱经', risk:'中风险', lv:2,
-    note:'肾气不足或腰肌劳损',
-    advice:'避免久坐，每日做小燕飞 3 组，按揉肾俞与委中穴' },
-  { kw:['便秘','排便困难'], organ:'大肠', meridian:'大肠经', risk:'中风险', lv:2,
-    note:'肠道蠕动减慢，菌群可能失衡',
-    advice:'每日饮水 2000mL，增加膳食纤维，顺时针按摩腹部 5 分钟' },
-  { kw:['眼干','眼涩','视物模糊','眼疲劳'], organ:'肝脏', meridian:'肝经', risk:'低风险', lv:1,
-    note:'肝血不足，久视伤血',
-    advice:'每用眼 40 分钟远眺 5 分钟，按揉睛明、攒竹穴' },
-  { kw:['耳鸣','耳聋'], organ:'肾', meridian:'肾经 / 三焦经', risk:'中风险', lv:2,
-    note:'肾开窍于耳，肾精亏虚或三焦经气滞',
-    advice:'避免长期噪声暴露，按压耳门、听宫、翳风穴' },
-  { kw:['焦虑','烦躁','情绪低落','压力大'], organ:'肝脏', meridian:'肝经 / 心包经', risk:'中风险', lv:2,
-    note:'肝气郁结，自主神经功能紊乱',
-    advice:'每日 15 分钟正念呼吸，增加户外运动，按揉太冲与内关穴' },
-  { kw:['怕冷','手脚冰凉'], organ:'肾 / 脾', meridian:'肾经 / 任脉', risk:'中风险', lv:2,
-    note:'阳气不足，末梢循环欠佳',
-    advice:'睡前泡脚 15 分钟，艾灸关元、命门穴，适当增加温性食物' },
-  { kw:['多汗','盗汗','自汗'], organ:'肺 / 肾', meridian:'肺经 / 肾经', risk:'中风险', lv:2,
-    note:'卫气不固或阴虚火旺',
-    advice:'注意固表止汗，可按揉复溜与合谷穴，必要时就诊中医科' }
+/* Official public symptom-information directories.
+   This UI deliberately does not infer diagnoses, affected organs, meridians,
+   or risk levels from free-text symptom descriptions. */
+const SYMPTOM_REFERENCE_SOURCES = [
+  {
+    id: 'medlineplus',
+    label: 'MedlinePlus · Symptoms',
+    organization: 'U.S. National Library of Medicine',
+    description: '公共症状资料目录，可进一步查看症状、疾病主题及健康信息。',
+    url: 'https://medlineplus.gov/symptoms.html'
+  },
+  {
+    id: 'nhs',
+    label: 'NHS · Symptoms A to Z',
+    organization: 'UK National Health Service',
+    description: '按症状字母索引查看公共健康信息和何时寻求医疗帮助。',
+    url: 'https://www.nhs.uk/symptoms/'
+  }
 ];
