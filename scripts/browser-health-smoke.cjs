@@ -33,21 +33,22 @@ const { chromium } = require('playwright');
     await page.locator('.login-actions button').click();
     await page.waitForFunction(() => document.querySelector('#shell')?.classList.contains('show'));
     const clinicalHome = await page.evaluate(() => {
-      const page = document.querySelector('#pages .page.active[data-page="home"]');
-      const snapshot = page?.querySelector('#personalRecordSnapshot');
-      const headings = [...(page?.querySelectorAll('.sec-title') || [])];
-      const demoVitals = headings.find(node => node.textContent.includes('今日体征'));
+      const home = document.querySelector('#pages .page.active[data-page="home"]');
+      const text = home?.innerText || '';
       return {
-        command: !!page?.querySelector('.health-data-command'),
-        hasVerifiedRecordSpace: !!snapshot,
-        recordsBeforeSampleVitals: !!snapshot && !!demoVitals &&
-          !!(snapshot.compareDocumentPosition(demoVitals) & Node.DOCUMENT_POSITION_FOLLOWING),
-        oldEmptyScoreRing: !!page?.querySelector('.score-card')
+        command: !!home?.querySelector('.health-data-command'),
+        recordSnapshot: !!home?.querySelector('#personalRecordSnapshot'),
+        dashboard: !!home?.querySelector('.health-home-dashboard'),
+        provenanceRules: !!home?.querySelector('.health-home-trust'),
+        moduleGrid: !!home?.querySelector('#quickGrid .quick-item'),
+        fabricatedData: /今日体征|综合健康总分|126\/82|72 bpm|84 分/.test(text),
+        oldScoreRing: !!home?.querySelector('.score-card')
       };
     });
-    if (!clinicalHome.command || !clinicalHome.hasVerifiedRecordSpace ||
-        !clinicalHome.recordsBeforeSampleVitals || clinicalHome.oldEmptyScoreRing) {
-      throw new Error('Health home is not a record-first clinical workspace: ' + JSON.stringify(clinicalHome));
+    if (!clinicalHome.command || !clinicalHome.recordSnapshot || !clinicalHome.dashboard ||
+        !clinicalHome.provenanceRules || !clinicalHome.moduleGrid ||
+        clinicalHome.fabricatedData || clinicalHome.oldScoreRing) {
+      throw new Error('Health home is not the record-first personal data workspace: ' + JSON.stringify(clinicalHome));
     }
     const healthLayout = await page.locator('#shell').evaluate(node => ({
       display: getComputedStyle(node).display,
@@ -226,14 +227,34 @@ const { chromium } = require('playwright');
     await page.locator('#navList .nav-item[data-nav="report"]').click();
     await page.waitForFunction(() => document.querySelector('#pages .page.active[data-page="report"]'));
     const reportText = await page.locator('#pages .page.active').innerText();
-    if (!reportText.includes('数据') || !reportText.includes('示例')) {
-      throw new Error('Health report must retain its example-data and provenance context');
+    if (!reportText.includes('近期有效记录趋势') ||
+        !reportText.includes('至少两次有效观察记录') ||
+        reportText.includes('综合健康总分') || reportText.includes('六维能力雷达')) {
+      throw new Error('Health report still relies on synthetic scorecards instead of valid observation trends');
     }
 
     await page.locator('#navList .nav-item[data-nav="body"]').click();
     await page.waitForFunction(() => document.querySelector('#pages .page.active[data-page="body"]'));
     if (!(await page.locator('#pages .page.active').innerText()).trim()) {
       throw new Error('Digital human educational view did not render');
+    }
+    const organNavCount = await page.locator('#navList .nav-item[data-nav="organ"]').count();
+    if (!organNavCount) throw new Error('Anatomy knowledge workspace navigation is missing');
+    await page.locator('#navList .nav-item[data-nav="organ"]').click();
+    await page.waitForFunction(() => document.querySelectorAll('#pages .page.active .organ-card').length === 12);
+    await page.locator('#pages .page.active .organ-card').first().click();
+    const organModalText = await page.locator('#modalCard').innerText();
+    if (!organModalText.includes('主要生理功能') || organModalText.includes('健康指数') ||
+        organModalText.includes('风险评分')) {
+      throw new Error('Organ education details still display fabricated personal scores: ' + organModalText);
+    }
+    await page.locator('#modal .modal-close').click();
+    await page.locator('#navList .nav-item[data-nav="meridian"]').click();
+    await page.waitForFunction(() => document.querySelectorAll('#pages .page.active .meridian-reference-row').length >= 20);
+    const meridianText = await page.locator('#pages .page.active').innerText();
+    if (meridianText.includes('能量值') || meridianText.includes('堵塞风险') ||
+        meridianText.includes('轻度堵塞')) {
+      throw new Error('Meridian education reference still uses synthetic energy or blockage states');
     }
 
     await page.setViewportSize({ width: 390, height: 844 });
