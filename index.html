@@ -14,9 +14,9 @@
   <link rel="stylesheet" href="./assets/css/product-system-v9.css?v=20261019-v9">
 <link rel="stylesheet" href="./assets/css/health-data-workspace.css?v=20261020-v3">
 <link rel="stylesheet" href="./assets/css/reference-interface-v1.css?v=20261021-reference-ui-v2">
-<link rel="stylesheet" href="./assets/css/readability-accessibility-v10.css?v=20261021-v10">
+<style>.skip-link{position:fixed;top:12px;left:16px;z-index:10000;transform:translateY(-180%);padding:12px 16px;border:2px solid #f59e0b;border-radius:9px;background:#fff;color:#14202b;font-weight:700;text-decoration:none;box-shadow:0 8px 24px rgba(0,0,0,.24)}.skip-link:focus{transform:translateY(0);outline:3px solid #f59e0b;outline-offset:3px}.skip-link[hidden]{display:none}</style><link rel="stylesheet" href="./assets/css/readability-accessibility-v10.css?v=20261021-v10">
 </head>
-<body data-workspace="health">
+<body data-workspace="health"><a class="skip-link" id="skipMain" href="#main-content" hidden>跳过侧边导航，进入主要内容</a>
 
 <!-- ============ 启动页 ============ -->
 <div class="splash" id="splash">
@@ -72,7 +72,7 @@
   </aside>
 
   <!-- 主区域 -->
-  <div class="main">
+  <div class="main" role="main" id="main-content" tabindex="-1">
     <header class="topbar">
       <div>
         <div class="title" id="pageTitle">健康总览<small id="pageSub">DASHBOARD</small></div>
