@@ -37,6 +37,23 @@ const { chromium } = require('playwright');
     }
     await page.locator('.login-actions button').click();
     await page.waitForFunction(() => document.querySelector('#shell')?.classList.contains('show'));
+    const clinicalHome = await page.evaluate(() => {
+      const page = document.querySelector('#pages .page.active[data-page="home"]');
+      const snapshot = page?.querySelector('#personalRecordSnapshot');
+      const headings = [...(page?.querySelectorAll('.sec-title') || [])];
+      const demoVitals = headings.find(node => node.textContent.includes('今日体征'));
+      return {
+        command: !!page?.querySelector('.health-data-command'),
+        hasVerifiedRecordSpace: !!snapshot,
+        recordsBeforeSampleVitals: !!snapshot && !!demoVitals &&
+          !!(snapshot.compareDocumentPosition(demoVitals) & Node.DOCUMENT_POSITION_FOLLOWING),
+        oldEmptyScoreRing: !!page?.querySelector('.score-card')
+      };
+    });
+    if (!clinicalHome.command || !clinicalHome.hasVerifiedRecordSpace ||
+        !clinicalHome.recordsBeforeSampleVitals || clinicalHome.oldEmptyScoreRing) {
+      throw new Error('Health home is not a record-first clinical workspace: ' + JSON.stringify(clinicalHome));
+    }
     const healthLayout = await page.locator('#shell').evaluate(node => ({
       display: getComputedStyle(node).display,
       columns: getComputedStyle(node).gridTemplateColumns
