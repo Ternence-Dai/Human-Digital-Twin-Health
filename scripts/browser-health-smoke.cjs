@@ -257,8 +257,36 @@ const { chromium } = require('playwright');
     await page.waitForFunction(() => document.querySelectorAll('#pages .page.active .meridian-reference-row').length >= 20);
     const meridianText = await page.locator('#pages .page.active').innerText();
     if (meridianText.includes('能量值') || meridianText.includes('堵塞风险') ||
-        meridianText.includes('轻度堵塞')) {
-      throw new Error('Meridian education reference still uses synthetic energy or blockage states');
+        meridianText.includes('轻度堵塞') ||
+        !meridianText.includes('WHO ICD-11') ||
+        !meridianText.includes('不代表对任何传统医学实践科学有效性')) {
+      throw new Error('Meridian education reference must remain separate from physiology and disclose WHO classification scope');
+    }
+
+    // The symptom page is an official-source directory, not a local symptom
+    // classifier. Verify a chest-symptom query cannot produce an organ/meridian
+    // attribution, risk label, or fabricated advice.
+    await page.locator('#navList .nav-item[data-nav="ai"]').click();
+    await page.waitForFunction(() => document.querySelector('#pages .page.active[data-page="ai"]'));
+    const symptomQuery = '胸痛 <img src=x onerror=alert(1)>';
+    await page.locator('#chatInput').fill(symptomQuery);
+    await page.locator('#pages .page.active button').filter({ hasText: '查看资料入口' }).click();
+    await page.waitForSelector('#chat .symptom-reference-result');
+    const symptomEvidence = await page.evaluate(() => {
+      const result = document.querySelector('#chat .symptom-reference-result');
+      return {
+        text: result?.innerText || '',
+        links: [...(result?.querySelectorAll('a[href]') || [])].map(node => node.href),
+        injectedImages: result?.querySelectorAll('img').length || 0
+      };
+    });
+    if (!symptomEvidence.text.includes('胸痛') ||
+        !symptomEvidence.links.includes('https://medlineplus.gov/symptoms.html') ||
+        !symptomEvidence.links.includes('https://www.nhs.uk/symptoms/') ||
+        symptomEvidence.injectedImages !== 0 ||
+        /相关器官|相关经络|风险等级|中风险|低风险|关键词匹配完成|穴位建议/.test(symptomEvidence.text)) {
+      throw new Error('Symptom source directory produced classifications or failed safe official navigation: ' +
+        JSON.stringify(symptomEvidence));
     }
 
     await page.setViewportSize({ width: 390, height: 844 });
