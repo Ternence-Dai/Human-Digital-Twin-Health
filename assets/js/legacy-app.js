@@ -44,9 +44,7 @@ window.addEventListener('load', async () => {
   renderObservations();
   buildObservationAmendmentControls();
   buildNav();
-  buildQuickGrid();
-  buildHomeMetrics();
-  buildHuman();
+  buildQuickGrid();buildHuman();
   buildLayerCtrl();
   buildPersonaRow();
   buildOrganGrid();
@@ -703,22 +701,6 @@ function buildQuickGrid(){
     <div class="quick-item glass" onclick="go('${it.k}')">
       <div class="qi">${it.i}</div>
       <div class="qt">${it.t}</div>
-    </div>`).join('');
-}
-
-function buildHomeMetrics(){
-  const metrics = [
-    { lb:'心率', v:'72', u:'bpm', d:'+3', c:'var(--wn)', spark:[60,64,62,70,68,72,72] },
-    { lb:'血压', v:'126/82', u:'mmHg', d:'正常', c:'var(--ok)', spark:[118,120,124,122,126,124,126] },
-    { lb:'血氧', v:'98', u:'%', d:'稳定', c:'var(--ok)', spark:[97,98,98,97,98,99,98] },
-    { lb:'睡眠', v:'7.2', u:'h', d:'+0.4', c:'var(--ok)', spark:[6.2,6.8,6.5,7.0,6.9,7.1,7.2] }
-  ];
-  document.getElementById('homeMetrics').innerHTML = metrics.map(m => `
-    <div class="metric-card glass">
-      <div class="lb">${m.lb}</div>
-      <div class="delta" style="color:${m.c}">示例 · ${m.d}</div>
-      <div class="vv">${m.v}<small>${m.u}</small></div>
-      <div class="spark">${sparkSVG(m.spark, m.c)}</div>
     </div>`).join('');
 }
 
