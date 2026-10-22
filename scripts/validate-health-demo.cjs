@@ -40,7 +40,7 @@ assert.match(html, /风险较低，也不能排除疾病/,
   'unmatched symptoms must not be presented as low risk');
 assert.match(html, /PERSONAL HEALTH RECORDS · FHIR-ALIGNED/,
   'home must be a record-first personal health workspace');
-assert.match(html, /#personalRecordSnapshot/,
+assert.match(html, /id="personalRecordSnapshot"/,
   'home must show the validated local observation snapshot');
 assert.match(html, /数据边界/,
   'home must state source, measurement and clinical interpretation boundaries');
@@ -48,7 +48,7 @@ assert.match(html, /近期有效记录趋势/,
   'report page must use the current observation-driven trend');
 assert.doesNotMatch(html, /今日体征|综合健康总分|六维能力雷达|126\/82|72 bpm|健康指数/,
   'home and report must not present fabricated patient-like vital signs or a synthetic overall score');
-assert.match(html, /数字人体结构模型/,
+assert.match(html, /图谱演示说明/,
   'digital human must be described as an anatomy education model');
 assert.match(html, /未连接真实设备/,
   'current device status must not imply a real connected device');
@@ -151,7 +151,7 @@ assert.match(html, /血管解剖结构示意/,
   'vascular page must present anatomy reference rather than fabricated measurements');
 assert.match(html, /十二正经 · 理论路径/,
   'meridian view must be identified as a traditional-theory reference');
-assert.match(html, /不把经络概念转换成生理测量/,
+assert.match(html, /不把经络概念解释为已经验证的解剖结构/,
   'meridian information must not imply measured physiology');
 assert.match(html, /本机浏览器保存 · 未连接真实设备/,
   'the current local-only storage and device status must be explicit');
