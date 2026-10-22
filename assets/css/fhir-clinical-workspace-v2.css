@@ -25,3 +25,76 @@ body[data-workspace="health"] .page.active :is(input,select,textarea){min-height
 @media(max-width:900px){body[data-workspace="health"] .shell.show{grid-template-columns:76px minmax(0,1fr)}body[data-workspace="health"] .sidebar{padding:18px 9px}body[data-workspace="health"] .brand .en,body[data-workspace="health"] .nav-foot{display:none}body[data-workspace="health"] .brand{justify-content:center}body[data-workspace="health"] .nav .nav-item{font-size:0;text-align:center;padding:12px 3px}body[data-workspace="health"] .health-intro,body[data-workspace="health"] .product-workflow,body[data-workspace="health"] #pages{margin-left:16px;margin-right:16px;padding-left:0;padding-right:0}}
 @media(max-width:640px){body[data-workspace="health"] .shell.show{display:block}body[data-workspace="health"] .sidebar{position:relative;width:auto;height:auto;min-height:0;padding:10px 12px;border-right:0;border-bottom:1px solid #285565}body[data-workspace="health"] .brand{display:none}body[data-workspace="health"] .nav{flex-direction:row;overflow:auto;padding:0}body[data-workspace="health"] .nav .nav-item{flex:0 0 auto;font-size:11px;white-space:nowrap;padding:9px 12px}body[data-workspace="health"] .health-intro{display:block;margin:14px;padding:21px}.health-state{margin-top:12px}body[data-workspace="health"] .topbar{padding:12px 16px}body[data-workspace="health"] .product-workflow{margin:0 14px 14px}body[data-workspace="health"] #pages{padding:8px 12px 28px}}
 @media(prefers-reduced-motion:reduce){body[data-workspace="health"] *{scroll-behavior:auto!important;transition:none!important}}
+
+/* V3 clinical-record cockpit — verified observations are the primary workspace */
+body[data-workspace="health"] .health-data-command{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:22px;
+  margin:0 30px 15px;padding:20px 23px;border:1px solid #bddbd6;border-left:4px solid #218b82;
+  border-radius:15px;background:linear-gradient(112deg,#e9f6f2,#f7fbf9 62%,#edf6f4);
+  box-shadow:0 10px 28px #1b5a5410
+}
+body[data-workspace="health"] .health-data-command__copy .eyebrow{color:#20877e;font-size:10px;font-weight:900;letter-spacing:.16em}
+body[data-workspace="health"] .health-data-command__copy h3{margin:5px 0;color:#153f4d;font-size:21px;letter-spacing:-.025em}
+body[data-workspace="health"] .health-data-command__copy p{max-width:820px;margin:0;color:#617f82;font-size:12px;line-height:1.75}
+body[data-workspace="health"] .health-data-command__actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+body[data-workspace="health"] .health-data-command__actions button{min-height:40px;padding:9px 13px;border:1px solid #c4deda;border-radius:9px;background:#fff;color:#28645f;font-size:11px;font-weight:750}
+body[data-workspace="health"] .health-data-command__actions button.primary{border-color:#167f78;background:linear-gradient(135deg,#168f84,#14726f);color:#fff;box-shadow:0 7px 18px #17877a2a}
+body[data-workspace="health"] .health-data-command__actions button:hover{transform:translateY(-1px);box-shadow:0 7px 16px #174c4918}
+body[data-workspace="health"] #pages>.page.active{display:block}
+body[data-workspace="health"] .page.active>.sec-title:first-of-type{margin-top:10px}
+body[data-workspace="health"] .personal-record-snapshot{
+  display:grid;grid-template-columns:minmax(260px,.72fr) minmax(0,1.6fr);gap:14px;
+  padding:17px;border:1px solid #d2e4df;border-radius:16px;background:#fbfdfc;
+  box-shadow:0 10px 28px #225b5310
+}
+body[data-workspace="health"] .personal-record-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;align-content:start}
+body[data-workspace="health"] .personal-record-stat{min-height:100px;padding:13px;border:1px solid #d8e8e3;border-radius:11px;background:linear-gradient(145deg,#fff,#f1f8f5)}
+body[data-workspace="health"] .personal-record-stat span{display:block;color:#6a8782;font-size:10px;font-weight:750}
+body[data-workspace="health"] .personal-record-stat strong{display:block;margin:7px 0 2px;color:#176d67;font-size:30px;line-height:1;font-variant-numeric:tabular-nums}
+body[data-workspace="health"] .personal-record-stat small{color:#839891;font-size:9px}
+body[data-workspace="health"] .personal-record-provenance{min-width:0;padding:14px;border:1px solid #d7e7e2;border-radius:12px;background:#fff}
+body[data-workspace="health"] .personal-record-provenance__head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+body[data-workspace="health"] .personal-record-provenance__head strong{display:block;color:#1b514e;font-size:13px}
+body[data-workspace="health"] .personal-record-provenance__head span{display:block;color:#80958f;font-size:10px;line-height:1.6}
+body[data-workspace="health"] .personal-record-provenance__badge{flex:0 0 auto;padding:6px 8px;border-radius:7px;background:#eaf6f1;color:#288078!important;font-size:9px!important;font-weight:850}
+body[data-workspace="health"] .personal-record-provenance__grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+body[data-workspace="health"] .personal-record-provenance__grid h4{margin:0 0 8px;color:#55746e;font-size:10px;font-weight:850}
+body[data-workspace="health"] .personal-record-quality,
+body[data-workspace="health"] .personal-record-coverage{margin:8px 0;padding:0 0 8px;border-bottom:1px solid #edf3f0}
+body[data-workspace="health"] .personal-record-quality>div,
+body[data-workspace="health"] .personal-record-coverage>div{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#637f78;font-size:10px}
+body[data-workspace="health"] .personal-record-quality strong,
+body[data-workspace="health"] .personal-record-coverage strong{color:#1d7169;font-size:12px;font-variant-numeric:tabular-nums}
+body[data-workspace="health"] .personal-record-quality>i,
+body[data-workspace="health"] .personal-record-coverage>i{display:block;height:6px;margin-top:7px;border-radius:99px;background:#e7f0ec;overflow:hidden}
+body[data-workspace="health"] .personal-record-quality>i>b,
+body[data-workspace="health"] .personal-record-coverage>i>b{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#31a993,#78c7a9)}
+body[data-workspace="health"] .personal-record-coverage small{color:#96a9a1;font-size:9px}
+body[data-workspace="health"] .personal-record-provenance__note{margin:10px 0 0;padding-top:9px;border-top:1px solid #eaf1ed;color:#8a9e96;font-size:9px;line-height:1.65}
+body[data-workspace="health"] .personal-record-recent{grid-column:1/-1}
+body[data-workspace="health"] .personal-record-recent__head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:3px 0 8px}
+body[data-workspace="health"] .personal-record-recent__head strong{color:#1b514e;font-size:12px}
+body[data-workspace="health"] .personal-record-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:16px;align-items:center;padding:11px 13px;border-top:1px solid #e7efeb;background:#fff}
+body[data-workspace="health"] .personal-record-row__main strong{display:block;color:#395f5c;font-size:11px}
+body[data-workspace="health"] .personal-record-row__main>b{color:#176d67;font-size:17px;font-variant-numeric:tabular-nums}
+body[data-workspace="health"] .personal-record-row__main small{color:#809690;font-size:10px}
+body[data-workspace="health"] .health-intro{min-height:122px;margin:18px 30px 14px;padding:20px 25px}
+body[data-workspace="health"] .health-intro h2{font-size:clamp(24px,2.4vw,32px)}
+body[data-workspace="health"] .health-intro .health-state{max-width:250px;flex-basis:230px}
+@media(max-width:1100px){
+ body[data-workspace="health"] .health-data-command{grid-template-columns:1fr;margin:0 16px 12px}
+ body[data-workspace="health"] .health-data-command__actions{justify-content:flex-start}
+ body[data-workspace="health"] .personal-record-snapshot{grid-template-columns:1fr}
+ body[data-workspace="health"] .personal-record-recent{grid-column:auto}
+}
+@media(max-width:640px){
+ body[data-workspace="health"] .health-data-command{margin:0 12px 12px;padding:14px}
+ body[data-workspace="health"] .health-data-command__actions{display:grid;grid-template-columns:1fr 1fr}
+ body[data-workspace="health"] .health-data-command__actions button.primary{grid-column:1/-1}
+ body[data-workspace="health"] .personal-record-snapshot{padding:10px;gap:10px}
+ body[data-workspace="health"] .personal-record-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+ body[data-workspace="health"] .personal-record-provenance__grid{grid-template-columns:1fr}
+ body[data-workspace="health"] .personal-record-row{grid-template-columns:1fr 1fr;gap:5px}
+ body[data-workspace="health"] .personal-record-row>*:last-child{grid-column:1/-1}
+ body[data-workspace="health"] .health-intro{margin:12px;padding:16px}
+}
