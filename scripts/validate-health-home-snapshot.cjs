@@ -13,12 +13,14 @@ assert.ok(!html.includes('NO HEALTH SCORE') &&
   'home must not render a placeholder health score ring or an empty score card');
 assert.ok(html.includes('class="health-data-command"') &&
           html.includes('id="personalRecordSnapshot"') &&
-          html.includes('本机个人记录') &&
-          html.includes('独立于上方示例体征'),
-  'home must expose a separate local-observation area, not merge personal measurements into demo vitals');
-assert.ok(html.includes('legacy-app.js?v=20261020-health-real-trend-v2') &&
-          html.includes('workspace.css?v=20261022-observation-provenance-v1'),
-  'home snapshot must load the cache-busted runtime and stylesheet');
+          html.includes('PERSONAL HEALTH RECORDS · FHIR-ALIGNED') &&
+          html.includes('数据边界') &&
+          html.includes('health-home-dashboard') &&
+          html.includes('health-home-trust'),
+  'home must expose a record-first FHIR workspace with explicit provenance and data-boundary rules');
+assert.ok(html.includes('legacy-app.js?v=20261022-observation-native-v3') &&
+          html.includes('workspace.css?v=20261022-record-first-v2'),
+  'home snapshot must load the cache-busted record-first runtime and stylesheet');
 for (const selector of [
   '.personal-record-snapshot{','.personal-record-stats{','.personal-record-row{',
   '.personal-record-state.is-warning'
