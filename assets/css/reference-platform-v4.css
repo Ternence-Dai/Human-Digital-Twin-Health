@@ -26,3 +26,24 @@ body[data-workspace="health"] .page.active .card,
 body[data-workspace="health"] .page.active .glass,
 body[data-workspace="health"] .page.active .metric-card{border-radius:9px;box-shadow:0 5px 18px rgba(20,54,67,.04)}
 @media(max-width:980px){body[data-workspace="health"] .shell.show{grid-template-columns:76px minmax(0,1fr)}body[data-workspace="health"] .brand .logo,body[data-workspace="health"] .brand .en{font-size:0}body[data-workspace="health"] .pages{padding:15px}body[data-workspace="health"] .health-home-dashboard{grid-template-columns:1fr}}
+
+body[data-workspace="health"] .clinical-reference-board{display:flex;flex-direction:column;gap:12px;margin-bottom:14px;padding:16px;border:1px solid #d5e4e2;border-radius:10px;background:#fff;box-shadow:0 5px 18px rgba(15,53,65,.04)}
+body[data-workspace="health"] .clinical-reference-board__head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}
+body[data-workspace="health"] .clinical-reference-board__head h2{margin:3px 0 5px;color:#173b4a;font-size:24px;letter-spacing:-.04em}
+body[data-workspace="health"] .clinical-reference-board__head p{max-width:780px;margin:0;color:#71828a;font-size:11px;line-height:1.7}
+body[data-workspace="health"] .clinical-reference-board__actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:7px}
+body[data-workspace="health"] .clinical-reference-board__actions button{min-height:34px;padding:7px 10px;border:1px solid #cfe0df;border-radius:7px;background:#f8fbfb;color:#3f6871;font-size:9px;font-weight:800}
+body[data-workspace="health"] .clinical-reference-board__actions .primary{border-color:#14867f;background:#14867f;color:#fff}
+body[data-workspace="health"] .clinical-reference-board__grid{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:10px}
+body[data-workspace="health"] .clinical-reference-board__summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+body[data-workspace="health"] .clinical-reference-board__metric{display:flex;min-width:0;flex-direction:column;gap:5px;padding:12px;border:1px solid #e1e9e8;border-radius:8px;background:#f8fbfb}
+body[data-workspace="health"] .clinical-reference-board__metric span{color:#789099;font-size:9px;font-weight:750}
+body[data-workspace="health"] .clinical-reference-board__metric strong{color:#1e5560;font-size:23px;line-height:1.1;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+body[data-workspace="health"] .clinical-reference-board__metric small{color:#8a9aa0;font-size:8px;line-height:1.45}
+body[data-workspace="health"] .clinical-reference-board__metric--latest{background:#f1f8f6;border-color:#cce5df}
+body[data-workspace="health"] .clinical-reference-board__rail{display:flex;flex-direction:column;gap:8px;padding:13px;border:1px solid #d9e8e6;border-radius:8px;background:linear-gradient(150deg,#f9fcfc,#eef6f4)}
+body[data-workspace="health"] .clinical-reference-board__rail h3{margin:0;color:#214d58;font-size:14px}
+body[data-workspace="health"] .clinical-reference-board__rail div{padding-top:7px;border-top:1px solid #e5efed;color:#6e858d;font-size:9px;line-height:1.55}
+body[data-workspace="health"] .clinical-reference-board__rail button{margin-top:auto;min-height:32px;border:1px solid #b8d8d3;border-radius:7px;background:#eaf6f3;color:#226a68;font-size:9px;font-weight:800}
+@media(max-width:900px){body[data-workspace="health"] .clinical-reference-board__grid{grid-template-columns:1fr}body[data-workspace="health"] .clinical-reference-board__summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){body[data-workspace="health"] .clinical-reference-board__head{flex-direction:column}body[data-workspace="health"] .clinical-reference-board__actions{justify-content:flex-start}body[data-workspace="health"] .clinical-reference-board__summary{grid-template-columns:1fr 1fr}}
