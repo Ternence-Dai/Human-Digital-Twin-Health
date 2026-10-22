@@ -79,7 +79,11 @@ assert.ok(html.includes('escHTML(text)'),
   'user query text must be escaped before it is displayed beside official resources');
 assert.ok(html.includes('escHTML(source.url)'),
   'public resource URLs must be escaped before insertion into trusted navigation markup');
-assert.doesNotMatch(html, /function matchSymptom\\(|const r = matchSymptom|关键词匹配完成|匹配人体器官图谱|匹配经络循行路径/,
+assert.ok(!html.includes('function matchSymptom(') &&
+          !html.includes('const r = matchSymptom') &&
+          !html.includes('关键词匹配完成') &&
+          !html.includes('匹配人体器官图谱') &&
+          !html.includes('匹配经络循行路径'),
   'the old organ/meridian symptom matcher and simulated analysis sequence must be removed');
 const symptomSource = anatomyData.slice(anatomyData.indexOf('const SYMPTOM_REFERENCE_SOURCES'));
 assert.ok(symptomSource.includes('https://medlineplus.gov/symptoms.html'));
