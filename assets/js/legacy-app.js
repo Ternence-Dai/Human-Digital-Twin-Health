@@ -1402,6 +1402,7 @@ go = function(page){
       if (rotor) rotor.style.transform = `rotateY(${state.angle}deg)`;
     }, 60);
   }
+  if (page === 'vessel') renderVesselMetrics();
 };
 
 /* ---------------- 键盘 ---------------- */
