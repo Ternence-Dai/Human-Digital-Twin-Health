@@ -11,6 +11,14 @@ const { chromium } = require('playwright');
 
   try {
     await page.goto('http://127.0.0.1:4173/', { waitUntil: 'networkidle', timeout: 30000 });
+    const referenceStylesheet = page.locator('link[rel="stylesheet"][href*="fhir-clinical-workspace-v2.css"]');
+    if (await referenceStylesheet.count() !== 1) throw new Error('FHIR clinical workspace stylesheet is not linked');
+    const referenceCssResponse = await page.request.get(await referenceStylesheet.evaluate(node => node.href));
+    const referenceCssText = await referenceCssResponse.text();
+    if (!referenceCssResponse.ok() || !referenceCssText.includes('--ehr-ink:#183c4d')) {
+      throw new Error('FHIR clinical workspace stylesheet could not be loaded');
+    }
+
     const contextScript = await page.locator('script[src*="workspace-v5-context.js"]').getAttribute('src');
     if (!contextScript || !contextScript.includes('v=20261021-mutationobserver-fix-v1')) {
       throw new Error('Workspace observer fix cache-busting URL is missing: ' + contextScript);
@@ -22,6 +30,13 @@ const { chromium } = require('playwright');
     }
     await page.locator('.login-actions button').click();
     await page.waitForFunction(() => document.querySelector('#shell')?.classList.contains('show'));
+    const healthLayout = await page.locator('#shell').evaluate(node => ({
+      display: getComputedStyle(node).display,
+      columns: getComputedStyle(node).gridTemplateColumns
+    }));
+    if (healthLayout.display !== 'grid' || !healthLayout.columns.startsWith('252px')) {
+      throw new Error('FHIR clinical record layout was not applied: ' + JSON.stringify(healthLayout));
+    }
     await page.evaluate(() => document.activeElement?.blur());
     await page.keyboard.press('Tab');
     if (!(await page.evaluate(() => document.activeElement?.id === 'skipMain'))) {
