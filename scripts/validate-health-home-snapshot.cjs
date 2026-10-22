@@ -85,6 +85,10 @@ assert.match(result.html,/记录第一条观察值/);
 assert.match(result.html,/当前有效记录/);
 assert.doesNotMatch(result.html,/72 bpm|126\/82|98%/,
   'an empty personal record list must not be filled with hard-coded sample vitals');
+assert.doesNotMatch(app,/lb:'心率', v:'72'|lb:'血压', v:'126\/82'|lb:'血氧', v:'98'|lb:'睡眠', v:'7\.2'/,
+  'the dashboard runtime must not contain fabricated personal vital values');
+assert.doesNotMatch(html,/今日体征|健康教育示例|id="homeMetrics"/,
+  'the home page must not show demo vitals or static sample-alert panels as personal data');
 
 result=run({rows:[
   {id:'h1',metric:'心率',value:72,unit:'bpm',observedAt:'2026-10-20T08:00:00+08:00',source:'手环',quality:'measured',recordState:'active'},
