@@ -36,7 +36,7 @@ const { chromium } = require('playwright');
       const home = document.querySelector('#pages .page.active[data-page="home"]');
       const text = home?.innerText || '';
       return {
-        command: !!home?.querySelector('.health-data-command'),
+        command: !!home?.querySelector('.clinical-reference-board'),
         recordSnapshot: !!home?.querySelector('#personalRecordSnapshot'),
         dashboard: !!home?.querySelector('.health-home-dashboard'),
         provenanceRules: !!home?.querySelector('.health-home-trust'),
