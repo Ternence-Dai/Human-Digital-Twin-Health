@@ -92,51 +92,28 @@
       <section class="page active" data-page="home">
       
 
-        <div class="hero">
-          <div class="score-card glass">
-            <div class="ring-wrap">
-              <svg viewBox="0 0 124 124" width="124" height="124">
-                <defs>
-                  <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stop-color="#22d3ee"/>
-                    <stop offset="55%" stop-color="#3b82f6"/>
-                    <stop offset="100%" stop-color="#a78bfa"/>
-                  </linearGradient>
-                </defs>
-                <circle cx="62" cy="62" r="52" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="9"/>
-                <circle cx="62" cy="62" r="52" fill="none" stroke="url(#ringGrad)" stroke-width="9"
-                        stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7"
-                        style="filter:drop-shadow(0 0 6px rgba(34,211,238,.8))"/>
-              </svg>
-              <div class="ring-center">
-                <div class="v">—</div>
-                <div class="u">NO HEALTH SCORE</div>
-              </div>
-            </div>
-            <div class="score-info">
-              <h3>演示状态：示例数据 <span class="tag cy">示例评级 · 无临床意义</span></h3>
-              <div class="desc">此处为界面演示文案，未连接真实测量设备或经过验证的临床评估模型。</div>
-              <div class="chips">
-                <span class="tag ok">示例 · 器官维度</span>
-                <span class="tag wn">示例 · 经络维度</span>
-                <span class="tag ok">示例 · 循环维度</span>
-              </div>
-              <div class="home-action-row" aria-label="健康工作区快捷入口">
-                <button class="btn primary" type="button" onclick="go('me')">记录健康数据</button>
-                <button class="btn ghost" type="button" onclick="go('report')">查看健康报告</button>
-                <button class="btn ghost" type="button" onclick="go('organ')">浏览器官图谱</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="sec-title"><span class="bar"></span>今日体征 <span class="more">演示数据 · 非实时同步</span></div>
-        <div class="metrics-grid" id="homeMetrics"></div>
+        <section class="health-data-command" aria-label="个人健康记录工作区">
+  <div class="health-data-command__copy">
+    <span class="eyebrow">PERSONAL RECORDS · OBSERVATION FIRST</span>
+    <h3>个人健康记录工作区</h3>
+    <p>优先审阅本机已校验的观察记录及其来源、测量时间和单位；示例体征独立展示，不混入个人记录。</p>
+  </div>
+  <div class="health-data-command__actions">
+    <button type="button" class="primary" onclick="go('records')">＋ 记录 / 导入观察值</button>
+    <button type="button" onclick="go('report')">查看趋势与报告</button>
+    <button type="button" onclick="go('body')">浏览人体图谱</button>
+  </div>
+</section>
 
         <div class="sec-title"><span class="bar"></span>本机个人记录 <span class="more">独立于上方示例体征 · 仅显示本机已验证记录</span></div>
-        <section id="personalRecordSnapshot" class="personal-record-snapshot" aria-live="polite">
+<section id="personalRecordSnapshot" class="personal-record-snapshot" aria-live="polite">
           <div class="personal-record-empty">正在读取本机已验证的观察值…</div>
         </section>
+
+<div class="sec-title"><span class="bar"></span>今日体征 <span class="more">演示数据 · 非实时同步</span></div>
+        <div class="metrics-grid" id="homeMetrics"></div>
+
+        
 
         <div class="sec-title"><span class="bar"></span>功能导航</div>
         <div class="quick-grid" id="quickGrid"></div>
