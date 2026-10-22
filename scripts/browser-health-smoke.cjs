@@ -45,6 +45,10 @@ const { chromium } = require('playwright');
         oldScoreRing: !!home?.querySelector('.score-card')
       };
     });
+    const referenceBoard = await page.locator('.clinical-reference-board').count();
+    if (referenceBoard !== 1) {
+      throw new Error('Health reference clinical command board is not mounted: ' + referenceBoard);
+    }
     if (!clinicalHome.command || !clinicalHome.recordSnapshot || !clinicalHome.dashboard ||
         !clinicalHome.provenanceRules || !clinicalHome.moduleGrid ||
         clinicalHome.fabricatedData || clinicalHome.oldScoreRing) {
