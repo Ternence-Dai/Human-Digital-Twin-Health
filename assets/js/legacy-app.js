@@ -136,6 +136,52 @@ function renderPersonalRecordSnapshot(){
     const statsHtml = '<div class="personal-record-stats">' + stats.map(item =>
       '<div class="personal-record-stat"><span>' + item.label + '</span><strong>' + item.value + '</strong><small>' + item.detail + '</small></div>'
     ).join('') + '</div>';
+
+    // FHIR-style provenance coverage: keep the observation's source, measurement time,
+    // unit and optional record-entry time visible without assigning any health score.
+    const qualityKinds = [
+      {key:'measured',label:'设备 / 仪器测量'},
+      {key:'reported',label:'手动自述'},
+      {key:'imported',label:'文件导入'},
+      {key:'demo',label:'示例数据'}
+    ];
+    const coverageChecks = [
+      {key:'source',label:'来源与质量标记',count:active.filter(row =>
+        typeof row.source === 'string' && !!row.source.trim() && !!qualityLabels[row.quality]).length},
+      {key:'measured-at',label:'测量时间',count:active.filter(row =>
+        Number.isFinite(Date.parse(row.observedAt))).length},
+      {key:'unit',label:'计量单位',count:active.filter(row =>
+        typeof row.unit === 'string' && !!row.unit.trim()).length},
+      {key:'recorded-at',label:'记录创建时间',count:active.filter(row =>
+        typeof row.recordedAt === 'string' && Number.isFinite(Date.parse(row.recordedAt))).length}
+    ];
+    const qualityHtml = qualityKinds.map(kind => {
+      const count = active.filter(row => row.quality === kind.key).length;
+      const rate = active.length ? count / active.length * 100 : 0;
+      return '<div class="personal-record-quality" data-quality-kind="' + kind.key + '" data-count="' + count + '">' +
+        '<div><span>' + kind.label + '</span><strong>' + count + '</strong></div>' +
+        '<i><b style="width:' + rate.toFixed(1) + '%"></b></i></div>';
+    }).join('');
+    const coverageHtml = coverageChecks.map(check => {
+      const rate = active.length ? check.count / active.length * 100 : 0;
+      return '<div class="personal-record-coverage" data-integrity-metric="' + check.key +
+        '" data-count="' + check.count + '" data-total="' + active.length + '">' +
+        '<div><span>' + check.label + '</span><strong>' +
+        (active.length ? rate.toFixed(0) + '%' : '—') + '</strong></div>' +
+        '<i><b style="width:' + rate.toFixed(1) + '%"></b></i>' +
+        '<small>' + check.count + ' / ' + active.length + ' 条' +
+        (check.key === 'recorded-at' ? ' · 兼容旧版可选字段' : '') + '</small></div>';
+    }).join('');
+    const provenanceHtml = '<section class="personal-record-provenance" aria-label="数据来源与完整性">' +
+      '<div class="personal-record-provenance__head"><div><strong>数据来源与完整性</strong>' +
+      '<span>逐条校验来源类别、测量时间和计量单位；不推断医学意义。</span></div>' +
+      '<span class="personal-record-provenance__badge">FHIR · Observation provenance</span></div>' +
+      '<div class="personal-record-provenance__grid"><div><h4>来源类型分布</h4>' +
+      (active.length ? qualityHtml : '<div class="personal-record-quality-empty">暂无当前有效记录</div>') +
+      '</div><div><h4>字段覆盖率</h4>' +
+      (active.length ? coverageHtml : '<div class="personal-record-quality-empty">录入或导入观察值后显示来源、时间与单位覆盖情况。</div>') +
+      '</div></div><p class="personal-record-provenance__note">覆盖率只描述记录字段是否齐全；不代表测量准确性、健康风险、临床有效性或诊断结论。</p></section>';
+
     const recentHtml = recent.length ? '<div class="personal-record-recent"><div class="personal-record-recent__head"><strong>最近测量</strong><span>按测量时间排序 · 最多显示 3 条</span></div>' +
       recent.map(row => {
         const measuredAt = new Date(row.observedAt);
@@ -144,7 +190,7 @@ function renderPersonalRecordSnapshot(){
         return '<article class="personal-record-row"><div class="personal-record-row__main"><strong>' + escHTML(row.metric) + '</strong><b>' + escHTML(row.value) + ' <small>' + escHTML(row.unit) + '</small></b></div>' +
           '<div class="personal-record-row__meta"><span>测量 ' + escHTML(observedLabel) + '</span><span>来源 ' + escHTML(row.source) + '</span><span>质量 ' + escHTML(provenance) + '</span></div></article>';
       }).join('') + '</div>' : '<div class="personal-record-empty"><strong>尚无当前有效观察值</strong><span>' + (rows.length ? '历史版本已保留，但目前没有可作为当前值展示的有效记录。' : '录入或导入第一条健康观察值后，这里会显示测量时间、来源与质量标记。') + '</span><button type="button" class="btn sm" onclick="go(\'records\')">记录第一条观察值</button></div>';
-    host.innerHTML = '<div class="personal-record-panel">' + statsHtml + recentHtml +
+    host.innerHTML = '<div class="personal-record-panel">' + statsHtml + provenanceHtml + recentHtml +
       '<div class="personal-record-foot">只读取浏览器本机的已验证观察记录；不把演示体征、器官示例分值或健康教育内容混入个人记录。</div></div>';
   }catch(error){
     observationStorageRecoveryRequired = true;

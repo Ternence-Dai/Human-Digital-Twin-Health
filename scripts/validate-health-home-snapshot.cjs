@@ -19,7 +19,7 @@ assert.ok(html.includes('id="personalRecordSnapshot"') &&
           html.includes('独立于上方示例体征'),
   'home must expose a separate local-observation area, not merge personal measurements into demo vitals');
 assert.ok(html.includes('legacy-app.js?v=20261020-health-real-trend-v2') &&
-          html.includes('health-data-workspace.css?v=20261020-v3'),
+          html.includes('health-data-workspace.css?v=20261022-observation-provenance-v1'),
   'home snapshot must load the cache-busted runtime and stylesheet');
 for (const selector of [
   '.personal-record-snapshot{','.personal-record-stats{','.personal-record-row{',
@@ -46,6 +46,14 @@ assert.ok(snapshotSource.includes("row.quality === 'demo'") &&
           snapshotSource.includes('row.source') &&
           snapshotSource.includes('row.observedAt'),
   'measurement provenance, demo quality, and actual measurement time must be visible');
+assert.ok(snapshotSource.includes('personal-record-provenance') &&
+          snapshotSource.includes('qualityKinds') &&
+          snapshotSource.includes('coverageChecks') &&
+          snapshotSource.includes('recordedAt') &&
+          snapshotSource.includes('FHIR · Observation provenance'),
+  'home snapshot must show source distribution and field completeness for validated observations');
+assert.ok(snapshotSource.includes('不代表测量准确性、健康风险、临床有效性或诊断结论'),
+  'provenance coverage must not be presented as a clinical score or measurement-accuracy claim');
 
 function run({rows=[],locked=false,unavailable=false,normalizer}={}){
   const host={innerHTML:''};
