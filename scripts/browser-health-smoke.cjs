@@ -18,11 +18,6 @@ const { chromium } = require('playwright');
     if (!referenceCssResponse.ok() || !referenceCssText.includes('--ehr-ink:#183c4d')) {
       throw new Error('FHIR clinical workspace stylesheet could not be loaded');
     }
-
-    const contextScript = await page.locator('script[src*="workspace-v5-context.js"]').getAttribute('src');
-    if (!contextScript || !contextScript.includes('v=20261021-mutationobserver-fix-v1')) {
-      throw new Error('Workspace observer fix cache-busting URL is missing: ' + contextScript);
-    }
     await page.waitForFunction(() => !!window.HealthDomain &&
       document.querySelector('#login:not(.hide)'));
     const preLoginShell = await page.locator('#shell').evaluate(node => ({
@@ -88,6 +83,9 @@ const { chromium } = require('playwright');
 
     await page.locator('#navList .nav-item[data-nav="records"]').click();
     await page.waitForFunction(() => document.querySelector('#pages .page.active[data-page="records"]'));
+    if (await page.locator('.w5-module-context').count() !== 0) {
+      throw new Error('Generic module-header overlay must remain removed; module hierarchy is native to the product');
+    }
     if (!(await page.locator('#pages .page.active').innerText()).includes('健康测量记录')) {
       throw new Error('Observation records workspace did not render');
     }
