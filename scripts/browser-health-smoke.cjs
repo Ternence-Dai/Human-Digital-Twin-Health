@@ -25,6 +25,13 @@ const { chromium } = require('playwright');
     }
     await page.waitForFunction(() => !!window.HealthDomain &&
       document.querySelector('#login:not(.hide)'));
+    const preLoginShell = await page.locator('#shell').evaluate(node => ({
+      visible: getComputedStyle(node).display !== 'none' && node.getBoundingClientRect().width > 0,
+      authenticatedDemo: node.classList.contains('show')
+    }));
+    if (preLoginShell.visible || preLoginShell.authenticatedDemo) {
+      throw new Error('Health workspace must remain hidden until the demo entry action is selected');
+    }
     if (!(await page.locator('#login').textContent()).includes('短信验证码')) {
       throw new Error('Health demo login must disclose that real identity verification is not connected');
     }
