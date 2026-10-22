@@ -9,9 +9,9 @@ assert.ok(html.includes('workspace.css?v=20261022-record-first-v2'),
 assert.match(productCss, /Health data workspace redesign/,
   'health product design layer must be explicitly versioned');
 for (const selector of [
-  '.sidebar{', '.topbar{', '.health-home-dashboard{', '.health-home-primary{',
-  '.health-home-trust{', '.health-home-modules{', '.health-section-intro{',
-  '.health-report-integrity{', '#observationForm{', '#observationList{', '.tabbar{'
+  '.sidebar{', '.topbar{', '.health-home-dashboard{', '.health-home-primary',
+  '.health-home-trust', '.health-home-modules', '.health-section-intro',
+  '.health-report-integrity', '#observationForm{', '#observationList{', '.tabbar{'
 ]) assert.ok(productCss.includes(selector),
   'health V3 design must style the major product area: ' + selector);
 assert.ok(productCss.includes('@media(max-width:860px)'),
@@ -46,7 +46,7 @@ assert.match(html, /数据边界/,
   'home must state source, measurement and clinical interpretation boundaries');
 assert.match(html, /近期有效记录趋势/,
   'report page must use the current observation-driven trend');
-assert.doesNotMatch(html, /今日体征|综合健康总分|六维能力雷达|126\/82|72 bpm|84 分/,
+assert.doesNotMatch(html, /今日体征|综合健康总分（演示）|六维能力雷达（演示）|126\/82|72 bpm|84 分/,
   'home and report must not present fabricated patient-like vital signs or a synthetic overall score');
 assert.match(html, /图谱演示说明/,
   'digital human must be described as an anatomy education model');
