@@ -464,6 +464,42 @@ test("FHIR export refuses guessed terminology, identity, status and extension na
   assert.throws(() => toFhirObservation({ ...observation, recordState: "unknown" }, mapping), RangeError);
 });
 
+test("FHIR export rejects recognized display units paired with contradictory UCUM codes", async () => {
+  const { toFhirObservation } = await import("../src/domain/index.js");
+  const observation = {
+    metric: "blood-pressure", value: 120, unit: "mmHg",
+    observedAt: "2026-01-01T00:00:00Z", source: "manual-entry", quality: "reported"
+  };
+  const mapping = {
+    status: "final", subjectReference: "Patient/example",
+    code: { system: "http://loinc.org", code: "85354-9" },
+    unitCoding: { system: "http://unitsofmeasure.org", code: "mm[Hg]" },
+    sourceExtensionUrl: "https://example.org/fhir/StructureDefinition/source",
+    qualityExtensionUrl: "https://example.org/fhir/StructureDefinition/quality"
+  };
+  assert.equal(toFhirObservation(observation, mapping).valueQuantity.code, "mm[Hg]");
+  assert.throws(() => toFhirObservation(observation, {
+    ...mapping, unitCoding: { ...mapping.unitCoding, code: "/min" }
+  }), /does not match the recognized display unit/);
+
+  const heartRate = { ...observation, metric: "heart-rate", unit: "bpm", value: 72 };
+  assert.equal(toFhirObservation(heartRate, {
+    ...mapping, code: { system: "http://loinc.org", code: "8867-4" },
+    unitCoding: { system: "http://unitsofmeasure.org", code: "/min" }
+  }).valueQuantity.code, "/min");
+  assert.throws(() => toFhirObservation(heartRate, {
+    ...mapping, code: { system: "http://loinc.org", code: "8867-4" },
+    unitCoding: { system: "http://unitsofmeasure.org", code: "kg" }
+  }), /does not match the recognized display unit/);
+
+  // Unknown display units require an explicit domain mapping and are not
+  // guessed or converted by the generic FHIR serializer.
+  const custom = { ...observation, metric: "research-index", unit: "lab-unit-x" };
+  assert.equal(toFhirObservation(custom, {
+    ...mapping, unitCoding: { system: "http://unitsofmeasure.org", code: "{lab-unit-x}" }
+  }).valueQuantity.code, "{lab-unit-x}");
+});
+
 test("FHIR export requires UCUM as the Quantity code system", async () => {
   const { toFhirObservation } = await import("../src/domain/index.js");
   const observation = {
