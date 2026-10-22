@@ -43,6 +43,6 @@ assert.ok(app.includes("row.recordState !== 'active'") &&
   'the trend renderer must read the active local record ledger and refresh with the record list');
 assert.ok(index.includes('近期有效记录趋势') &&
           index.includes('id="trendSummary"') &&
-          index.includes('legacy-app.js?v=20261022-observation-native-v3'),
+          index.includes('legacy-app.js?v=20261022-observation-native-v4'),
   'the report heading, metric summary and browser cache must match the real-record trend');
 console.log('Health observation trend regression checks passed.');
