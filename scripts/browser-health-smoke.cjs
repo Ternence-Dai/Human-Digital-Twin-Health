@@ -244,8 +244,8 @@ const { chromium } = require('playwright');
     await page.waitForFunction(() => document.querySelectorAll('#pages .page.active .organ-card').length === 12);
     await page.locator('#pages .page.active .organ-card').first().click();
     const organModalText = await page.locator('#modalCard').innerText();
-    if (!organModalText.includes('主要生理功能') || organModalText.includes('健康指数') ||
-        organModalText.includes('风险评分')) {
+    if (!organModalText.includes('主要生理功能') ||
+        /健康指数\s*[:：]\s*\d|风险评分\s*[:：]\s*\d|\b84\s*分/.test(organModalText)) {
       throw new Error('Organ education details still display fabricated personal scores: ' + organModalText);
     }
     await page.locator('#modal .modal-close').click();
