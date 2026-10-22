@@ -910,31 +910,31 @@ document.addEventListener('input', e => {
 function buildOrganGrid(){
   const host = document.getElementById('organGrid');
   if(!host) return;
-  host.innerHTML = ORGANS.map(o => \`
-    <button type="button" class="organ-card glass" onclick="openOrgan('\${escHTML(o.id)}')">
+  host.innerHTML = ORGANS.map(o => `
+    <button type="button" class="organ-card glass" onclick="openOrgan('${escHTML(o.id)}')">
       <div class="oc-top">
-        <div class="oc-icon">\${escHTML(o.icon)}</div>
-        <div><div class="oc-name">\${escHTML(o.name)}</div><div class="oc-en">\${escHTML(o.en)}</div></div>
+        <div class="oc-icon">${escHTML(o.icon)}</div>
+        <div><div class="oc-name">${escHTML(o.name)}</div><div class="oc-en">${escHTML(o.en)}</div></div>
       </div>
-      <div class="organ-card__system">\${escHTML(o.sys)}</div>
-      <div class="organ-card__function">\${escHTML(o.fn)}</div>
+      <div class="organ-card__system">${escHTML(o.sys)}</div>
+      <div class="organ-card__function">${escHTML(o.fn)}</div>
       <span class="tag cy">解剖知识</span>
-    </button>\`).join('');
+    </button>`).join('');
 }
 
 function openOrgan(id){
   const o = ORGANS.find(x => x.id === id);
   if(!o) return;
-  document.getElementById('modalCard').innerHTML = \`
+  document.getElementById('modalCard').innerHTML = `
     <button class="modal-close" onclick="closeModal()">✕</button>
     <div class="health-knowledge-modal__head">
-      <div class="health-knowledge-modal__icon">\${escHTML(o.icon)}</div>
-      <div><h3>\${escHTML(o.name)} <small>\${escHTML(o.en)}</small></h3><span>\${escHTML(o.sys)}</span></div>
+      <div class="health-knowledge-modal__icon">${escHTML(o.icon)}</div>
+      <div><h3>${escHTML(o.name)} <small>${escHTML(o.en)}</small></h3><span>${escHTML(o.sys)}</span></div>
       <span class="tag cy">结构知识</span>
     </div>
-    <p class="health-knowledge-modal__description">\${escHTML(o.desc)}</p>
+    <p class="health-knowledge-modal__description">${escHTML(o.desc)}</p>
     <section class="health-knowledge-modal__function">
-      <small>主要生理功能 · 教育参考</small><strong>\${escHTML(o.fn)}</strong>
+      <small>主要生理功能 · 教育参考</small><strong>${escHTML(o.fn)}</strong>
     </section>
     <section class="health-knowledge-modal__boundary">
       <strong>与个人健康记录分开</strong>
@@ -942,7 +942,7 @@ function openOrgan(id){
       <button type="button" class="btn primary" onclick="closeModal();go('records')">查看本机观察记录</button>
     </section>
     <div class="health-knowledge-modal__source">解剖知识示意 · 非医学影像 · 非诊断结果</div>
-  \`;
+  `;
   document.getElementById('modal').classList.add('show');
 }
 
@@ -962,7 +962,7 @@ function renderVesselMetrics(){
     .sort((a,b) => Date.parse(b.observedAt) - Date.parse(a.observedAt))
     .slice(0,8);
   if(!rows.length){
-    host.innerHTML = '<div class="health-observation-empty"><strong>暂无循环系统相关的有效观察值</strong><span>录入或导入具备来源、测量时间和单位的记录后，这里会显示原始值；不会填入默认血压、血氧或心率。</span><button type="button" class="btn sm" onclick="go(\\'records\\')">新增观察记录</button></div>';
+    host.innerHTML = '<div class="health-observation-empty"><strong>暂无循环系统相关的有效观察值</strong><span>录入或导入具备来源、测量时间和单位的记录后，这里会显示原始值；不会填入默认血压、血氧或心率。</span><button type="button" class="btn sm" onclick="go(\'records\')">新增观察记录</button></div>';
     return;
   }
   const labels = {measured:'实测',reported:'本人报告',imported:'文件导入',demo:'演示'};
@@ -1024,17 +1024,17 @@ function renderMeridianHeat(){
 }
 
 function openMeridian(name,path,time,organ){
-  document.getElementById('modalCard').innerHTML = \`
+  document.getElementById('modalCard').innerHTML = `
     <button class="modal-close" onclick="closeModal()">✕</button>
     <div class="health-knowledge-modal__head">
       <div class="health-knowledge-modal__icon">〰️</div>
-      <div><h3>\${escHTML(name)}</h3><span>\${escHTML(time)}</span></div>
+      <div><h3>${escHTML(name)}</h3><span>${escHTML(time)}</span></div>
       <span class="tag cy">传统理论</span>
     </div>
-    <section class="health-knowledge-modal__function"><small>关联脏腑 · 理论分类</small><strong>\${escHTML(organ)}</strong></section>
-    <p class="health-knowledge-modal__description">\${escHTML(path)}</p>
+    <section class="health-knowledge-modal__function"><small>关联脏腑 · 理论分类</small><strong>${escHTML(organ)}</strong></section>
+    <p class="health-knowledge-modal__description">${escHTML(path)}</p>
     <section class="health-knowledge-modal__boundary"><strong>医学边界说明</strong><p>经脉循行属于传统中医理论内容。本页面用于资料浏览与学习，不把经络概念解释为已经验证的解剖结构、实时生理能量或疾病诊断结果。</p></section>
-  \`;
+  `;
   document.getElementById('modal').classList.add('show');
 }
 
