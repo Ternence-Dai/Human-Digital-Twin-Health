@@ -22,6 +22,13 @@ const { chromium } = require('playwright');
     }
     await page.locator('.login-actions button').click();
     await page.waitForFunction(() => document.querySelector('#shell')?.classList.contains('show'));
+    await page.evaluate(() => document.activeElement?.blur());
+    await page.keyboard.press('Tab');
+    if (!(await page.evaluate(() => document.activeElement?.id === 'skipMain'))) {
+      throw new Error('After demo login, skip navigation is not the first keyboard focus target');
+    }
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() => document.activeElement?.id === 'main-content');
 
     await page.locator('#navList .nav-item[data-nav="records"]').click();
     await page.waitForFunction(() => document.querySelector('#pages .page.active[data-page="records"]'));
