@@ -7,6 +7,13 @@ const app = fs.readFileSync('assets/js/legacy-app.js','utf8');
 const html = fs.readFileSync('index.html','utf8');
 const css = fs.readFileSync('assets/css/health-data-workspace.css','utf8');
 
+const scoreArcStart = html.indexOf('<circle cx="62" cy="62" r="52" fill="none" stroke="url(#ringGrad)"');
+const scoreArc = scoreArcStart >= 0 ? html.slice(scoreArcStart, html.indexOf('>', scoreArcStart) + 1) : '';
+assert.ok(html.includes('NO HEALTH SCORE') && scoreArc &&
+          scoreArc.includes('stroke-dasharray="326.7"') &&
+          scoreArc.includes('stroke-dashoffset="326.7"'),
+  'the demo home must not display a fabricated partial health-score ring when no validated score exists');
+
 assert.ok(html.includes('id="personalRecordSnapshot"') &&
           html.includes('本机个人记录') &&
           html.includes('独立于上方示例体征'),
