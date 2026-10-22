@@ -44,6 +44,23 @@ const { chromium } = require('playwright');
     if (healthLayout.display !== 'grid' || !healthLayout.columns.startsWith('252px')) {
       throw new Error('FHIR clinical record layout was not applied: ' + JSON.stringify(healthLayout));
     }
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    const wideHealth = await page.evaluate(() => {
+      const main = document.querySelector('#main-content');
+      const pages = document.querySelector('#pages');
+      const active = document.querySelector('#pages .page.active');
+      const rect = node => {
+        const box = node.getBoundingClientRect();
+        return { left: box.left, right: box.right, width: box.width };
+      };
+      return { main: rect(main), pages: rect(pages), active: rect(active) };
+    });
+    if (wideHealth.pages.width < wideHealth.main.width * 0.88 ||
+        wideHealth.active.width < wideHealth.pages.width * 0.92 ||
+        wideHealth.active.left < wideHealth.pages.left - 1 ||
+        wideHealth.active.right > wideHealth.pages.right + 2) {
+      throw new Error('Health dashboard remains boxed into a narrow centered column: ' + JSON.stringify(wideHealth));
+    }
     await page.evaluate(() => document.activeElement?.blur());
     await page.keyboard.press('Tab');
     if (!(await page.evaluate(() => document.activeElement?.id === 'skipMain'))) {
