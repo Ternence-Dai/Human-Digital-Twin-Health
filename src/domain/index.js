@@ -423,6 +423,45 @@ function deepFreezeFhir(value) {
  * deliberately supplied by the caller; this function never guesses LOINC,
  * UCUM, patient identity, clinical status or a canonical extension namespace.
  */
+const KNOWN_UCUM_CODES_BY_DISPLAY_UNIT = new Map([
+  ["bpm", "/min"],
+  ["次/分", "/min"],
+  ["次/分钟", "/min"],
+  ["次/min", "/min"],
+  ["mmHg", "mm[Hg]"],
+  ["%", "%"],
+  ["kg", "kg"],
+  ["g", "g"],
+  ["mg", "mg"],
+  ["cm", "cm"],
+  ["mm", "mm"],
+  ["m", "m"],
+  ["L", "L"],
+  ["mL", "mL"],
+  ["°C", "Cel"],
+  ["℃", "Cel"],
+  ["°F", "[degF]"],
+  ["mmol/L", "mmol/L"],
+  ["mol/L", "mol/L"],
+  ["μmol/L", "umol/L"],
+  ["µmol/L", "umol/L"],
+  ["umol/L", "umol/L"],
+  ["mg/dL", "mg/dL"],
+  ["mL/min", "mL/min"],
+  ["s", "s"],
+  ["min", "min"],
+  ["h", "h"]
+]);
+
+function validateKnownDisplayUnitCoding(displayUnit, ucumCode) {
+  const expectedCode = KNOWN_UCUM_CODES_BY_DISPLAY_UNIT.get(displayUnit.trim());
+  if (expectedCode !== undefined && ucumCode !== expectedCode) {
+    throw new RangeError(
+      "FHIR UCUM code does not match the recognized display unit: " + displayUnit
+    );
+  }
+}
+
 export function toFhirObservation(observation, mapping) {
   const validated = createObservation(observation);
   if (!mapping || typeof mapping !== "object" || Array.isArray(mapping)) {
@@ -457,6 +496,7 @@ export function toFhirObservation(observation, mapping) {
   if (unitCoding.system !== "http://unitsofmeasure.org") {
     throw new RangeError("FHIR Quantity.system must identify the UCUM code system");
   }
+  validateKnownDisplayUnitCoding(validated.unit, unitCoding.code);
   const sourceExtensionUrl = requiredFhirUri(mapping.sourceExtensionUrl, "source extension URL");
   const qualityExtensionUrl = requiredFhirUri(mapping.qualityExtensionUrl, "quality extension URL");
   if (sourceExtensionUrl === qualityExtensionUrl) {
