@@ -1,0 +1,29 @@
+/* Reference platform v4: record-first clinical workspace. */
+:root{--hr-ink:#173b4a;--hr-muted:#6c818c;--hr-line:#d8e4e3;--hr-bg:#eef4f3;--hr-panel:#fff;--hr-accent:#14867f}
+body[data-workspace="health"]{background:var(--hr-bg);color:var(--hr-ink)}
+body[data-workspace="health"] .shell.show{display:grid;grid-template-columns:254px minmax(0,1fr);min-height:100vh;background:var(--hr-bg)}
+body[data-workspace="health"] .sidebar{position:sticky;top:0;height:100vh;width:auto;background:#103847;border-right:1px solid #2a5961}
+body[data-workspace="health"] .main{min-width:0;background:#eef4f3}
+body[data-workspace="health"] .topbar{height:64px;min-height:64px;padding:0 26px;background:#fff;border-bottom:1px solid var(--hr-line);box-shadow:0 1px 12px rgba(15,53,65,.05)}
+body[data-workspace="health"] .pages{padding:18px 26px 34px;max-width:none}
+body[data-workspace="health"] .health-intro,
+body[data-workspace="health"] .product-workflow,
+body[data-workspace="health"] .health-section-intro{display:none!important}
+body[data-workspace="health"] .page.active{max-width:1480px;margin:0 auto}
+body[data-workspace="health"] .health-data-command{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:18px;margin-bottom:14px;padding:16px 18px;border:1px solid #d5e4e2;border-radius:10px;background:#fff}
+body[data-workspace="health"] .health-data-command__copy h2{margin:2px 0 5px;font-size:22px;letter-spacing:-.04em}
+body[data-workspace="health"] .health-data-command__actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+body[data-workspace="health"] .health-home-dashboard{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(300px,.72fr);gap:14px;align-items:start}
+body[data-workspace="health"] .health-home-primary,
+body[data-workspace="health"] .health-home-aside>section{border:1px solid var(--hr-line);border-radius:10px;background:#fff;box-shadow:0 5px 18px rgba(15,53,65,.04)}
+body[data-workspace="health"] .health-home-primary{padding:16px}
+body[data-workspace="health"] .health-home-aside{display:flex;flex-direction:column;gap:14px}
+body[data-workspace="health"] .health-home-aside>section{padding:15px}
+body[data-workspace="health"] .quick-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+body[data-workspace="health"] .personal-record-snapshot{min-height:300px}
+body[data-workspace="health"] .sec-title{margin-top:20px}
+body[data-workspace="health"] .metrics-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+body[data-workspace="health"] .page.active .card,
+body[data-workspace="health"] .page.active .glass,
+body[data-workspace="health"] .page.active .metric-card{border-radius:9px;box-shadow:0 5px 18px rgba(20,54,67,.04)}
+@media(max-width:980px){body[data-workspace="health"] .shell.show{grid-template-columns:76px minmax(0,1fr)}body[data-workspace="health"] .brand .logo,body[data-workspace="health"] .brand .en{font-size:0}body[data-workspace="health"] .pages{padding:15px}body[data-workspace="health"] .health-home-dashboard{grid-template-columns:1fr}}
