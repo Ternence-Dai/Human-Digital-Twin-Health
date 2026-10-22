@@ -1156,30 +1156,35 @@ function openAcupoint(id){
 
 /* ---------------- 症状参考 ---------------- */
 function buildSymptomChips(){
-  const chips = ['头晕','失眠','胃胀','胸闷','乏力','头痛','心悸','便秘','眼干','耳鸣','焦虑','怕冷'];
-  document.getElementById('symptomChips').innerHTML = chips.map(c =>
-    `<div class="chip" onclick="quickAsk('${c}')">${c}</div>`
+  const topics = ['头痛','胸痛','头晕','呼吸困难','失眠','胃痛','心悸','咳嗽','疲劳','便秘','皮疹','发热'];
+  const host = document.getElementById('symptomChips');
+  if (!host) return;
+  host.innerHTML = topics.map(topic =>
+    '<button type="button" class="chip" onclick="quickAsk(\'' + escHTML(topic) + '\')">' +
+    escHTML(topic) + '</button>'
   ).join('');
 }
 
 function initChat(){
   if (state.chatStarted) return;
   state.chatStarted = true;
-  pushMsg('ai', `您好，我是 <b style="color:var(--cy)">健康信息助手</b>。<br>
-    我会根据本地预设的症状关键词条目提供一般性信息参考。此功能不是人工智能诊断，不会进行可靠的临床风险评估，也不能替代医生。<br><br>
-    如有严重、突发或迅速加重的症状，请及时寻求医疗帮助。`);
+  pushMsg('ai',
+    '<strong>症状资料导航 · 不做症状分析</strong><p>本页面不会把症状描述映射为器官、经络、疾病或风险等级，也不生成个体化诊疗建议。你输入的内容只用于本机显示，不发送到远程服务。</p>' +
+    '<p>请打开下方 MedlinePlus 或 NHS 官方资料目录自行查阅。严重、突发或迅速加重的症状，请及时联系所在地的急救或医疗服务，不要等待网页查询。</p>'
+  );
 }
 
 function pushMsg(role, html){
   const chat = document.getElementById('chat');
+  if (!chat) return null;
   const div = document.createElement('div');
   div.className = 'msg ' + role;
   const avatar = document.createElement('div');
   avatar.className = 'av';
-  avatar.textContent = role === 'ai' ? '烙' : '';
+  avatar.textContent = role === 'ai' ? 'i' : '你';
   const bubble = document.createElement('div');
   bubble.className = 'bubble';
-  // User-entered symptom text is untrusted: render it as text, never HTML.
+  // User-entered text is always text. Only fixed, authored navigation markup is HTML.
   if(role === 'user') bubble.textContent = String(html == null ? '' : html);
   else bubble.innerHTML = String(html == null ? '' : html);
   div.appendChild(avatar);
@@ -1189,100 +1194,48 @@ function pushMsg(role, html){
   return div;
 }
 
-function quickAsk(txt){
-  document.getElementById('chatInput').value = txt;
+function quickAsk(topic){
+  const input = document.getElementById('chatInput');
+  if (!input) return;
+  input.value = String(topic == null ? '' : topic);
   sendMsg();
 }
 
 function sendMsg(){
   const input = document.getElementById('chatInput');
-  const txt = input.value.trim();
-  if (!txt) return;
+  if (!input) return;
+  const query = input.value.trim();
+  if (!query) return;
   input.value = '';
   initChat();
-  pushMsg('user', txt);
-  runAnalysis(txt);
+  pushMsg('user', query);
+  runAnalysis(query);
 }
 
-function matchSymptom(text){
-  for (const s of SYMPTOM_DB){
-    if (s.kw.some(k => text.includes(k))) return s;
-  }
-  return {
-    organ:'需进一步评估', meridian:'待匹配', risk:'未评估', lv:0,
-    note:'当前关键词规则未匹配到相关条目；这不代表风险较低，也不能排除疾病',
-    advice:'可补充症状部位、持续时间和变化情况；如症状持续、加重或令人担忧，请咨询医疗专业人员；严重或突发症状应及时就医'
-  };
-}
-
-function runAnalysis(text){
-  const r = matchSymptom(text);
-  const steps = [
-    '症状语义解析…',
-    '匹配人体器官图谱…',
-    '匹配经络循行路径…',
-    '检索症状关键词参考条目…',
-    '展示一般健康提示（非个性化诊疗建议）…'
-  ];
-
+function runAnalysis(query){
+  const text = String(query == null ? '' : query).trim();
   const holder = pushMsg('ai', '');
+  if (!holder) return;
   const bubble = holder.querySelector('.bubble');
-  bubble.innerHTML = '<div style="font-size:12.5px;color:var(--tx3);margin-bottom:6px">关键词规则匹配中…</div>';
-
-  steps.forEach((s, i) => {
-    setTimeout(() => {
-      const line = document.createElement('div');
-      line.className = 'step-line';
-      line.innerHTML = `<span class="dot2"></span><span>${s}</span>`;
-      bubble.appendChild(line);
-      document.getElementById('chat').scrollTop = 1e9;
-
-      if (i === steps.length - 1){
-        setTimeout(() => showResult(holder, r), 520);
-      }
-    }, 340 * (i + 1));
-  });
-}
-
-function showResult(holder, r){
-  const cls = r.lv === 1 ? 'ok' : r.lv === 2 ? 'wn' : 'dg';
-  const json = {
-    "相关器官": r.organ,
-    "相关经络": r.meridian,
-    "匹配条目参考级别（非风险评估）": r.risk,
-    "建议": r.advice
-  };
-
-  holder.querySelector('.bubble').innerHTML = `
-    <div style="font-size:13px;font-weight:700;margin-bottom:9px;color:#a5f3fc">关键词匹配完成 · 非医疗评估</div>
-
-    <div class="kv"><b>相关器官</b><span>${escHTML(r.organ)}</span></div>
-    <div class="kv"><b>相关经络</b><span>${escHTML(r.meridian)}</span></div>
-    <div class="kv"><b>参考条目级别（非风险评估）</b><span class="tag ${cls}">${escHTML(r.risk)}</span></div>
-
-    <div style="margin-top:11px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.035);border:1px solid var(--line);font-size:12px;line-height:1.7;color:var(--tx2)">
-      <b style="color:var(--tx3);font-weight:500">规则条目说明：</b>${escHTML(r.note)}
-    </div>
-
-    <div style="margin-top:12px;font-size:11.5px;color:var(--tx3);margin-bottom:5px">结构化输出（JSON）</div>
-    <pre>${escHTML(JSON.stringify(json, null, 2))}</pre>
-
-    <div style="margin-top:12px;font-size:12px;line-height:1.8;color:var(--tx2)">
-      <b style="color:#a5f3fc">健康建议：</b><br>▸ ${escHTML(r.advice)}<br>
-      ▸ 保持规律作息，每日饮水量 1500–2000 mL<br>
-      ▸ 若症状持续或加重，请及时就医
-    </div>
-
-    <div style="margin-top:13px;display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn sm" onclick="go('report')">查看健康报告</button>
-      <button class="btn ghost sm" onclick="go('organ')">查看器官档案</button>
-    </div>
-
-    <div style="margin-top:12px;font-size:10px;color:#3d5570;line-height:1.6">
-      ⚠️ 本结果由本地预设的症状关键词条目匹配生成，不是人工智能诊断，仅供一般健康参考，不能替代专业医疗诊断。
-    </div>
-  `;
-  document.getElementById('chat').scrollTop = 1e9;
+  const sources = Array.isArray(SYMPTOM_REFERENCE_SOURCES) ? SYMPTOM_REFERENCE_SOURCES : [];
+  const links = sources.map(source =>
+    '<a class="symptom-reference-link" href="' + escHTML(source.url) +
+    '" target="_blank" rel="noopener noreferrer">' +
+    '<strong>' + escHTML(source.label) + ' ↗</strong>' +
+    '<small>' + escHTML(source.organization) + '</small>' +
+    '<span>' + escHTML(source.description) + '</span></a>'
+  ).join('');
+  bubble.innerHTML =
+    '<div class="symptom-reference-result">' +
+      '<span class="eyebrow">OFFICIAL PUBLIC INFORMATION</span>' +
+      '<h3>症状资料入口</h3>' +
+      '<p>本地记录的查询词：<strong>' + escHTML(text) + '</strong></p>' +
+      '<p>未执行疾病识别或风险评估。请在官方资料网站内自行搜索相关词条，并核对页面的适用人群、更新时间和求助指引。</p>' +
+      '<div class="symptom-reference-result__links">' + links + '</div>' +
+      '<p class="symptom-reference-result__boundary">这些链接是公共健康信息入口，不是对你输入内容的判断，也不构成诊断或治疗建议。</p>' +
+    '</div>';
+  const chat = document.getElementById('chat');
+  if (chat) chat.scrollTop = chat.scrollHeight;
 }
 
 /* ---------------- 个人观察趋势报告（不计算未经验证的总分） ---------------- */
