@@ -46,7 +46,7 @@ assert.match(html, /数据边界/,
   'home must state source, measurement and clinical interpretation boundaries');
 assert.match(html, /近期有效记录趋势/,
   'report page must use the current observation-driven trend');
-assert.doesNotMatch(html, /今日体征|综合健康总分|六维能力雷达|126\/82|72 bpm|健康指数/,
+assert.doesNotMatch(html, /今日体征|综合健康总分|六维能力雷达|126\/82|72 bpm|84 分/,
   'home and report must not present fabricated patient-like vital signs or a synthetic overall score');
 assert.match(html, /图谱演示说明/,
   'digital human must be described as an anatomy education model');
