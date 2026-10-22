@@ -32,12 +32,14 @@ assert.ok(productCss.includes('@media(max-width:860px)') &&
 assert.match(productCss, /prefers-reduced-motion:reduce/,
   'health redesign must respect reduced-motion preferences');
 
-assert.match(html, /本地预设的症状关键词条目/,
-  'symptom tool must disclose its local keyword-based implementation');
-assert.match(html, /不是人工智能诊断/,
-  'symptom tool must not imply an AI diagnosis');
-assert.match(html, /风险较低，也不能排除疾病/,
-  'unmatched symptoms must not be presented as low risk');
+assert.match(html, /症状资料导航/,
+  'symptom page must be an information directory, not a pseudo-triage panel');
+assert.match(html, /https:\/\/medlineplus\.gov\/symptoms\.html/,
+  'symptom navigation must link to the official MedlinePlus symptom directory');
+assert.match(html, /https:\/\/www\.nhs\.uk\/symptoms\//,
+  'symptom navigation must link to the official NHS symptom directory');
+assert.match(html, /不会把症状描述映射为器官、经络、疾病或风险等级/,
+  'symptom input must disclose that it does not infer diagnoses or risk levels');
 assert.match(html, /PERSONAL HEALTH RECORDS · FHIR-ALIGNED/,
   'home must be a record-first personal health workspace');
 assert.match(html, /id="personalRecordSnapshot"/,
@@ -71,12 +73,19 @@ assert.match(html, /function renderVesselMetrics\(/,
   'vascular metrics renderer must exist');
 assert.match(html, /row\.recordState === 'active'/,
   'vascular data must be drawn only from active observations');
-for (const token of [
-  '${escHTML(r.organ)}', '${escHTML(r.meridian)}', '${escHTML(r.risk)}',
-  '${escHTML(r.note)}', '${escHTML(JSON.stringify(json, null, 2))}', '${escHTML(r.advice)}'
-]) assert.ok(html.includes(token), 'health result field must be escaped: ' + token);
-assert.doesNotMatch(html, /\\$\\{r\\.(?:organ|meridian|risk|note|advice)\\}/,
-  'health result data must not be interpolated into HTML without escaping');
+assert.match(html, /function runAnalysis\\(query\\)/,
+  'symptom navigation must use a non-diagnostic information-directory handler');
+assert.match(html, /escHTML\\(text\\)/,
+  'user query text must be escaped before it is displayed beside official resources');
+assert.match(html, /escHTML\\(source\\.url\\)/,
+  'public resource URLs must be escaped before insertion into trusted navigation markup');
+assert.doesNotMatch(html, /function matchSymptom\\(|const r = matchSymptom|关键词匹配完成|匹配人体器官图谱|匹配经络循行路径/,
+  'the old organ/meridian symptom matcher and simulated analysis sequence must be removed');
+const symptomSource = anatomyData.slice(anatomyData.indexOf('const SYMPTOM_REFERENCE_SOURCES'));
+assert.match(symptomSource, /medlineplus\\.gov\\/symptoms\\.html/);
+assert.match(symptomSource, /nhs\\.uk\\/symptoms\\//);
+assert.doesNotMatch(symptomSource, /risk:|lv:|meridian:|organ:/,
+  'symptom reference sources must not carry unsupported risk or organ mappings');
 console.log('Health demo disclosure and symptom safety checks passed.');
 
 assert.match(html, /data-page="records"/, 'health observation page must be available');
