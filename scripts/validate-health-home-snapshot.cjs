@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 
 const app = fs.readFileSync('assets/js/legacy-app.js','utf8');
 const html = fs.readFileSync('index.html','utf8');
-const css = fs.readFileSync('assets/css/health-data-workspace.css','utf8');
+const css = fs.readFileSync('assets/css/workspace.css','utf8');
 
 assert.ok(!html.includes('NO HEALTH SCORE') &&
           !html.includes('stroke-dasharray="326.7"') &&
@@ -17,7 +17,7 @@ assert.ok(html.includes('class="health-data-command"') &&
           html.includes('独立于上方示例体征'),
   'home must expose a separate local-observation area, not merge personal measurements into demo vitals');
 assert.ok(html.includes('legacy-app.js?v=20261020-health-real-trend-v2') &&
-          html.includes('health-data-workspace.css?v=20261022-observation-provenance-v1'),
+          html.includes('workspace.css?v=20261022-observation-provenance-v1'),
   'home snapshot must load the cache-busted runtime and stylesheet');
 for (const selector of [
   '.personal-record-snapshot{','.personal-record-stats{','.personal-record-row{',
