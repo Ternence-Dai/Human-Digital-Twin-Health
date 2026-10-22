@@ -639,6 +639,7 @@ function go(page){
 function doLogin(){
   document.getElementById('login').classList.add('hide');
   document.getElementById('shell').classList.add('show');
+  document.getElementById('skipMain').hidden = false;
 }
 
 /* ---------------- 首页 ---------------- */
