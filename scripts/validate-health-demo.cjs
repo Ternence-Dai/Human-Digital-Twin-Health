@@ -3,15 +3,15 @@ const fs = require('node:fs');
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const html = fs.readFileSync('index.html', 'utf8') + '\n' + fs.readFileSync('assets/js/health-demo-data.js', 'utf8') + '\n' + fs.readFileSync('assets/js/legacy-app.js', 'utf8');
-const productCss = fs.readFileSync('assets/css/product-system.css', 'utf8');
-assert.ok(html.includes('product-system.css?v=20261019-v8'),
-  'health app must load the visible V8 product interface stylesheet');
+const productCss = fs.readFileSync('assets/css/workspace.css', 'utf8');
+assert.ok(html.includes('workspace.css?v=20261022-record-first-v2'),
+  'health app must load the record-first product workspace stylesheet');
 assert.match(productCss, /Health data workspace redesign/,
   'health product design layer must be explicitly versioned');
 for (const selector of [
-  '.sidebar{', '.topbar{', '.health-intro{', '.score-card{',
-  '.metric-card{', '.quick-item{', '#observationForm{',
-  '#observationList{', '.tabbar{'
+  '.sidebar{', '.topbar{', '.health-home-dashboard{', '.health-home-primary{',
+  '.health-home-trust{', '.health-home-modules{', '.health-section-intro{',
+  '.health-report-integrity{', '#observationForm{', '#observationList{', '.tabbar{'
 ]) assert.ok(productCss.includes(selector),
   'health V3 design must style the major product area: ' + selector);
 assert.ok(productCss.includes('@media(max-width:860px)'),
@@ -19,11 +19,11 @@ assert.ok(productCss.includes('@media(max-width:860px)'),
 assert.ok(productCss.includes('@media(max-width:520px)'),
   'health redesign must include narrow phone layout rules');
 
-assert.ok(productCss.includes('V4 · Human Digital Twin command workspace') &&
-          productCss.includes('.health-intro:after{') &&
-          productCss.includes('.product-workflow__grid{') &&
-          productCss.includes('.score-card:after{'),
-  'health V4 must implement the new editorial intro, four-step workflow and visual hero surface');
+assert.ok(productCss.includes('.health-home-dashboard{') &&
+          productCss.includes('.health-home-trust{') &&
+          productCss.includes('.health-knowledge-modal__boundary{') &&
+          productCss.includes('.health-meridian-reference-grid{'),
+  'record-first health workspace must distinguish observations, anatomy education and traditional-theory references');
 assert.ok(productCss.includes('@media(max-width:860px)') &&
           productCss.includes('@media(max-width:520px)') &&
           productCss.includes('.product-workflow__item:hover'),
@@ -38,30 +38,39 @@ assert.match(html, /不是人工智能诊断/,
   'symptom tool must not imply an AI diagnosis');
 assert.match(html, /风险较低，也不能排除疾病/,
   'unmatched symptoms must not be presented as low risk');
-assert.match(html, /示例体征 · 非真实测量数据/,
-  'sample vitals must be clearly labeled');
-assert.match(html, /演示数据说明/,
-  'hard-coded health scores and trends must have a prominent demo disclaimer');
-assert.match(html, /不来自本地健康记录、真实设备或医学检查/,
-  'demo scores must not be confused with user observations or clinical test results');
-assert.match(html, /综合健康总分（演示）/,
-  'the hard-coded total score must be labeled as demo data');
-assert.match(html, /六维能力雷达（演示）/,
-  'static radar metrics must be labeled as demo data');
-assert.match(html, /近期真实记录趋势/,
-  'the dashboard trend must be identified as user-record-derived, not a static demo');
-assert.doesNotMatch(html, /近 3 次检测趋势（演示）/,
-  'the record-driven trend must not keep the old static-demo heading');
-assert.match(html, /图谱演示说明/,
-  'digital human organ positions and state labels must be labeled as a visual demo');
+assert.match(html, /PERSONAL HEALTH RECORDS · FHIR-ALIGNED/,
+  'home must be a record-first personal health workspace');
+assert.match(html, /#personalRecordSnapshot/,
+  'home must show the validated local observation snapshot');
+assert.match(html, /数据边界/,
+  'home must state source, measurement and clinical interpretation boundaries');
+assert.match(html, /近期有效记录趋势/,
+  'report page must use the current observation-driven trend');
+assert.doesNotMatch(html, /今日体征|综合健康总分|六维能力雷达|126\/82|72 bpm|健康指数/,
+  'home and report must not present fabricated patient-like vital signs or a synthetic overall score');
+assert.match(html, /数字人体结构模型/,
+  'digital human must be described as an anatomy education model');
 assert.match(html, /未连接真实设备/,
-  'demo device state must not imply a real connected device');
+  'current device status must not imply a real connected device');
 assert.doesNotMatch(html, /无限次 AI 智能问诊/,
   'demo must not advertise nonexistent AI consultation');
 assert.match(html, /if\(role === 'user'\) bubble\.textContent/,
   'user-entered symptoms must be rendered as text to prevent HTML injection');
 assert.ok(html.includes('function escHTML(value)'),
   'health result renderer must define an HTML escaping helper');
+const anatomyData = fs.readFileSync('assets/js/health-demo-data.js', 'utf8');
+const organData = anatomyData.slice(anatomyData.indexOf('const ORGANS = ['), anatomyData.indexOf('const MERIDIANS_12'));
+const meridianData = anatomyData.slice(anatomyData.indexOf('const MERIDIANS_12'), anatomyData.indexOf('const ACUPOINTS'));
+assert.equal((organData.match(/\{ id:'/g) || []).length, 12,
+  'all 12 anatomy entries must be preserved');
+assert.doesNotMatch(organData, /score:|risk:|metrics:|history:|advice:/,
+  'anatomy reference data must not contain fabricated patient scores, lab results or histories');
+assert.doesNotMatch(meridianData, /energy:|status:/,
+  'meridian theory reference data must not contain fabricated energy or blockage states');
+assert.match(html, /function renderVesselMetrics\(/,
+  'vascular metrics renderer must exist');
+assert.match(html, /row\.recordState === 'active'/,
+  'vascular data must be drawn only from active observations');
 for (const token of [
   '${escHTML(r.organ)}', '${escHTML(r.meridian)}', '${escHTML(r.risk)}',
   '${escHTML(r.note)}', '${escHTML(JSON.stringify(json, null, 2))}', '${escHTML(r.advice)}'
@@ -136,19 +145,13 @@ for (const invalid of ['2026-02-30T08:30','2026-13-01T08:30','2026-10-18T24:00',
     'invalid datetime-local value must not be silently normalized: ' + invalid);
 }
 
-assert.match(html, /循环系统指标（演示）/,
-  'vascular metrics must be explicitly marked as demonstration data');
-assert.match(html, /风险评估（演示）/,
-  'vascular risk blocks must be explicitly marked as demonstration data');
-assert.match(html, /不是实时设备测量、医学检查结果或个体化风险评估/,
-  'vascular demo must disclose that static values are not personal clinical results');
-assert.match(html, /经络热力图（演示）/,
-  'meridian heatmap must be explicitly marked as demonstration data');
-assert.match(html, /十二正经（演示）/,
-  'meridian twelve-channel panel must be explicitly marked as demonstration data');
-assert.match(html, /奇经八脉（演示）/,
-  'extraordinary-vessel panel must be explicitly marked as demonstration data');
-assert.match(html, /不是生理检测结果，也不会由设备自动计算/,
-  'meridian demo must disclose its static provenance');
-assert.match(html, /演示能量值/,
-  'meridian detail modal must not imply a measured energy value');
+assert.match(html, /本机有效健康记录/,
+  'circulatory workspace must be backed by local observation records');
+assert.match(html, /血管解剖结构示意/,
+  'vascular page must present anatomy reference rather than fabricated measurements');
+assert.match(html, /十二正经 · 理论路径/,
+  'meridian view must be identified as a traditional-theory reference');
+assert.match(html, /不把经络概念转换成生理测量/,
+  'meridian information must not imply measured physiology');
+assert.match(html, /本机浏览器保存 · 未连接真实设备/,
+  'the current local-only storage and device status must be explicit');
