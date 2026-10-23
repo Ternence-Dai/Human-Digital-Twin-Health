@@ -141,7 +141,7 @@ const fs = require('node:fs');
     await page.locator('#navList .nav-item[data-nav="home"]').click();
     await page.waitForFunction(() => {
       const summary = document.querySelector('#trendSummary')?.textContent || '';
-      return summary.includes('browser-smoke-heart-rate') && summary.includes('最近 2 次');
+      return summary.includes('browser-smoke-heart-rate') && summary.includes('2 次有效记录');
     });
     if (await page.locator('#trendSvg circle').count() < 2) {
       throw new Error('Two valid same-metric observations did not produce a two-point trend');
@@ -185,13 +185,13 @@ const fs = require('node:fs');
     if (!trendExplorer.panel || !trendExplorer.metricEnabled || trendExplorer.metricOptions !== 1 ||
         !trendExplorer.selectedSource.includes('示例数据') ||
         !trendExplorer.selectedSource.includes('Synthetic Playwright fixture') ||
-        !trendExplorer.summary.includes('最近 2 次') || trendExplorer.points < 2 ||
+        !trendExplorer.summary.includes('2 次有效记录') || trendExplorer.points < 2 ||
         trendExplorer.limitValues.join(',') !== '3,6,12') {
       throw new Error('Source-aware observation trend explorer did not bind its validated record series: ' +
         JSON.stringify(trendExplorer));
     }
     await page.locator('#observationTrendLimit').selectOption('12');
-    await page.waitForFunction(() => (document.querySelector('#trendSummary')?.textContent || '').includes('最近 2 次'));
+    await page.waitForFunction(() => (document.querySelector('#trendSummary')?.textContent || '').includes('2 次有效记录'));
     fs.mkdirSync('artifacts', { recursive: true });
     await page.evaluate(() => document.activeElement?.blur());
     await page.locator('.health-trend-panel').screenshot({ path: 'artifacts/health-observation-trend-desktop.png' });
