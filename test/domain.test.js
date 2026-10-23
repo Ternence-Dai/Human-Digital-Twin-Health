@@ -661,3 +661,33 @@ test("FHIR export requires record-state audit lineage for amended and entered-in
   }, { ...mapping, status: "corrected" });
   assert.equal(amended.status, "corrected");
 });
+
+
+test("FHIR export rejects an observation that references itself as its previous version", async () => {
+  const { toFhirObservation } = await import("../src/domain/index.js");
+  const observation = {
+    id: "obs-self-version",
+    metric: "resting-heart-rate",
+    value: 62,
+    unit: "bpm",
+    observedAt: "2026-01-01T00:00:00Z",
+    recordedAt: "2026-01-01T00:05:00Z",
+    source: "manual-entry",
+    quality: "reported",
+    previousVersionId: "obs-self-version",
+    amendmentReason: "Correction",
+    amendedBy: "reviewer",
+    amendedAt: "2026-01-02T00:00:00Z"
+  };
+  const mapping = {
+    status: "corrected",
+    subjectReference: "Patient/example",
+    code: { system: "http://loinc.org", code: "8867-4" },
+    unitCoding: { system: "http://unitsofmeasure.org", code: "/min" },
+    sourceExtensionUrl: "https://example.org/fhir/StructureDefinition/source",
+    qualityExtensionUrl: "https://example.org/fhir/StructureDefinition/quality",
+    versionAuditExtensionUrl: "https://example.org/fhir/StructureDefinition/version-audit"
+  };
+  assert.throws(() => toFhirObservation(observation, mapping),
+    /cannot reference itself as a previous FHIR version/);
+});
