@@ -1,6 +1,7 @@
 'use strict';
 
 const { chromium } = require('playwright');
+const fs = require('node:fs');
 
 (async () => {
   const browser = await chromium.launch({ headless: true });
@@ -140,7 +141,7 @@ const { chromium } = require('playwright');
     await page.locator('#navList .nav-item[data-nav="home"]').click();
     await page.waitForFunction(() => {
       const summary = document.querySelector('#trendSummary')?.textContent || '';
-      return summary.includes('browser-smoke-heart-rate') && summary.includes('最近 2 次');
+      return summary.includes('browser-smoke-heart-rate') && summary.includes('2 次有效记录');
     });
     if (await page.locator('#trendSvg circle').count() < 2) {
       throw new Error('Two valid same-metric observations did not produce a two-point trend');
@@ -164,6 +165,68 @@ const { chromium } = require('playwright');
       throw new Error('Observation provenance dashboard did not reflect the two validated synthetic records: ' +
         JSON.stringify(provenanceEvidence));
     }
+
+    await page.locator('#navList .nav-item[data-nav="report"]').click();
+    await page.waitForFunction(() => document.querySelector('#pages .page.active[data-page="report"]'));
+    const trendExplorer = await page.evaluate(() => {
+      const metric = document.querySelector('#observationTrendMetric');
+      const limit = document.querySelector('#observationTrendLimit');
+      const panel = document.querySelector('.health-trend-panel');
+      return {
+        panel: !!panel,
+        metricEnabled: !!metric && !metric.disabled,
+        metricOptions: metric?.options.length || 0,
+        selectedSource: metric?.selectedOptions[0]?.textContent || '',
+        limitValues: limit ? [...limit.options].map(option => option.value) : [],
+        summary: document.querySelector('#trendSummary')?.textContent || '',
+        points: document.querySelectorAll('#trendSvg circle').length
+      };
+    });
+    if (!trendExplorer.panel || !trendExplorer.metricEnabled || trendExplorer.metricOptions !== 1 ||
+        !trendExplorer.selectedSource.includes('示例数据') ||
+        !trendExplorer.selectedSource.includes('Synthetic Playwright fixture') ||
+        !trendExplorer.summary.includes('2 次有效记录') || trendExplorer.points < 2 ||
+        trendExplorer.limitValues.join(',') !== '3,6,12') {
+      throw new Error('Source-aware observation trend explorer did not bind its validated record series: ' +
+        JSON.stringify(trendExplorer));
+    }
+    await page.locator('#observationTrendLimit').selectOption('12');
+    await page.waitForFunction(() => (document.querySelector('#trendSummary')?.textContent || '').includes('2 次有效记录'));
+    fs.mkdirSync('artifacts', { recursive: true });
+    await page.evaluate(() => document.activeElement?.blur());
+    await page.locator('.health-trend-panel').screenshot({ path: 'artifacts/health-observation-trend-desktop.png' });
+    await page.setViewportSize({ width: 390, height: 844 });
+    const mobileTrend = await page.evaluate(() => {
+      const shell = document.querySelector('#shell')?.getBoundingClientRect();
+      const main = document.querySelector('#main-content')?.getBoundingClientRect();
+      const panel = document.querySelector('.health-trend-panel')?.getBoundingClientRect();
+      const pages = document.querySelector('#pages')?.getBoundingClientRect();
+      const controls = document.querySelector('.health-trend-controls');
+      const select = document.querySelector('#observationTrendMetric');
+      const chart = document.querySelector('.health-trend-chart-wrap');
+      return {
+        viewport: innerWidth, shellWidth: shell?.width, mainWidth: main?.width,
+        panelLeft: panel?.left, panelRight: panel?.right, panelWidth: panel?.width,
+        pagesWidth: pages?.width, controlsColumns: controls ? getComputedStyle(controls).gridTemplateColumns : '',
+        selectWidth: select?.getBoundingClientRect().width,
+        chartClientWidth: chart?.clientWidth, chartScrollWidth: chart?.scrollWidth
+      };
+    });
+    if (!mobileTrend.shellWidth || mobileTrend.shellWidth < 380 ||
+        !mobileTrend.mainWidth || mobileTrend.mainWidth < 380 ||
+        !mobileTrend.pagesWidth || mobileTrend.pagesWidth < 360 ||
+        !mobileTrend.panelWidth || mobileTrend.panelWidth < 340 ||
+        mobileTrend.panelLeft < 0 || mobileTrend.panelRight > 391 ||
+        !mobileTrend.selectWidth || mobileTrend.selectWidth < 300 ||
+        mobileTrend.chartScrollWidth <= mobileTrend.chartClientWidth) {
+      throw new Error('Mobile observation trend controls or chart are clipped: ' + JSON.stringify(mobileTrend));
+    }
+    await page.evaluate(() => {
+      document.activeElement?.blur();
+      document.querySelector('.health-trend-chart-wrap')?.scrollTo(0, 0);
+    });
+    await page.locator('.health-trend-panel').screenshot({ path: 'artifacts/health-observation-trend-mobile.png' });
+    await page.setViewportSize({ width: 1440, height: 1000 });
 
     // Amend the latest observation as a new version; the original must remain immutable in history.
     await page.locator('#navList .nav-item[data-nav="records"]').click();
@@ -231,8 +294,9 @@ const { chromium } = require('playwright');
     await page.locator('#navList .nav-item[data-nav="report"]').click();
     await page.waitForFunction(() => document.querySelector('#pages .page.active[data-page="report"]'));
     const reportText = await page.locator('#pages .page.active').innerText();
-    if (!reportText.includes('近期有效记录趋势') ||
-        !reportText.includes('至少两次有效观察记录') ||
+    if (!reportText.includes('有效观察趋势分析') ||
+        !reportText.includes('指标与数据来源') ||
+        !reportText.includes('展示记录数量') ||
         reportText.includes('综合健康总分（演示）') || reportText.includes('六维能力雷达（演示）') || /综合健康总分\s*84|84\s*分/.test(reportText)) {
       throw new Error('Health report still relies on synthetic scorecards instead of valid observation trends');
     }

@@ -11,6 +11,7 @@
 <style>.skip-link{position:fixed;top:12px;left:16px;z-index:10000;transform:translateY(-180%);padding:12px 16px;border:2px solid #f59e0b;border-radius:9px;background:#fff;color:#14202b;font-weight:700;text-decoration:none;box-shadow:0 8px 24px rgba(0,0,0,.24)}.skip-link:focus{transform:translateY(0);outline:3px solid #f59e0b;outline-offset:3px}.skip-link[hidden]{display:none}</style>
 
 <link rel="stylesheet" href="./assets/css/reference-platform-v4.css?v=20261022-reference-v6">
+<link rel="stylesheet" href="./assets/css/health-trend-explorer-v1.css?v=20261023-trend-v1">
 <link rel="stylesheet" href="./assets/css/readability-accessibility-v10.css?v=20261021-v10">
 
 </head>
@@ -304,11 +305,33 @@
           <p>目前不计算综合健康总分、器官分值或个体化疾病风险。报告只展示同一指标、同一单位下至少两次有效观察记录的变化，并保留记录来源。</p>
           <span>当前有效记录 · 本机数据 · 无临床结论</span>
         </div>
-        <div class="sec-title"><span class="bar"></span>近期有效记录趋势</div>
-        <div class="glass" style="padding:20px">
-          <div id="trendSummary" style="font-size:12px;color:var(--tx2);margin-bottom:10px">同一指标至少需要两次有效记录才会绘制趋势。</div>
-          <svg id="trendSvg" role="img" aria-label="根据当前有效健康观察记录绘制的趋势" viewBox="0 0 320 120" style="width:100%"></svg>
-        </div>
+        <div class="sec-title"><span class="bar"></span>有效观察趋势分析</div>
+        <section class="glass health-trend-panel" aria-label="按指标与来源筛选的观察趋势">
+          <div class="health-trend-panel__head">
+            <div><span class="eyebrow">OBSERVATION TREND EXPLORER</span><h3>同源指标时间序列</h3>
+              <p>只对比同一指标、计量单位、质量类别与来源名称；不把不同来源混成一条趋势。</p></div>
+            <span class="health-trend-local-tag">本机有效记录</span>
+          </div>
+          <div class="health-trend-controls">
+            <div class="health-trend-field">
+              <label for="observationTrendMetric">指标与数据来源</label>
+              <select id="observationTrendMetric"><option value="">等待有效记录…</option></select>
+            </div>
+            <div class="health-trend-field">
+              <label for="observationTrendLimit">展示记录数量</label>
+              <select id="observationTrendLimit">
+                <option value="3" selected>最近 3 次</option>
+                <option value="6">最近 6 次</option>
+                <option value="12">最近 12 次</option>
+              </select>
+            </div>
+          </div>
+          <div id="trendSummary" class="health-trend-summary" role="status" aria-live="polite">同一指标、单位和来源至少需要 2 次有效记录才会绘制趋势。</div>
+          <div class="health-trend-chart-wrap">
+            <svg id="trendSvg" role="img" aria-label="根据当前有效健康观察记录绘制的趋势" viewBox="0 0 720 260" preserveAspectRatio="xMidYMid meet"></svg>
+          </div>
+          <p class="health-trend-disclaimer">图表仅呈现原始观察值及其测量时间，不显示正常范围、风险分数或诊断结论。不同来源、单位或质量类别不会合并比较。</p>
+        </section>
         <div class="sec-title"><span class="bar"></span>一般健康教育</div>
         <div id="adviceList"></div>
         <div class="footer-note">任何图表都不代表诊断或风险评分；请结合真实检测结果并咨询合格医疗专业人员。</div>
@@ -352,7 +375,7 @@
 </div>
 
 <script src="./assets/js/health-demo-data.js?v=20261022-anatomy-only-v2"></script>
-<script src="./assets/js/legacy-app.js?v=20261022-observation-native-v4"></script>
+<script src="./assets/js/legacy-app.js?v=20261023-provenance-trend-v1"></script>
   <script src="./assets/js/workspace-v5.js?v=20261019-v5"></script>
 <script src="./assets/js/reference-shell-v4-boot.js?v=20261022-reference-v5"></script>
 </body>
