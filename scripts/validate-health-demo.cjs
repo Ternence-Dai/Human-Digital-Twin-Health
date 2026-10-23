@@ -46,8 +46,14 @@ assert.match(html, /id="personalRecordSnapshot"/,
   'home must show the validated local observation snapshot');
 assert.match(html, /数据边界/,
   'home must state source, measurement and clinical interpretation boundaries');
-assert.match(html, /近期有效记录趋势/,
-  'report page must use the current observation-driven trend');
+assert.match(html, /有效观察趋势分析/,
+  'report page must use the source-aware observation trend explorer');
+assert.match(html, /id="observationTrendMetric"/,
+  'report page must let users select the metric and provenance stream');
+assert.match(html, /id="observationTrendLimit"/,
+  'report page must let users select the displayed observation count');
+assert.match(html, /不同来源、单位或质量类别不会合并比较/,
+  'the trend UI must disclose that separate provenance streams remain isolated');
 assert.doesNotMatch(html, /今日体征|综合健康总分（演示）|六维能力雷达（演示）|126\/82|72 bpm|84 分/,
   'home and report must not present fabricated patient-like vital signs or a synthetic overall score');
 assert.match(html, /图谱演示说明/,
