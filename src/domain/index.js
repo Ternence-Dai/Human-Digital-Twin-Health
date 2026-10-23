@@ -476,6 +476,9 @@ export function toFhirObservation(observation, mapping) {
   if (recordState !== undefined && !["active", "superseded", "voided"].includes(recordState)) {
     throw new RangeError("observation recordState must be active, superseded or voided");
   }
+  if (status === "entered-in-error" && recordState !== "voided") {
+    throw new RangeError("entered-in-error status requires a voided record and complete void audit");
+  }
   if (recordState === "voided" && status !== "entered-in-error") {
     throw new RangeError("voided observations must export with entered-in-error status");
   }
@@ -493,6 +496,10 @@ export function toFhirObservation(observation, mapping) {
   }
   if (presentAmendmentFields.length && !["amended", "corrected"].includes(status)) {
     throw new RangeError("observations with amendment lineage must export with amended or corrected status");
+  }
+  if (["amended", "corrected"].includes(status) &&
+      presentAmendmentFields.length !== amendmentFields.length) {
+    throw new TypeError("amended or corrected status requires complete amendment lineage");
   }
   if (recordState === "voided" &&
       ["voidReason", "voidedBy", "voidedAt"].some(field => observation[field] === undefined)) {
