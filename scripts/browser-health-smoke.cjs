@@ -197,19 +197,25 @@ const fs = require('node:fs');
     await page.locator('.health-trend-panel').screenshot({ path: 'artifacts/health-observation-trend-desktop.png' });
     await page.setViewportSize({ width: 390, height: 844 });
     const mobileTrend = await page.evaluate(() => {
+      const shell = document.querySelector('#shell')?.getBoundingClientRect();
+      const main = document.querySelector('#main-content')?.getBoundingClientRect();
       const panel = document.querySelector('.health-trend-panel')?.getBoundingClientRect();
       const pages = document.querySelector('#pages')?.getBoundingClientRect();
       const controls = document.querySelector('.health-trend-controls');
       const select = document.querySelector('#observationTrendMetric');
       const chart = document.querySelector('.health-trend-chart-wrap');
       return {
-        viewport: innerWidth, panelLeft: panel?.left, panelRight: panel?.right, panelWidth: panel?.width,
+        viewport: innerWidth, shellWidth: shell?.width, mainWidth: main?.width,
+        panelLeft: panel?.left, panelRight: panel?.right, panelWidth: panel?.width,
         pagesWidth: pages?.width, controlsColumns: controls ? getComputedStyle(controls).gridTemplateColumns : '',
         selectWidth: select?.getBoundingClientRect().width,
         chartClientWidth: chart?.clientWidth, chartScrollWidth: chart?.scrollWidth
       };
     });
-    if (!mobileTrend.panelWidth || mobileTrend.panelWidth < 340 ||
+    if (!mobileTrend.shellWidth || mobileTrend.shellWidth < 380 ||
+        !mobileTrend.mainWidth || mobileTrend.mainWidth < 380 ||
+        !mobileTrend.pagesWidth || mobileTrend.pagesWidth < 360 ||
+        !mobileTrend.panelWidth || mobileTrend.panelWidth < 340 ||
         mobileTrend.panelLeft < 0 || mobileTrend.panelRight > 391 ||
         !mobileTrend.selectWidth || mobileTrend.selectWidth < 300 ||
         mobileTrend.chartScrollWidth <= mobileTrend.chartClientWidth) {
