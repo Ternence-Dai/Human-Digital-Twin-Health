@@ -562,13 +562,18 @@ export function toFhirObservation(observation, mapping) {
   if (hasVersionAudit) {
     const auditChildren = [];
     if (presentAmendmentFields.length) {
+      const previousVersionId = requiredFhirText(observation.previousVersionId, "previousVersionId", 120);
+      if (typeof observation.id === "string" && observation.id.trim() &&
+          previousVersionId === observation.id.trim()) {
+        throw new RangeError("an observation cannot reference itself as a previous FHIR version");
+      }
       const amendedAt = parseObservedAt(observation.amendedAt);
       if (Date.parse(amendedAt) < Date.parse(validated.observedAt) ||
           (validated.recordedAt && Date.parse(amendedAt) < Date.parse(validated.recordedAt))) {
         throw new RangeError("amendment time cannot precede the observation or record-entry time");
       }
       auditChildren.push(
-        { url: "previous-version-id", valueString: requiredFhirText(observation.previousVersionId, "previousVersionId", 120) },
+        { url: "previous-version-id", valueString: previousVersionId },
         { url: "amendment-reason", valueString: requiredFhirText(observation.amendmentReason, "amendmentReason", 1000) },
         { url: "amended-by", valueString: requiredFhirText(observation.amendedBy, "amendedBy", 120) },
         { url: "amended-at", valueDateTime: amendedAt }
