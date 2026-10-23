@@ -464,6 +464,64 @@ test("FHIR export refuses guessed terminology, identity, status and extension na
   assert.throws(() => toFhirObservation({ ...observation, recordState: "unknown" }, mapping), RangeError);
 });
 
+
+
+test("FHIR export preserves amended and voided observation audit lineage", async () => {
+  const { toFhirObservation } = await import("../src/domain/index.js");
+  const mapping = {
+    status: "amended",
+    subjectReference: "Patient/example",
+    code: { system: "http://loinc.org", code: "8867-4" },
+    unitCoding: { system: "http://unitsofmeasure.org", code: "/min" },
+    sourceExtensionUrl: "https://example.org/fhir/StructureDefinition/source",
+    qualityExtensionUrl: "https://example.org/fhir/StructureDefinition/quality",
+    versionAuditExtensionUrl: "https://example.org/fhir/StructureDefinition/observation-version-audit"
+  };
+  const amended = toFhirObservation({
+    id: "obs-v2", metric: "heart-rate", value: 70, unit: "bpm",
+    observedAt: "2026-01-01T00:00:00Z", source: "manual-entry", quality: "reported",
+    recordState: "active", previousVersionId: "obs-v1",
+    amendmentReason: "Corrected transcription", amendedBy: "reviewer-1",
+    amendedAt: "2026-01-02T00:00:00Z"
+  }, mapping);
+  const audit = amended.extension.find(item => item.url === mapping.versionAuditExtensionUrl);
+  assert.deepEqual(audit.extension.map(item => item.url), [
+    "previous-version-id", "amendment-reason", "amended-by", "amended-at"
+  ]);
+  assert.equal(audit.extension[0].valueString, "obs-v1");
+  assert.equal(audit.extension[3].valueDateTime, "2026-01-02T00:00:00.000Z");
+
+  const voided = toFhirObservation({
+    id: "obs-void", metric: "heart-rate", value: 70, unit: "bpm",
+    observedAt: "2026-01-01T00:00:00Z", source: "manual-entry", quality: "reported",
+    recordState: "voided", voidReason: "Duplicate entry", voidedBy: "reviewer-1",
+    voidedAt: "2026-01-03T00:00:00Z"
+  }, { ...mapping, status: "entered-in-error" });
+  const voidAudit = voided.extension.find(item => item.url === mapping.versionAuditExtensionUrl);
+  assert.deepEqual(voidAudit.extension.map(item => item.url), [
+    "void-reason", "voided-by", "voided-at"
+  ]);
+  assert.equal(voidAudit.extension[0].valueString, "Duplicate entry");
+  assert.ok(Object.isFrozen(voidAudit) && Object.isFrozen(voidAudit.extension));
+
+  assert.throws(() => toFhirObservation({
+    id: "obs-incomplete", metric: "heart-rate", value: 70, unit: "bpm",
+    observedAt: "2026-01-01T00:00:00Z", source: "manual-entry", quality: "reported",
+    recordState: "voided"
+  }, { ...mapping, status: "entered-in-error" }), /require reason, actor and void time/);
+  assert.throws(() => toFhirObservation({
+    id: "obs-incomplete-amendment", metric: "heart-rate", value: 70, unit: "bpm",
+    observedAt: "2026-01-01T00:00:00Z", source: "manual-entry", quality: "reported",
+    previousVersionId: "obs-v1", amendmentReason: "Corrected"
+  }, mapping), /require previous version, reason, actor and amendment time/);
+  assert.throws(() => toFhirObservation({
+    id: "obs-collision", metric: "heart-rate", value: 70, unit: "bpm",
+    observedAt: "2026-01-01T00:00:00Z", source: "manual-entry", quality: "reported",
+    previousVersionId: "obs-v1", amendmentReason: "Corrected", amendedBy: "reviewer-1",
+    amendedAt: "2026-01-02T00:00:00Z"
+  }, { ...mapping, versionAuditExtensionUrl: mapping.sourceExtensionUrl }), /distinct canonical URL/);
+});
+
 test("FHIR export rejects recognized display units paired with contradictory UCUM codes", async () => {
   const { toFhirObservation } = await import("../src/domain/index.js");
   const observation = {
