@@ -608,3 +608,56 @@ test("FHIR export rejects malformed subject references and invalid coding URIs",
     ...mapping, code: { ...mapping.code, system: "not-a-uri" }
   }), /absolute HTTP\(S\) or URN URI/);
 });
+
+
+test("FHIR export requires record-state audit lineage for amended and entered-in-error statuses", async () => {
+  const { toFhirObservation } = await import("../src/domain/index.js");
+  const observation = {
+    id: "obs-status-lineage",
+    metric: "resting-heart-rate",
+    value: 62,
+    unit: "bpm",
+    observedAt: "2026-01-01T00:00:00Z",
+    recordedAt: "2026-01-01T00:05:00Z",
+    source: "manual-entry",
+    quality: "reported"
+  };
+  const mapping = {
+    status: "final",
+    subjectReference: "Patient/example",
+    code: { system: "http://loinc.org", code: "8867-4" },
+    unitCoding: { system: "http://unitsofmeasure.org", code: "/min" },
+    sourceExtensionUrl: "https://example.org/fhir/StructureDefinition/source",
+    qualityExtensionUrl: "https://example.org/fhir/StructureDefinition/quality",
+    versionAuditExtensionUrl: "https://example.org/fhir/StructureDefinition/version-audit"
+  };
+
+  assert.throws(() => toFhirObservation(observation, {
+    ...mapping, status: "entered-in-error"
+  }), /entered-in-error status requires a voided record and complete void audit/);
+  assert.throws(() => toFhirObservation(observation, {
+    ...mapping, status: "amended"
+  }), /amended or corrected status requires complete amendment lineage/);
+  assert.throws(() => toFhirObservation(observation, {
+    ...mapping, status: "corrected"
+  }), /amended or corrected status requires complete amendment lineage/);
+
+  const voided = toFhirObservation({
+    ...observation,
+    recordState: "voided",
+    voidReason: "Duplicate",
+    voidedBy: "reviewer",
+    voidedAt: "2026-01-02T00:00:00Z"
+  }, { ...mapping, status: "entered-in-error" });
+  assert.equal(voided.status, "entered-in-error");
+
+  const amended = toFhirObservation({
+    ...observation,
+    recordState: "superseded",
+    previousVersionId: "obs-before",
+    amendmentReason: "Corrected transcription",
+    amendedBy: "reviewer",
+    amendedAt: "2026-01-02T00:00:00Z"
+  }, { ...mapping, status: "corrected" });
+  assert.equal(amended.status, "corrected");
+});
