@@ -178,14 +178,25 @@ function renderPersonalRecordSnapshot(){
       (active.length ? coverageHtml : '<div class="personal-record-quality-empty">录入或导入观察值后显示来源、时间与单位覆盖情况。</div>') +
       '</div></div><p class="personal-record-provenance__note">覆盖率只描述记录字段是否齐全；不代表测量准确性、健康风险、临床有效性或诊断结论。</p></section>';
 
-    const recentHtml = recent.length ? '<div class="personal-record-recent"><div class="personal-record-recent__head"><strong>最近测量</strong><span>按测量时间排序 · 最多显示 3 条</span></div>' +
-      recent.map(row => {
-        const measuredAt = new Date(row.observedAt);
-        const observedLabel = Number.isFinite(measuredAt.getTime()) ? measuredAt.toLocaleString('zh-CN',{hour12:false}) : row.observedAt;
-        const provenance = qualityLabels[row.quality] || row.quality;
-        return '<article class="personal-record-row"><div class="personal-record-row__main"><strong>' + escHTML(row.metric) + '</strong><b>' + escHTML(row.value) + ' <small>' + escHTML(row.unit) + '</small></b></div>' +
-          '<div class="personal-record-row__meta"><span>测量 ' + escHTML(observedLabel) + '</span><span>来源 ' + escHTML(row.source) + '</span><span>质量 ' + escHTML(provenance) + '</span></div></article>';
-      }).join('') + '</div>' : '<div class="personal-record-empty"><strong>尚无当前有效观察值</strong><span>' + (rows.length ? '历史版本已保留，但目前没有可作为当前值展示的有效记录。' : '录入或导入第一条健康观察值后，这里会显示测量时间、来源与质量标记。') + '</span><button type="button" class="btn sm" onclick="go(\'records\')">记录第一条观察值</button></div>';
+    const recentHtml = '<div class="personal-record-recent">' +
+      (recent.length ? '<div class="personal-record-recent__head"><strong>最近测量</strong><span>按测量时间排序 · 最多显示 3 条</span></div>' +
+        recent.map(row => {
+          const measuredAt = new Date(row.observedAt);
+          const observedLabel = Number.isFinite(measuredAt.getTime()) ? measuredAt.toLocaleString('zh-CN',{hour12:false}) : row.observedAt;
+          const provenance = qualityLabels[row.quality] || row.quality;
+          return '<article class="personal-record-row"><div class="personal-record-row__main"><strong>' + escHTML(row.metric) + '</strong><b>' + escHTML(row.value) + ' <small>' + escHTML(row.unit) + '</small></b></div>' +
+            '<div class="personal-record-row__meta"><span>测量 ' + escHTML(observedLabel) + '</span><span>来源 ' + escHTML(row.source) + '</span><span>质量 ' + escHTML(provenance) + '</span></div></article>';
+        }).join('') :
+        '<div class="personal-record-empty personal-record-empty--first-run"><div class="personal-record-first-copy">' +
+          '<span class="personal-record-first-kicker">FIRST VERIFIED OBSERVATION</span>' +
+          '<strong>' + (rows.length ? '当前没有有效观察值' : '从第一条可追溯观察开始') + '</strong>' +
+          '<p>' + (rows.length ? '历史版本已保留。核对更正或作废原因后，可按流程创建新的有效版本。' : '先选择来源类别，再填写指标、数值、计量单位与实际测量时间。系统会保留记录来源与版本，不会自动填入演示体征。') + '</p>' +
+          (!rows.length ? '<ol class="personal-record-first-steps"><li><b>01 · 来源</b><span>区分设备测量、本人报告或文件导入</span></li>' +
+            '<li><b>02 · 测量信息</b><span>填写指标、数值、单位和观察时间</span></li>' +
+            '<li><b>03 · 可追溯记录</b><span>保留来源说明与版本历史</span></li></ol>' : '') +
+          '</div><button type="button" class="btn sm" onclick="go(\'records\')">' +
+          (rows.length ? '查看历史版本' : '新增第一条观察记录') + '</button></div>') +
+      '</div>';
     host.innerHTML = '<div class="personal-record-panel">' + statsHtml + provenanceHtml + recentHtml +
       '<div class="personal-record-foot">只读取浏览器本机的已验证观察记录；不把演示体征、器官示例分值或健康教育内容混入个人记录。</div></div>';
   }catch(error){
