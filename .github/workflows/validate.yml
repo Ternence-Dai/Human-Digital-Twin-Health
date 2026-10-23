@@ -77,3 +77,11 @@ jobs:
           exit 1
       - name: Verify observation, report and mobile workflows
         run: node scripts/browser-health-smoke.cjs
+      - name: Upload desktop and mobile trend UI evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: health-observation-trend-ui-evidence
+          path: artifacts/*.png
+          if-no-files-found: ignore
+          retention-days: 7
