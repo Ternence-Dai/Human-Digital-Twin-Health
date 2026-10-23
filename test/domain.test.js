@@ -691,3 +691,10 @@ test("FHIR export rejects an observation that references itself as its previous 
   assert.throws(() => toFhirObservation(observation, mapping),
     /cannot reference itself as a previous FHIR version/);
 });
+
+
+test("rejects RFC 3339 unknown-local-offset timestamps", () => {
+  assert.throws(() => createObservation({...valid,observedAt:"2026-01-01T00:00:00-00:00"}), TypeError);
+  assert.throws(() => createObservation({...valid,recordedAt:"2026-01-01T00:00:00-00:00"}), TypeError);
+  assert.equal(createObservation({...valid,observedAt:"2026-01-01T00:00:00+00:00"}).observedAt,"2026-01-01T00:00:00.000Z");
+});
