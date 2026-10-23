@@ -1240,11 +1240,8 @@ function runAnalysis(query){
 
 /* ---------------- 个人观察趋势报告（不计算未经验证的总分） ---------------- */
 
-function buildObservationTrendSeries(history, limit = 3) {
-  if (!Array.isArray(history)) return null;
-  if (!Number.isSafeInteger(limit) || limit < 2 || limit > 30) {
-    throw new RangeError('observation trend limit must be an integer from 2 to 30');
-  }
+function buildObservationTrendGroups(history) {
+  if (!Array.isArray(history)) return [];
   const groups = new Map();
   history.forEach(row => {
     if (!row || row.recordState !== 'active' ||
@@ -1256,47 +1253,89 @@ function buildObservationTrendSeries(history, limit = 3) {
     if (!Number.isFinite(timestamp)) return;
     const metric = row.metric.trim();
     const unit = row.unit.trim();
-    const key = JSON.stringify([metric, unit]);
-    if (!groups.has(key)) groups.set(key, { metric, unit, points: [] });
+    const quality = typeof row.quality === 'string' && row.quality.trim() ? row.quality.trim() : 'unknown';
+    const source = typeof row.source === 'string' && row.source.trim() ? row.source.trim() : '来源未标记';
+    // Keep different provenance streams separate: a manually reported value must
+    // not silently become a point in a wearable-measured trend of the same metric.
+    const key = JSON.stringify([metric, unit, quality, source]);
+    if (!groups.has(key)) groups.set(key, {key, metric, unit, quality, source, points: []});
     groups.get(key).points.push({
       value: row.value,
       observedAt,
       timestamp,
-      label: new Date(timestamp).toISOString().slice(5, 10)
+      label: new Date(timestamp).toLocaleDateString('zh-CN', {month:'2-digit',day:'2-digit'})
     });
   });
-  const eligible = [...groups.values()]
-    .map(group => ({
-      ...group,
-      points: group.points.sort((a, b) => a.timestamp - b.timestamp).slice(-limit)
-    }))
+  return [...groups.values()]
+    .map(group => ({...group, points: group.points.sort((a,b) => a.timestamp - b.timestamp)}))
     .filter(group => group.points.length >= 2)
-    .sort((a, b) => {
+    .sort((a,b) => {
       const latestA = a.points[a.points.length - 1].timestamp;
       const latestB = b.points[b.points.length - 1].timestamp;
-      return latestB - latestA || b.points.length - a.points.length;
+      return latestB - latestA || b.points.length - a.points.length ||
+        a.metric.localeCompare(b.metric, 'zh-CN');
     });
-  return eligible[0] || null;
+}
+
+function buildObservationTrendSeries(history, limit = 3, selectionKey = '') {
+  if (!Number.isSafeInteger(limit) || limit < 2 || limit > 30) {
+    throw new RangeError('observation trend limit must be an integer from 2 to 30');
+  }
+  const catalogue = buildObservationTrendGroups(history);
+  const selected = selectionKey
+    ? catalogue.find(group => group.key === selectionKey)
+    : catalogue[0];
+  if (!selected) return null;
+  return {...selected, points:selected.points.slice(-limit)};
 }
 
 function renderTrend(){
   const host = document.getElementById('trendSvg');
   const summary = document.getElementById('trendSummary');
   if (!host) return;
+  const metricSelect = document.getElementById('observationTrendMetric');
+  const limitSelect = document.getElementById('observationTrendLimit');
   const clear = message => {
     if (summary) summary.textContent = message;
-    host.innerHTML = '<text x="160" y="62" text-anchor="middle" font-size="11" fill="#7b8ca5">同一指标至少需要 2 次有效记录</text>';
+    host.setAttribute('aria-label', '当前没有足够的有效观察记录绘制趋势');
+    host.innerHTML = '<text x="360" y="128" text-anchor="middle" font-size="15" fill="#607b75">同一指标、单位与来源至少需要 2 次有效记录</text>';
   };
   if (observationDomainUnavailable || observationStorageRecoveryRequired) {
+    if (metricSelect) metricSelect.disabled = true;
+    if (limitSelect) limitSelect.disabled = true;
     clear('记录校验或恢复状态不可用，暂不绘制趋势。');
     return;
   }
-  const series = buildObservationTrendSeries(
-    Array.isArray(window.healthObservations) ? window.healthObservations : [],
-    3
-  );
+  const history = Array.isArray(window.healthObservations) ? window.healthObservations : [];
+  const catalogue = buildObservationTrendGroups(history);
+  const previousSelection = metricSelect ? metricSelect.value : '';
+  if (metricSelect) {
+    metricSelect.innerHTML = catalogue.length
+      ? catalogue.map(group => {
+          const qualityLabels = {
+            measured:'实测', reported:'本人报告', estimated:'估算',
+            imported:'文件导入', demo:'示例数据', unknown:'来源未分类'
+          };
+          const label = group.metric + ' · ' + group.unit + ' · ' +
+            (qualityLabels[group.quality] || group.quality) + ' · ' + group.source +
+            '（' + group.points.length + ' 次）';
+          return '<option value="' + escHTML(group.key) + '">' + escHTML(label) + '</option>';
+        }).join('')
+      : '<option value="">暂无可比较序列</option>';
+    metricSelect.disabled = catalogue.length === 0;
+    metricSelect.value = catalogue.some(group => group.key === previousSelection)
+      ? previousSelection : (catalogue[0]?.key || '');
+  }
+  if (limitSelect) limitSelect.disabled = catalogue.length === 0;
+  if (!catalogue.length) {
+    clear('暂无可绘制的有效趋势。选择同一指标、单位、来源类别和来源名称，并至少录入 2 次当前有效观察值后，才会生成趋势。');
+    return;
+  }
+  const rawLimit = limitSelect ? Number(limitSelect.value) : 3;
+  const limit = Number.isSafeInteger(rawLimit) && rawLimit >= 2 && rawLimit <= 30 ? rawLimit : 3;
+  const series = buildObservationTrendSeries(history, limit, metricSelect?.value || '');
   if (!series) {
-    clear('暂无可绘制的真实趋势。录入同一指标至少 2 次有效测量后显示。');
+    clear('所选来源序列暂不可用；切换指标或来源后重试。');
     return;
   }
   const data = series.points;
@@ -1308,45 +1347,70 @@ function renderTrend(){
     ? span * 0.18 : Math.max(Math.abs(maxValue) * 0.08, 1);
   const minV = minValue - padding;
   const maxV = maxValue + padding;
-  const w = 320, h = 120, pad = 26;
+  const w = 720, h = 260, left = 72, right = 24, top = 28, bottom = 48;
   if (!Number.isFinite(minV) || !Number.isFinite(maxV) || maxV <= minV) {
     clear('这组数值跨度超出图表可显示范围；原始记录未修改。');
     return;
   }
-  const px = i => pad + i * ((w - pad * 2) / (data.length - 1));
-  const py = value => h - pad - ((value - minV) / (maxV - minV)) * (h - pad * 2);
+  const px = i => left + i * ((w - left - right) / Math.max(data.length - 1, 1));
+  const py = value => h - bottom - ((value - minV) / (maxV - minV)) * (h - top - bottom);
   const pts = data.map((point, i) => [px(i), py(point.value)]);
   const line = pts.map(point => point.join(',')).join(' ');
-  const area = `${pad},${h - pad} ${line} ${w - pad},${h - pad}`;
+  const area = left + ',' + (h-bottom) + ' ' + line + ' ' + (w-right) + ',' + (h-bottom);
+  const formatTick = value => {
+    const abs = Math.abs(value);
+    const digits = abs >= 100 ? 0 : abs >= 10 ? 1 : 2;
+    return value.toFixed(digits);
+  };
+  let grid = '';
+  for (let i = 0; i <= 4; i++) {
+    const ratio = i / 4;
+    const y = top + ratio * (h-top-bottom);
+    const tick = maxV - ratio * (maxV-minV);
+    grid += '<line x1="' + left + '" y1="' + y + '" x2="' + (w-right) + '" y2="' + y +
+      '" stroke="#e2ece8" stroke-width="1"/>' +
+      '<text x="' + (left-12) + '" y="' + (y+4) + '" text-anchor="end" font-size="11" fill="#607b74">' +
+      escHTML(formatTick(tick)) + '</text>';
+  }
   let dots = '';
   pts.forEach((point, i) => {
     const valueLabel = escHTML(String(data[i].value));
     const dateLabel = escHTML(data[i].label);
-    dots += `<circle cx="${point[0]}" cy="${point[1]}" r="4.5" fill="#22d3ee" stroke="#04070f" stroke-width="2"/>
-      <text x="${point[0]}" y="${point[1] - 12}" text-anchor="middle" font-size="11" fill="#67e8f9" font-weight="700">${valueLabel}</text>
-      <text x="${point[0]}" y="${h - 8}" text-anchor="middle" font-size="9.5" fill="#5b7396">${dateLabel}</text>`;
+    const pointTitle = escHTML(data[i].observedAt + ' · ' + data[i].value + ' ' + series.unit);
+    dots += '<circle cx="' + point[0] + '" cy="' + point[1] + '" r="5.5" fill="#fff" stroke="#187f74" stroke-width="3">' +
+      '<title>' + pointTitle + '</title></circle>' +
+      '<text x="' + point[0] + '" y="' + Math.max(top+2,point[1]-13) +
+      '" text-anchor="middle" font-size="12" fill="#185e58" font-weight="750">' + valueLabel + '</text>' +
+      '<text x="' + point[0] + '" y="' + (h-15) +
+      '" text-anchor="middle" font-size="10" fill="#58756d">' + dateLabel + '</text>';
   });
-  let grid = '';
-  for (let i = 0; i <= 3; i++) {
-    const y = pad + i * ((h - pad * 2) / 3);
-    grid += `<line x1="${pad}" y1="${y}" x2="${w - pad}" y2="${y}" stroke="rgba(64,200,255,.08)" stroke-width="1"/>`;
-  }
+  const qualityLabels = {
+    measured:'设备/仪器测量', reported:'本人报告', estimated:'估算',
+    imported:'文件导入', demo:'示例数据', unknown:'来源未标记'
+  };
+  const sourceSummary = (qualityLabels[series.quality] || series.quality) + ' · ' + series.source;
+  const firstDate = data[0].label;
+  const lastDate = data[data.length-1].label;
   if (summary) summary.textContent =
-    series.metric + '（' + series.unit + '）· 当前有效记录 · 最近 ' + data.length + ' 次';
-  host.innerHTML = `
-    <defs>
-      <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#22d3ee" stop-opacity=".35"/>
-        <stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/>
-      </linearGradient>
-    </defs>
-    ${grid}
-    <polygon points="${area}" fill="url(#areaGrad)"/>
-    <polyline points="${line}" fill="none" stroke="#22d3ee" stroke-width="2.2"
-      stroke-linecap="round" stroke-linejoin="round"/>
-    ${dots}
-  `;
+    series.metric + '（' + series.unit + '） · ' + sourceSummary +
+    ' · ' + data.length + ' 次有效记录 · ' + firstDate + ' 至 ' + lastDate;
+  host.setAttribute('aria-label',
+    series.metric + '，单位 ' + series.unit + '，来源 ' + sourceSummary +
+    '，展示最近 ' + data.length + ' 次有效记录。该图表只呈现数值变化，不作临床解释。');
+  host.innerHTML =
+    '<defs><linearGradient id="healthTrendArea" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0%" stop-color="#2caa98" stop-opacity=".22"/>' +
+      '<stop offset="100%" stop-color="#2caa98" stop-opacity="0"/></linearGradient></defs>' +
+    grid +
+    '<polygon points="' + area + '" fill="url(#healthTrendArea)"/>' +
+    '<polyline points="' + line + '" fill="none" stroke="#187f74" stroke-width="3" ' +
+      'stroke-linecap="round" stroke-linejoin="round"/>' + dots;
 }
+
+document.addEventListener('change', event => {
+  if (event.target && (event.target.id === 'observationTrendMetric' ||
+      event.target.id === 'observationTrendLimit')) renderTrend();
+});
 
 function renderAdvice(){
   const list = [
