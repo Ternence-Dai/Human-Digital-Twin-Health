@@ -675,6 +675,7 @@ function go(page){
   const meta = PAGES_META.find(p => p.key === page);
   document.getElementById('pageTitle').innerHTML = `${meta.name}<small>${meta.en}</small>`;
   document.getElementById('pages').scrollTop = 0;
+  if(page === 'report') renderTrend();
 }
 
 /* ---------------- 登录 ---------------- */
