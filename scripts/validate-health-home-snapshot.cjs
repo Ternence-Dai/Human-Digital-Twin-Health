@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 
 const app = fs.readFileSync('assets/js/legacy-app.js','utf8');
 const html = fs.readFileSync('index.html','utf8');
-const css = fs.readFileSync('assets/css/workspace.css','utf8');
+const css = fs.readFileSync('assets/css/workspace.css','utf8') + '\\n' + fs.readFileSync('assets/css/health-home-snapshot-layout-v1.css','utf8');
 
 assert.ok(!html.includes('NO HEALTH SCORE') &&
           !html.includes('stroke-dasharray="326.7"') &&
@@ -82,8 +82,13 @@ function run({rows=[],locked=false,unavailable=false,normalizer}={}){
 }
 
 let result=run();
-assert.match(result.html,/尚无当前有效观察值/);
-assert.match(result.html,/记录第一条观察值/);
+assert.match(result.html,/从第一条可追溯观察开始/);
+assert.match(result.html,/新增第一条观察记录/);
+assert.match(result.html,/FIRST VERIFIED OBSERVATION/);
+assert.match(result.html,/来源/);
+assert.match(result.html,/测量信息/);
+assert.match(result.html,/版本历史/);
+assert.match(result.html,/personal-record-recent/);
 assert.match(result.html,/当前有效记录/);
 assert.doesNotMatch(result.html,/72 bpm|126\/82|98%/,
   'an empty personal record list must not be filled with hard-coded sample vitals');
