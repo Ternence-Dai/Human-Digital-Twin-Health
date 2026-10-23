@@ -68,3 +68,26 @@ body[data-workspace="health"] .health-trend-panel :where(select,button):focus-vi
 @media(prefers-reduced-motion:reduce){
   body[data-workspace="health"] .health-trend-panel *{scroll-behavior:auto!important;transition:none!important;animation:none!important}
 }
+
+/* Resolve the legacy desktop grid rule winning over the narrow-screen product shell. */
+@media(max-width:640px){
+  body[data-workspace="health"] .shell.show{
+    display:block!important;width:100%;max-width:100%;min-width:0;overflow-x:hidden
+  }
+  body[data-workspace="health"] .shell.show>.sidebar{
+    display:block!important;position:relative;width:100%;height:auto;min-height:0
+  }
+  body[data-workspace="health"] .shell.show>.main{
+    display:flex;width:100%;max-width:100%;min-width:0;min-height:calc(100dvh - 58px);
+    overflow-x:hidden
+  }
+  body[data-workspace="health"] .shell.show>.main>.pages,
+  body[data-workspace="health"] .shell.show>.main>#pages{
+    display:block;width:100%;max-width:100%;min-width:0;margin:0;
+    padding:12px 12px calc(94px + env(safe-area-inset-bottom));box-sizing:border-box
+  }
+  body[data-workspace="health"] #pages>.page.active{
+    display:block;width:100%;max-width:none;min-width:0;margin:0
+  }
+  body[data-workspace="health"] .health-trend-panel{width:100%;max-width:100%;margin:0 0 14px}
+}
