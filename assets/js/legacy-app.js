@@ -1264,7 +1264,7 @@ function buildObservationTrendGroups(history) {
       value: row.value,
       observedAt,
       timestamp,
-      label: new Date(timestamp).toLocaleDateString('zh-CN', {month:'2-digit',day:'2-digit'})
+      label: new Date(timestamp).toISOString().slice(5,10)
     });
   });
   return [...groups.values()]
