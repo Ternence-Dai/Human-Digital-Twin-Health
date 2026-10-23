@@ -288,8 +288,9 @@ const fs = require('node:fs');
     await page.locator('#navList .nav-item[data-nav="report"]').click();
     await page.waitForFunction(() => document.querySelector('#pages .page.active[data-page="report"]'));
     const reportText = await page.locator('#pages .page.active').innerText();
-    if (!reportText.includes('近期有效记录趋势') ||
-        !reportText.includes('至少两次有效观察记录') ||
+    if (!reportText.includes('有效观察趋势分析') ||
+        !reportText.includes('指标与数据来源') ||
+        !reportText.includes('展示记录数量') ||
         reportText.includes('综合健康总分（演示）') || reportText.includes('六维能力雷达（演示）') || /综合健康总分\s*84|84\s*分/.test(reportText)) {
       throw new Error('Health report still relies on synthetic scorecards instead of valid observation trends');
     }
