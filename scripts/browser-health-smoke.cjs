@@ -96,6 +96,8 @@ const fs = require('node:fs');
         panelDisplay:panel ? getComputedStyle(panel).display : '',
         columns:panel ? getComputedStyle(panel).gridTemplateColumns : '',
         host:rect(host),panel:rect(panel),stats:rect(stats),provenance:rect(provenance),recent:rect(recent),
+        panelPaddingLeft:panel ? parseFloat(getComputedStyle(panel).paddingLeft) : 0,
+        panelPaddingRight:panel ? parseFloat(getComputedStyle(panel).paddingRight) : 0,
         firstRun:!!empty,
         firstSteps:empty?.querySelectorAll('.personal-record-first-steps li').length || 0,
         action:empty?.querySelector('button')?.textContent || ''
@@ -104,8 +106,8 @@ const fs = require('node:fs');
     if (homeSnapshotDesktop.hostDisplay !== 'block' || homeSnapshotDesktop.panelDisplay !== 'grid' ||
         !homeSnapshotDesktop.stats || !homeSnapshotDesktop.provenance || !homeSnapshotDesktop.recent ||
         homeSnapshotDesktop.stats.right >= homeSnapshotDesktop.provenance.left ||
-        homeSnapshotDesktop.recent.left > homeSnapshotDesktop.panel.left + 4 ||
-        homeSnapshotDesktop.recent.right < homeSnapshotDesktop.panel.right - 4 ||
+        homeSnapshotDesktop.recent.left > homeSnapshotDesktop.panel.left + homeSnapshotDesktop.panelPaddingLeft + 3 ||
+        homeSnapshotDesktop.recent.right < homeSnapshotDesktop.panel.right - homeSnapshotDesktop.panelPaddingRight - 3 ||
         !homeSnapshotDesktop.firstRun || homeSnapshotDesktop.firstSteps !== 3 ||
         !homeSnapshotDesktop.action.includes('新增第一条')) {
       throw new Error('Health home record snapshot still leaves an empty grid column or omits the first-record path: ' +
