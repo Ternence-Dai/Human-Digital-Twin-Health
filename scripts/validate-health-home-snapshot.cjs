@@ -18,7 +18,7 @@ assert.ok(html.includes('class="health-data-command"') &&
           html.includes('health-home-dashboard') &&
           html.includes('health-home-trust'),
   'home must expose a record-first FHIR workspace with explicit provenance and data-boundary rules');
-assert.ok(html.includes('legacy-app.js?v=20261022-observation-native-v4') &&
+assert.ok(html.includes('legacy-app.js?v=20261023-provenance-trend-v1') &&
           html.includes('workspace.css?v=20261022-record-first-v2'),
   'home snapshot must load the cache-busted record-first runtime and stylesheet');
 for (const selector of [
