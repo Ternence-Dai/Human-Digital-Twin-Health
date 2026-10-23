@@ -61,3 +61,10 @@ The adapter deliberately requires the caller to supply:
 - Two distinct canonical extension URLs for source and quality.
 
 It never guesses a patient/device identity, LOINC code, UCUM code, clinical status, or canonical extension namespace. Implementers must publish and govern the extension definitions and terminology mappings before exchanging resources with another organization. A local JSON export is not evidence of a connected FHIR server, patient consent, authorization, or production interoperability. Voided records require `entered-in-error`; superseded versions require an explicit `amended` or `corrected` status.
+
+
+## FHIR export of observation version audit
+
+When exporting an amended replacement or a voided observation, `toFhirObservation` now requires complete local audit metadata and a caller-governed `versionAuditExtensionUrl`. Amendment exports carry the previous local version ID, reason, actor and timestamp in a complex FHIR extension. Voided exports require and carry the void reason, actor and timestamp alongside the required `entered-in-error` status.
+
+The extension URL and its StructureDefinition remain the integrating organization's responsibility; the adapter does not invent a canonical namespace. This preserves local version lineage in an explicitly governed extension, but does not create a FHIR server history, authenticate the named actor, or establish clinical approval.
