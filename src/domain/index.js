@@ -486,6 +486,23 @@ export function toFhirObservation(observation, mapping) {
     throw new RangeError("active observations cannot export with entered-in-error status");
   }
 
+  const amendmentFields = ["previousVersionId", "amendmentReason", "amendedBy", "amendedAt"];
+  const presentAmendmentFields = amendmentFields.filter(field => observation[field] !== undefined);
+  if (presentAmendmentFields.length !== 0 && presentAmendmentFields.length !== amendmentFields.length) {
+    throw new TypeError("amended observations require previous version, reason, actor and amendment time");
+  }
+  if (presentAmendmentFields.length && !["amended", "corrected"].includes(status)) {
+    throw new RangeError("observations with amendment lineage must export with amended or corrected status");
+  }
+  if (recordState === "voided" &&
+      ["voidReason", "voidedBy", "voidedAt"].some(field => observation[field] === undefined)) {
+    throw new TypeError("voided observations require reason, actor and void time for FHIR export");
+  }
+  if (recordState !== "voided" &&
+      ["voidReason", "voidedBy", "voidedAt"].some(field => observation[field] !== undefined)) {
+    throw new TypeError("void audit fields are only valid on voided observations");
+  }
+
   const subjectReference = requiredFhirText(mapping.subjectReference, "FHIR subject reference", 2048);
   if (!/^(?:[A-Z][A-Za-z]+\/[A-Za-z0-9.-]{1,64}|https:\/\/[^\s]+|urn:uuid:[0-9a-f-]{36}|#[A-Za-z0-9.-]+)$/i.test(subjectReference)) {
     throw new TypeError("FHIR subject reference must be a valid relative, absolute or contained reference");
@@ -501,6 +518,17 @@ export function toFhirObservation(observation, mapping) {
   const qualityExtensionUrl = requiredFhirUri(mapping.qualityExtensionUrl, "quality extension URL");
   if (sourceExtensionUrl === qualityExtensionUrl) {
     throw new RangeError("source and quality extensions must use different canonical URLs");
+  }
+
+  const hasVersionAudit = presentAmendmentFields.length > 0 || recordState === "voided";
+  let versionAuditExtensionUrl;
+  if (hasVersionAudit) {
+    versionAuditExtensionUrl = requiredFhirUri(
+      mapping.versionAuditExtensionUrl, "version audit extension URL"
+    );
+    if ([sourceExtensionUrl, qualityExtensionUrl].includes(versionAuditExtensionUrl)) {
+      throw new RangeError("version audit extension must use a distinct canonical URL");
+    }
   }
 
   const resource = {
@@ -523,6 +551,36 @@ export function toFhirObservation(observation, mapping) {
       { url: qualityExtensionUrl, valueCode: validated.quality }
     ]
   };
+
+  if (hasVersionAudit) {
+    const auditChildren = [];
+    if (presentAmendmentFields.length) {
+      const amendedAt = parseObservedAt(observation.amendedAt);
+      if (Date.parse(amendedAt) < Date.parse(validated.observedAt) ||
+          (validated.recordedAt && Date.parse(amendedAt) < Date.parse(validated.recordedAt))) {
+        throw new RangeError("amendment time cannot precede the observation or record-entry time");
+      }
+      auditChildren.push(
+        { url: "previous-version-id", valueString: requiredFhirText(observation.previousVersionId, "previousVersionId", 120) },
+        { url: "amendment-reason", valueString: requiredFhirText(observation.amendmentReason, "amendmentReason", 1000) },
+        { url: "amended-by", valueString: requiredFhirText(observation.amendedBy, "amendedBy", 120) },
+        { url: "amended-at", valueDateTime: amendedAt }
+      );
+    }
+    if (recordState === "voided") {
+      const voidedAt = parseObservedAt(observation.voidedAt);
+      if (Date.parse(voidedAt) < Date.parse(validated.observedAt) ||
+          (validated.recordedAt && Date.parse(voidedAt) < Date.parse(validated.recordedAt))) {
+        throw new RangeError("void time cannot precede the observation or record-entry time");
+      }
+      auditChildren.push(
+        { url: "void-reason", valueString: requiredFhirText(observation.voidReason, "voidReason", 1000) },
+        { url: "voided-by", valueString: requiredFhirText(observation.voidedBy, "voidedBy", 120) },
+        { url: "voided-at", valueDateTime: voidedAt }
+      );
+    }
+    resource.extension.push({ url: versionAuditExtensionUrl, extension: auditChildren });
+  }
 
   if (validated.recordedAt !== undefined) resource.issued = validated.recordedAt;
   if (mapping.identifier !== undefined) {
