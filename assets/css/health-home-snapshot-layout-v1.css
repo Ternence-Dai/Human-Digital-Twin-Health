@@ -40,3 +40,29 @@ body[data-workspace="health"] #personalRecordSnapshot .personal-record-empty--fi
  body[data-workspace="health"] #personalRecordSnapshot .personal-record-first-steps{grid-template-columns:1fr}
  body[data-workspace="health"] #personalRecordSnapshot .personal-record-first-steps li{grid-template-columns:auto minmax(0,1fr);align-items:baseline}
 }
+
+@media(max-width:640px){
+  /* One horizontal gutter belongs to the page, not to every nested workspace card. */
+  body[data-workspace="health"] .shell.show>.main>#pages{
+    padding-left:0!important;
+    padding-right:0!important;
+  }
+  body[data-workspace="health"] .health-home-dashboard{
+    width:100%;
+    grid-template-columns:minmax(0,1fr);
+    margin:0 0 14px!important;
+    gap:10px;
+  }
+  body[data-workspace="health"] .health-home-primary,
+  body[data-workspace="health"] .health-home-aside{
+    width:100%;
+    min-width:0;
+  }
+  body[data-workspace="health"] .health-home-primary{
+    padding:10px!important;
+  }
+  body[data-workspace="health"] #personalRecordSnapshot .personal-record-panel{
+    width:100%;
+    padding:10px;
+  }
+}
