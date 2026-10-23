@@ -79,6 +79,42 @@ const fs = require('node:fs');
         wideHealth.active.right > wideHealth.pages.right + 2) {
       throw new Error('Health dashboard remains boxed into a narrow centered column: ' + JSON.stringify(wideHealth));
     }
+    const homeSnapshotDesktop = await page.evaluate(() => {
+      const host = document.querySelector('#personalRecordSnapshot');
+      const panel = host?.querySelector('.personal-record-panel');
+      const stats = panel?.querySelector('.personal-record-stats');
+      const provenance = panel?.querySelector('.personal-record-provenance');
+      const recent = panel?.querySelector('.personal-record-recent');
+      const empty = recent?.querySelector('.personal-record-empty--first-run');
+      const rect = node => {
+        if (!node) return null;
+        const box = node.getBoundingClientRect();
+        return {left:box.left,right:box.right,top:box.top,bottom:box.bottom,width:box.width};
+      };
+      return {
+        hostDisplay:host ? getComputedStyle(host).display : '',
+        panelDisplay:panel ? getComputedStyle(panel).display : '',
+        columns:panel ? getComputedStyle(panel).gridTemplateColumns : '',
+        host:rect(host),panel:rect(panel),stats:rect(stats),provenance:rect(provenance),recent:rect(recent),
+        firstRun:!!empty,
+        firstSteps:empty?.querySelectorAll('.personal-record-first-steps li').length || 0,
+        action:empty?.querySelector('button')?.textContent || ''
+      };
+    });
+    if (homeSnapshotDesktop.hostDisplay !== 'block' || homeSnapshotDesktop.panelDisplay !== 'grid' ||
+        !homeSnapshotDesktop.stats || !homeSnapshotDesktop.provenance || !homeSnapshotDesktop.recent ||
+        homeSnapshotDesktop.stats.right >= homeSnapshotDesktop.provenance.left ||
+        homeSnapshotDesktop.recent.left > homeSnapshotDesktop.panel.left + 4 ||
+        homeSnapshotDesktop.recent.right < homeSnapshotDesktop.panel.right - 4 ||
+        !homeSnapshotDesktop.firstRun || homeSnapshotDesktop.firstSteps !== 3 ||
+        !homeSnapshotDesktop.action.includes('新增第一条')) {
+      throw new Error('Health home record snapshot still leaves an empty grid column or omits the first-record path: ' +
+        JSON.stringify(homeSnapshotDesktop));
+    }
+    fs.mkdirSync('artifacts', { recursive:true });
+    await page.locator('#personalRecordSnapshot .personal-record-panel').screenshot({
+      path:'artifacts/health-home-record-snapshot-desktop.png'
+    });
     await page.evaluate(() => document.activeElement?.blur());
     await page.keyboard.press('Tab');
     if (!(await page.evaluate(() => document.activeElement?.id === 'skipMain'))) {
@@ -366,6 +402,29 @@ const fs = require('node:fs');
     if (!mobile.visible || mobile.items < 5) {
       throw new Error('Mobile health navigation did not expose all primary tabs: ' + JSON.stringify(mobile));
     }
+    await page.locator('#tabbar [data-nav="home"]').click();
+    await page.waitForFunction(() => document.querySelector('#pages .page.active[data-page="home"]'));
+    const mobileSnapshot = await page.evaluate(() => {
+      const panel = document.querySelector('#personalRecordSnapshot .personal-record-panel');
+      const stats = panel?.querySelector('.personal-record-stats');
+      const provenance = panel?.querySelector('.personal-record-provenance');
+      const recent = panel?.querySelector('.personal-record-recent');
+      return {
+        viewport:innerWidth,
+        documentWidth:document.documentElement.scrollWidth,
+        panelWidth:panel?.getBoundingClientRect().width || 0,
+        statsTop:stats?.getBoundingClientRect().top || 0,
+        provenanceTop:provenance?.getBoundingClientRect().top || 0,
+        recentTop:recent?.getBoundingClientRect().top || 0
+      };
+    });
+    if (mobileSnapshot.viewport !== 390 || mobileSnapshot.documentWidth > 391 ||
+        mobileSnapshot.panelWidth < 340 || mobileSnapshot.provenanceTop <= mobileSnapshot.statsTop ||
+        mobileSnapshot.recentTop <= mobileSnapshot.provenanceTop) {
+      throw new Error('Mobile health record snapshot does not stack into a full-width single column: ' +
+        JSON.stringify(mobileSnapshot));
+    }
+    await page.screenshot({path:'artifacts/health-home-record-snapshot-mobile.png',fullPage:true,animations:'disabled'});
     await page.locator('#tabbar [data-nav="report"]').click();
     await page.waitForFunction(() => document.querySelector('#pages .page.active[data-page="report"]'));
     if (pageErrors.length) throw new Error('Health browser runtime errors: ' + pageErrors.join(' | '));
