@@ -555,18 +555,28 @@ export function toFhirObservation(observation, mapping) {
   if (hasVersionAudit) {
     const auditChildren = [];
     if (presentAmendmentFields.length) {
+      const amendedAt = parseObservedAt(observation.amendedAt);
+      if (Date.parse(amendedAt) < Date.parse(validated.observedAt) ||
+          (validated.recordedAt && Date.parse(amendedAt) < Date.parse(validated.recordedAt))) {
+        throw new RangeError("amendment time cannot precede the observation or record-entry time");
+      }
       auditChildren.push(
         { url: "previous-version-id", valueString: requiredFhirText(observation.previousVersionId, "previousVersionId", 120) },
         { url: "amendment-reason", valueString: requiredFhirText(observation.amendmentReason, "amendmentReason", 1000) },
         { url: "amended-by", valueString: requiredFhirText(observation.amendedBy, "amendedBy", 120) },
-        { url: "amended-at", valueDateTime: parseObservedAt(observation.amendedAt) }
+        { url: "amended-at", valueDateTime: amendedAt }
       );
     }
     if (recordState === "voided") {
+      const voidedAt = parseObservedAt(observation.voidedAt);
+      if (Date.parse(voidedAt) < Date.parse(validated.observedAt) ||
+          (validated.recordedAt && Date.parse(voidedAt) < Date.parse(validated.recordedAt))) {
+        throw new RangeError("void time cannot precede the observation or record-entry time");
+      }
       auditChildren.push(
         { url: "void-reason", valueString: requiredFhirText(observation.voidReason, "voidReason", 1000) },
         { url: "voided-by", valueString: requiredFhirText(observation.voidedBy, "voidedBy", 120) },
-        { url: "voided-at", valueDateTime: parseObservedAt(observation.voidedAt) }
+        { url: "voided-at", valueDateTime: voidedAt }
       );
     }
     resource.extension.push({ url: versionAuditExtensionUrl, extension: auditChildren });
