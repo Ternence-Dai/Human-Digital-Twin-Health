@@ -9,7 +9,7 @@ const start = app.indexOf('function buildObservationTrendGroups(');
 const end = app.indexOf('function renderTrend()', start);
 assert.ok(start >= 0 && end > start, 'health dashboard must expose a pure record-derived trend selector');
 const context = vm.createContext({});
-vm.runInContext(app.slice(start, end) + '\nthis.buildObservationTrendSeries = buildObservationTrendSeries;', context);
+vm.runInContext(app.slice(start, end) + '\nthis.buildObservationTrendGroups = buildObservationTrendGroups; this.buildObservationTrendSeries = buildObservationTrendSeries;', context);
 
 const history = [
   {metric:'心率',unit:'次/分',value:70,observedAt:'2026-10-01T08:00:00.000Z',recordState:'active'},
