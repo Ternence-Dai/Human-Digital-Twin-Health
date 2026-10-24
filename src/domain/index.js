@@ -473,6 +473,12 @@ export function toFhirObservation(observation, mapping) {
   if (!fhirObservationStatuses.has(status)) {
     throw new RangeError("FHIR Observation.status is not a valid R4 status code");
   }
+  // Synthetic demo measurements must never cross the FHIR interoperability
+  // boundary: a downstream clinical system could otherwise treat them as
+  // patient observations even if the local UI labels them as examples.
+  if (validated.quality === "demo") {
+    throw new RangeError("demo observations cannot be exported as clinical FHIR resources");
+  }
   const recordState = observation.recordState;
   if (recordState !== undefined && !["active", "superseded", "voided"].includes(recordState)) {
     throw new RangeError("observation recordState must be active, superseded or voided");
