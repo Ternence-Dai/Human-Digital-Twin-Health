@@ -1459,7 +1459,8 @@ function renderAdvice(){
 /* ---------------- 页面切换钩子 ---------------- */
 const _go = go;
 go = function(page){
-  _go(page);
+  const navigated = _go(page);
+  if (!navigated) return false;
   if (page === 'ai'){
     setTimeout(initChat, 260);
   }
@@ -1470,6 +1471,7 @@ go = function(page){
     }, 60);
   }
   if (page === 'vessel') renderVesselMetrics();
+  return true;
 };
 
 /* ---------------- 键盘 ---------------- */
