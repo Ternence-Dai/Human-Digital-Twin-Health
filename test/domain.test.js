@@ -698,3 +698,23 @@ test("rejects RFC 3339 unknown-local-offset timestamps", () => {
   assert.throws(() => createObservation({...valid,recordedAt:"2026-01-01T00:00:00-00:00"}), TypeError);
   assert.equal(createObservation({...valid,observedAt:"2026-01-01T00:00:00+00:00"}).observedAt,"2026-01-01T00:00:00.000Z");
 });
+
+
+test("FHIR export blocks synthetic demo observations from entering clinical exchange",async()=>{
+ const {toFhirObservation}=await import("../src/domain/index.js");
+ const demo={
+  metric:"resting-heart-rate",value:72,unit:"bpm",
+  observedAt:"2026-01-01T00:00:00Z",source:"synthetic-demo-fixture",quality:"demo"
+ };
+ const mapping={
+  status:"final",subjectReference:"Patient/example",
+  code:{system:"http://loinc.org",code:"8867-4"},
+  unitCoding:{system:"http://unitsofmeasure.org",code:"/min"},
+  sourceExtensionUrl:"https://example.org/fhir/StructureDefinition/source",
+  qualityExtensionUrl:"https://example.org/fhir/StructureDefinition/quality"
+ };
+ assert.throws(()=>toFhirObservation(demo,mapping),
+  /demo observations cannot be exported as clinical FHIR resources/);
+ assert.equal(toFhirObservation({...demo,quality:"reported"},mapping).resourceType,"Observation",
+  "real reported measurements remain eligible for explicitly configured FHIR export");
+});
