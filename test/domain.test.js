@@ -718,3 +718,42 @@ test("FHIR export blocks synthetic demo observations from entering clinical exch
  assert.equal(toFhirObservation({...demo,quality:"reported"},mapping).resourceType,"Observation",
   "real reported measurements remain eligible for explicitly configured FHIR export");
 });
+
+
+test("observation amendments and voids cannot be recorded ahead of the reference clock",()=>{
+ const source={
+  metric:"resting-heart-rate",value:72,unit:"bpm",
+  observedAt:"2026-10-20T08:00:00.000Z",
+  recordedAt:"2026-10-20T08:05:00.000Z",
+  source:"validated-device-import",quality:"measured"
+ };
+ const history=[{...source,id:"OBS-FUTURE-AUDIT",recordState:"active"}];
+ const asOf=new Date("2026-10-24T09:00:00.000Z");
+ const replacement={...source,value:73,source:"clinician-corrected"};
+ assert.throws(()=>amendObservation(
+  history,"OBS-FUTURE-AUDIT",replacement,"Corrected transcription","clinician-1",
+  "2026-10-25T09:00:00.000Z","OBS-FUTURE-REPLACEMENT",asOf
+ ),/future-dated observation amendment/);
+ assert.throws(()=>voidObservation(
+  history,"OBS-FUTURE-AUDIT","Duplicate import","reviewer-1",
+  "2026-10-25T09:00:00.000Z",asOf
+ ),/future-dated observation void/);
+ assert.throws(()=>amendObservation(
+  history,"OBS-FUTURE-AUDIT",replacement,"Corrected transcription","clinician-1",
+  "2026-10-24T09:00:00.000Z","OBS-INVALID-CLOCK","2026-10-24"
+ ),/reference time must be a valid Date/);
+ assert.throws(()=>voidObservation(
+  history,"OBS-FUTURE-AUDIT","Duplicate import","reviewer-1",
+  "2026-10-24T09:00:00.000Z","2026-10-24"
+ ),/reference time must be a valid Date/);
+ const amended=amendObservation(
+  history,"OBS-FUTURE-AUDIT",replacement,"Corrected transcription","clinician-1",
+  "2026-10-24T09:00:00.000Z","OBS-CURRENT-REPLACEMENT",asOf
+ );
+ assert.equal(amended.at(-1).recordState,"active");
+ const voided=voidObservation(
+  history,"OBS-FUTURE-AUDIT","Duplicate import","reviewer-1",
+  "2026-10-24T09:00:00.000Z",asOf
+ );
+ assert.equal(voided[0].recordState,"voided");
+});

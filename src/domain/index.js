@@ -252,7 +252,7 @@ export function normalizeObservationHistory(history) {
   return validateObservationHistory(events);
 }
 
-export function amendObservation(history, targetId, replacement, amendmentReason, amendedBy, amendedAt, newId) {
+export function amendObservation(history, targetId, replacement, amendmentReason, amendedBy, amendedAt, newId, asOf = new Date()) {
   const current = normalizeObservationHistory(history);
   const target = current.find(row => row.id === targetId);
   if (!target) throw new RangeError("observation to amend was not found");
@@ -262,6 +262,12 @@ export function amendObservation(history, targetId, replacement, amendmentReason
   const reason = requiredObservationAuditText(amendmentReason, "amendment reason", 1000);
   const actor = requiredObservationAuditText(amendedBy, "amendment actor", 120);
   const timestamp = parseObservedAt(amendedAt);
+  if (!(asOf instanceof Date) || !Number.isFinite(asOf.getTime())) {
+    throw new TypeError("observation amendment reference time must be a valid Date");
+  }
+  if (Date.parse(timestamp) > asOf.getTime()) {
+    throw new RangeError("future-dated observation amendment cannot be posted");
+  }
   if (Date.parse(timestamp) < Date.parse(target.observedAt)) {
     throw new RangeError("amendment time cannot precede the original observation time");
   }
@@ -287,7 +293,7 @@ export function amendObservation(history, targetId, replacement, amendmentReason
   return validateObservationHistory([...updated, next]);
 }
 
-export function voidObservation(history, targetId, voidReason, voidedBy, voidedAt) {
+export function voidObservation(history, targetId, voidReason, voidedBy, voidedAt, asOf = new Date()) {
   const current = normalizeObservationHistory(history);
   const target = current.find(row => row.id === targetId);
   if (!target) throw new RangeError("observation to void was not found");
@@ -295,6 +301,12 @@ export function voidObservation(history, targetId, voidReason, voidedBy, voidedA
   const reason = requiredObservationAuditText(voidReason, "void reason", 1000);
   const actor = requiredObservationAuditText(voidedBy, "void actor", 120);
   const timestamp = parseObservedAt(voidedAt);
+  if (!(asOf instanceof Date) || !Number.isFinite(asOf.getTime())) {
+    throw new TypeError("observation void reference time must be a valid Date");
+  }
+  if (Date.parse(timestamp) > asOf.getTime()) {
+    throw new RangeError("future-dated observation void cannot be posted");
+  }
   if (Date.parse(timestamp) < Date.parse(target.observedAt)) {
     throw new RangeError("void time cannot precede the original observation time");
   }
