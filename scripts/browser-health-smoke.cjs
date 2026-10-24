@@ -46,14 +46,14 @@ const fs = require('node:fs');
       page: document.querySelector('#pages .page.active')?.dataset.page,
       title: document.querySelector('#pageTitle')?.innerText
     }));
-    const invalidRouteResult = await page.evaluate(() => window.go('not-a-health-page'));
+    const invalidRouteResult = await page.evaluate(() => window.go('__invalid_navigation_target__'));
     const navigationAfterInvalidRoute = await page.evaluate(() => ({
       page: document.querySelector('#pages .page.active')?.dataset.page,
       title: document.querySelector('#pageTitle')?.innerText
     }));
     if (invalidRouteResult !== false ||
         JSON.stringify(navigationBeforeInvalidRoute) !== JSON.stringify(navigationAfterInvalidRoute)) {
-      throw new Error('Unknown health navigation target must be rejected without blanking the active workspace');
+      throw new Error('Unknown health navigation target must be rejected without blanking the active workspace: ' + JSON.stringify({invalidRouteResult,navigationBeforeInvalidRoute,navigationAfterInvalidRoute}));
     }
     const clinicalHome = await page.evaluate(() => {
       const home = document.querySelector('#pages .page.active[data-page="home"]');
