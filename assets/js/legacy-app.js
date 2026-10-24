@@ -667,26 +667,38 @@ function saveObservation(event){
 function buildNav(){
   const nav = document.getElementById('navList');
   nav.innerHTML = PAGES_META.map(p => `
-    <div class="nav-item ${p.key==='home'?'active':''}" data-nav="${p.key}" onclick="go('${p.key}')">
-      <span class="ic">${p.icon}</span><span>${p.name}</span>
-    </div>`).join('');
+    <button type="button" class="nav-item ${p.key==='home'?'active':''}" data-nav="${p.key}" aria-current="${p.key==='home'?'page':'false'}" onclick="go('${p.key}')">
+      <span class="ic" aria-hidden="true">${p.icon}</span><span>${p.name}</span>
+    </button>`).join('');
 
   const tb = document.getElementById('tabbar');
   tb.innerHTML = TABBAR.map(k => {
     const p = PAGES_META.find(x => x.key === k);
-    return `<div class="tb ${k==='home'?'active':''}" data-nav="${k}" onclick="go('${k}')">
-      <span class="i">${p.icon}</span><span>${p.name}</span></div>`;
+    return `<button type="button" class="tb ${k==='home'?'active':''}" data-nav="${k}" aria-current="${k==='home'?'page':'false'}" onclick="go('${k}')">
+      <span class="i" aria-hidden="true">${p.icon}</span><span>${p.name}</span></button>`;
   }).join('');
 }
 
 function go(page){
-  state.page = page;
-  document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.dataset.page === page));
-  document.querySelectorAll('[data-nav]').forEach(b => b.classList.toggle('active', b.dataset.nav === page));
   const meta = PAGES_META.find(p => p.key === page);
+  const target = document.querySelector(`.page[data-page="${CSS.escape(page)}"]`);
+  if (!meta || !target) {
+    console.warn('Ignored navigation to an unknown health workspace page:', page);
+    return false;
+  }
+  state.page = page;
+  document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p === target));
+  document.querySelectorAll('[data-nav]').forEach(b => {
+    const active = b.dataset.nav === page;
+    b.classList.toggle('active', active);
+    if (active) b.setAttribute('aria-current', 'page');
+    else b.removeAttribute('aria-current');
+  });
   document.getElementById('pageTitle').innerHTML = `${meta.name}<small>${meta.en}</small>`;
-  document.getElementById('pages').scrollTop = 0;
-  if(page === 'report') renderTrend();
+  const pages = document.getElementById('pages');
+  if (pages) pages.scrollTo({ top: 0, behavior: 'instant' });
+  if (page === 'report') renderTrend();
+  return true;
 }
 
 /* ---------------- 登录 ---------------- */
@@ -1447,7 +1459,8 @@ function renderAdvice(){
 /* ---------------- 页面切换钩子 ---------------- */
 const _go = go;
 go = function(page){
-  _go(page);
+  const navigated = _go(page);
+  if (!navigated) return false;
   if (page === 'ai'){
     setTimeout(initChat, 260);
   }
@@ -1458,6 +1471,7 @@ go = function(page){
     }, 60);
   }
   if (page === 'vessel') renderVesselMetrics();
+  return true;
 };
 
 /* ---------------- 键盘 ---------------- */
