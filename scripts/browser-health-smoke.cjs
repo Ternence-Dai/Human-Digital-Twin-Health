@@ -33,6 +33,28 @@ const fs = require('node:fs');
     }
     await page.locator('.login-actions button').click();
     await page.waitForFunction(() => document.querySelector('#shell')?.classList.contains('show'));
+    const semanticNavigation = await page.evaluate(() => ({
+      sidebarButtons: [...document.querySelectorAll('#navList [data-nav]')].every(node => node.tagName === 'BUTTON'),
+      mobileButtons: [...document.querySelectorAll('#tabbar [data-nav]')].every(node => node.tagName === 'BUTTON'),
+      homeCurrent: document.querySelector('#navList [data-nav="home"]')?.getAttribute('aria-current') === 'page'
+    }));
+    if (!semanticNavigation.sidebarButtons || !semanticNavigation.mobileButtons || !semanticNavigation.homeCurrent) {
+      throw new Error('Health navigation must use keyboard-operable buttons with current-page semantics: ' +
+        JSON.stringify(semanticNavigation));
+    }
+    const navigationBeforeInvalidRoute = await page.evaluate(() => ({
+      page: document.querySelector('#pages .page.active')?.dataset.page,
+      title: document.querySelector('#pageTitle')?.innerText
+    }));
+    const invalidRouteResult = await page.evaluate(() => window.go('not-a-health-page'));
+    const navigationAfterInvalidRoute = await page.evaluate(() => ({
+      page: document.querySelector('#pages .page.active')?.dataset.page,
+      title: document.querySelector('#pageTitle')?.innerText
+    }));
+    if (invalidRouteResult !== false ||
+        JSON.stringify(navigationBeforeInvalidRoute) !== JSON.stringify(navigationAfterInvalidRoute)) {
+      throw new Error('Unknown health navigation target must be rejected without blanking the active workspace');
+    }
     const clinicalHome = await page.evaluate(() => {
       const home = document.querySelector('#pages .page.active[data-page="home"]');
       const text = home?.innerText || '';
