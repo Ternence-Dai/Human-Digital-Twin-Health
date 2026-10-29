@@ -556,6 +556,37 @@ export function toFhirObservation(observation, mapping) {
     throw new RangeError("FHIR Quantity.system must identify the UCUM code system");
   }
   validateKnownDisplayUnitCoding(validated.unit, unitCoding.code);
+  // Optional caller-supplied category (e.g. the R4 vital-signs category).
+  // Left unset unless the caller explicitly provides it, so existing
+  // mappings keep their exact previous output.
+  let category;
+  if (mapping.category !== undefined) {
+    if (!Array.isArray(mapping.category) || !mapping.category.length) {
+      throw new TypeError("FHIR category must be a non-empty array of codeable concepts");
+    }
+    category = mapping.category.map((concept, conceptIndex) => {
+      if (!concept || typeof concept !== "object" || Array.isArray(concept)) {
+        throw new TypeError("FHIR category entries must be codeable concept objects");
+      }
+      if (!Array.isArray(concept.coding) || !concept.coding.length) {
+        throw new TypeError("FHIR category entries require at least one coding");
+      }
+      const parsed = {
+        coding: concept.coding.map((coding, codingIndex) =>
+          validateFhirCoding(coding, "FHIR category[" + conceptIndex + "].coding[" + codingIndex + "]"))
+      };
+      if (concept.text !== undefined) {
+        parsed.text = requiredFhirText(concept.text, "FHIR category text");
+      }
+      return parsed;
+    });
+  }
+  // Optional human-readable quantity unit override. The generic serializer
+  // keeps echoing the local display unit unless the caller (typically the
+  // vetted standard terminology below) pins one canonical display per code.
+  const quantityUnit = mapping.quantityUnit === undefined
+    ? validated.unit
+    : requiredFhirText(mapping.quantityUnit, "FHIR quantity unit", 64);
   const sourceExtensionUrl = requiredFhirUri(mapping.sourceExtensionUrl, "source extension URL");
   const qualityExtensionUrl = requiredFhirUri(mapping.qualityExtensionUrl, "quality extension URL");
   if (sourceExtensionUrl === qualityExtensionUrl) {
@@ -575,7 +606,10 @@ export function toFhirObservation(observation, mapping) {
 
   const resource = {
     resourceType: "Observation",
-    status,
+    status
+  };
+  if (category !== undefined) resource.category = category;
+  Object.assign(resource, {
     code: {
       coding: [code],
       text: validated.metric
@@ -584,7 +618,7 @@ export function toFhirObservation(observation, mapping) {
     effectiveDateTime: validated.observedAt,
     valueQuantity: {
       value: validated.value,
-      unit: validated.unit,
+      unit: quantityUnit,
       system: unitCoding.system,
       code: unitCoding.code
     },
@@ -592,7 +626,7 @@ export function toFhirObservation(observation, mapping) {
       { url: sourceExtensionUrl, valueString: validated.source },
       { url: qualityExtensionUrl, valueCode: validated.quality }
     ]
-  };
+  });
 
   if (hasVersionAudit) {
     const auditChildren = [];
@@ -641,4 +675,160 @@ export function toFhirObservation(observation, mapping) {
   }
 
   return deepFreezeFhir(resource);
+}
+
+// ---------------------------------------------------------------------------
+// Vetted standard terminology for the metrics this application records.
+// Every LOINC code and display below was verified against its official
+// loinc.org code page on 2026-10-29 (see the deep-extension research report
+// health-fhir.md); UCUM codes follow the same audit. This table is the
+// reviewed mapping docs/DOMAIN_CORE.md requires: the generic serializer above
+// still never guesses, and the helpers below refuse any metric that has no
+// entry here instead of inventing a code for it.
+// ---------------------------------------------------------------------------
+
+const FHIR_LOINC_SYSTEM = "http://loinc.org";
+const FHIR_UCUM_SYSTEM = "http://unitsofmeasure.org";
+
+// R4 vital-signs category, required by the FHIR Vital Signs profile.
+export const FHIR_VITAL_SIGNS_CATEGORY = Object.freeze([Object.freeze({
+  coding: Object.freeze([Object.freeze({
+    system: "http://terminology.hl7.org/CodeSystem/observation-category",
+    code: "vital-signs"
+  })])
+})]);
+
+export const STANDARD_FHIR_TERMINOLOGY = Object.freeze({
+  "heart-rate": Object.freeze({
+    code: Object.freeze({ system: FHIR_LOINC_SYSTEM, code: "8867-4", display: "Heart rate" }),
+    unitCoding: Object.freeze({ system: FHIR_UCUM_SYSTEM, code: "/min" }),
+    quantityUnit: "/min"
+  }),
+  "resting-heart-rate": Object.freeze({
+    code: Object.freeze({ system: FHIR_LOINC_SYSTEM, code: "40443-4", display: "Heart rate --resting" }),
+    unitCoding: Object.freeze({ system: FHIR_UCUM_SYSTEM, code: "/min" }),
+    quantityUnit: "/min"
+  }),
+  // Blood pressure caveat: the R4 vital-signs pattern carries systolic and
+  // diastolic as components of the 85354-9 panel and gives the panel itself
+  // no valueQuantity. The local data model stores a single blood-pressure
+  // value that cannot be attributed to systolic or diastolic, so this export
+  // deliberately keeps the established single-value form (panel code plus a
+  // mm[Hg] quantity) rather than fabricating components. Emitting real
+  // components requires paired systolic/diastolic storage first.
+  "blood-pressure": Object.freeze({
+    code: Object.freeze({
+      system: FHIR_LOINC_SYSTEM,
+      code: "85354-9",
+      display: "Blood pressure panel with all children optional"
+    }),
+    unitCoding: Object.freeze({ system: FHIR_UCUM_SYSTEM, code: "mm[Hg]" }),
+    quantityUnit: "mm[Hg]"
+  }),
+  "body-weight": Object.freeze({
+    code: Object.freeze({ system: FHIR_LOINC_SYSTEM, code: "29463-7", display: "Body weight" }),
+    unitCoding: Object.freeze({ system: FHIR_UCUM_SYSTEM, code: "kg" }),
+    quantityUnit: "kg"
+  }),
+  // Read-only compatibility alias of body-weight (same LOINC code). New
+  // writes should use body-weight; the alias stays so legacy histories keep
+  // exporting.
+  "weight": Object.freeze({
+    code: Object.freeze({ system: FHIR_LOINC_SYSTEM, code: "29463-7", display: "Body weight" }),
+    unitCoding: Object.freeze({ system: FHIR_UCUM_SYSTEM, code: "kg" }),
+    quantityUnit: "kg"
+  })
+});
+
+const fhirAmendmentFields = ["previousVersionId", "amendmentReason", "amendedBy", "amendedAt"];
+
+/**
+ * Export one observation with the vetted standard terminology above.
+ * Subject identity and the provenance extension namespace remain the
+ * caller's responsibility (options.subjectReference, options
+ * .sourceExtensionUrl, options.qualityExtensionUrl, and
+ * options.versionAuditExtensionUrl when a record carries audit lineage).
+ * The lifecycle status is derived deterministically from the record state
+ * unless options.status pins it explicitly: voided -> entered-in-error,
+ * superseded or amended lineage -> amended, otherwise final. The
+ * vital-signs category is attached by default; pass options.category as
+ * null to omit it or as an array to replace it.
+ */
+export function toStandardFhirObservation(observation, options) {
+  const validated = createObservation(observation);
+  const terminology = STANDARD_FHIR_TERMINOLOGY[validated.metric];
+  if (!terminology) {
+    throw new RangeError(
+      "no vetted standard FHIR terminology mapping for metric " + validated.metric
+    );
+  }
+  if (!options || typeof options !== "object" || Array.isArray(options)) {
+    throw new TypeError("FHIR export options are required");
+  }
+  const recordState = observation.recordState;
+  const hasAmendmentLineage = fhirAmendmentFields.some(field => observation[field] !== undefined);
+  let status = options.status;
+  if (status === undefined) {
+    if (recordState === "voided") status = "entered-in-error";
+    else if (recordState === "superseded" || hasAmendmentLineage) status = "amended";
+    else status = "final";
+  }
+  const mapping = {
+    status,
+    subjectReference: options.subjectReference,
+    code: { ...terminology.code },
+    unitCoding: { ...terminology.unitCoding },
+    quantityUnit: terminology.quantityUnit,
+    sourceExtensionUrl: options.sourceExtensionUrl,
+    qualityExtensionUrl: options.qualityExtensionUrl
+  };
+  if (options.category !== null) {
+    mapping.category = options.category === undefined
+      ? FHIR_VITAL_SIGNS_CATEGORY
+      : options.category;
+  }
+  if (options.versionAuditExtensionUrl !== undefined) {
+    mapping.versionAuditExtensionUrl = options.versionAuditExtensionUrl;
+  }
+  if (options.identifier !== undefined) mapping.identifier = options.identifier;
+  return toFhirObservation(observation, mapping);
+}
+
+const fhirResourceIdPattern = /^[A-Za-z0-9\-.]{1,64}$/;
+
+/**
+ * Package observations into an R4 collection Bundle using the standard
+ * terminology. Options are those of toStandardFhirObservation plus an
+ * optional options.timestamp for Bundle.timestamp. Records whose local id
+ * is a valid FHIR id also get resource.id and a matching relative fullUrl
+ * so bundle entries can be cross-referenced; other records keep an
+ * anonymous entry rather than an invented identifier.
+ */
+export function toFhirBundle(observations, options) {
+  if (!Array.isArray(observations)) {
+    throw new TypeError("FHIR bundle observations must be an array");
+  }
+  if (!options || typeof options !== "object" || Array.isArray(options)) {
+    throw new TypeError("FHIR export options are required");
+  }
+  const timestamp = options.timestamp === undefined
+    ? new Date().toISOString()
+    : parseObservedAt(options.timestamp);
+  const entry = observations.map(observation => {
+    const resource = toStandardFhirObservation(observation, options);
+    const item = { resource };
+    if (observation && typeof observation.id === "string" &&
+        fhirResourceIdPattern.test(observation.id.trim())) {
+      const id = observation.id.trim();
+      item.fullUrl = "Observation/" + id;
+      item.resource = deepFreezeFhir({ id, ...resource });
+    }
+    return item;
+  });
+  return deepFreezeFhir({
+    resourceType: "Bundle",
+    type: "collection",
+    timestamp,
+    entry
+  });
 }

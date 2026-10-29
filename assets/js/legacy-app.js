@@ -35,7 +35,7 @@ const TABBAR = ['home','body','ai','report','me'];
 
 /* ---------------- 初始化 ---------------- */
 window.addEventListener('load', async () => {
-  try { window.HealthDomain = await import('../../src/domain/index.js?v=20261020-health-active-duplicate-v3'); }
+  try { window.HealthDomain = await import('../../src/domain/index.js?v=20261029-fhir-standard-export-v4'); }
   catch (error) {
     observationDomainUnavailable = true;
     console.error('Health domain core unavailable', error);
@@ -372,6 +372,84 @@ function exportObservations(){
     return true;
   }catch(error){
     alert('备份导出失败：' + (error && error.message ? error.message : '浏览器无法创建下载文件'));
+    return false;
+  }
+}
+const FHIR_EXPORT_OPTIONS = {
+  // 本应用是本机单人记录库，没有独立的 Patient 资源：subject 使用明确的
+  // 占位引用，来源/质量扩展使用应用自有的 URN 命名空间，而不是虚构的
+  // 机构规范地址。接收方如需正式互操作，可替换为其治理下的标识与地址。
+  subjectReference:'Patient/local-user',
+  sourceExtensionUrl:'urn:health-digital-twin:observation-source',
+  qualityExtensionUrl:'urn:health-digital-twin:observation-quality',
+  versionAuditExtensionUrl:'urn:health-digital-twin:observation-version-audit'
+};
+function exportFhirBundle(){
+  if(observationDomainUnavailable || !window.HealthDomain ||
+     typeof window.HealthDomain.toFhirBundle !== 'function' ||
+     typeof window.HealthDomain.toStandardFhirObservation !== 'function'){
+    alert('健康记录校验模块尚未加载，暂不能导出 FHIR 数据。原始浏览器缓存未修改，请刷新页面后重试。');
+    return false;
+  }
+  if(observationStorageRecoveryRequired){
+    alert('健康记录缓存异常，当前列表不是有效数据。为避免导出错误文件，请先保留浏览器站点数据并恢复记录。');
+    return false;
+  }
+  let rows;
+  try{
+    rows = window.HealthDomain.normalizeObservationHistory(
+      Array.isArray(window.healthObservations) ? window.healthObservations : []
+    );
+  }catch(error){
+    alert('健康记录校验失败，暂不能导出 FHIR 数据：' + (error && error.message ? error.message : '未知错误'));
+    return false;
+  }
+  if(!rows.length){ alert('暂无健康记录可导出。'); return false; }
+  const filter = document.getElementById('observationStateFilter');
+  const selectedFilter = filter && ['active','superseded','voided'].includes(filter.value) ? filter.value : 'all';
+  const visibleRows = selectedFilter === 'all'
+    ? rows : rows.filter(row => row.recordState === selectedFilter);
+  if(!visibleRows.length){
+    alert('当前筛选下没有可导出的记录。切换到“全部版本”可导出完整历史。');
+    return false;
+  }
+  // 逐条预检：没有标准术语映射的指标和演示数据会被领域层拒绝，把它们
+  // 明确计数并告知用户，而不是让整批导出静默失败或悄悄丢记录。
+  const exportable = [];
+  const skipped = [];
+  visibleRows.forEach(row=>{
+    try{
+      window.HealthDomain.toStandardFhirObservation(row, FHIR_EXPORT_OPTIONS);
+      exportable.push(row);
+    }catch(error){
+      skipped.push(error && error.message ? error.message : '未知错误');
+    }
+  });
+  if(!exportable.length){
+    alert('当前记录均无法导出为 FHIR：' + (skipped[0] || '未知原因'));
+    return false;
+  }
+  try{
+    const bundle = window.HealthDomain.toFhirBundle(exportable, FHIR_EXPORT_OPTIONS);
+    const blob = new Blob([JSON.stringify(bundle,null,2)],{type:'application/fhir+json;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'health-fhir-bundle.json';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    let message = '已导出 ' + exportable.length + ' 条记录为 FHIR R4 Bundle（health-fhir-bundle.json），范围为' +
+      (selectedFilter === 'all' ? '全部版本' : '当前筛选状态') + '。';
+    if(skipped.length){
+      message += '另有 ' + skipped.length + ' 条因缺少标准术语映射或属于演示数据，未包含在本次导出中。';
+    }
+    message += '文件可能包含敏感健康信息，请妥善保管。';
+    alert(message);
+    return true;
+  }catch(error){
+    alert('FHIR 导出失败：' + (error && error.message ? error.message : '浏览器无法创建下载文件'));
     return false;
   }
 }

@@ -5,7 +5,9 @@ const assert = require('node:assert/strict');
 
 const app = fs.readFileSync('assets/js/legacy-app.js','utf8');
 const index = fs.readFileSync('index.html','utf8');
-const domainSource = fs.readFileSync('src/domain/index.js','utf8').replace(/^export function /gm,'function ');
+const domainSource = fs.readFileSync('src/domain/index.js','utf8')
+  .replace(/^export function /gm,'function ')
+  .replace(/^export const /gm,'const ');
 const start = app.indexOf('async function importObservations(){');
 const end = app.indexOf('function parseLocalObservationDateTime',start);
 if(start<0 || end<=start) throw new Error('Health observation import handler not found');

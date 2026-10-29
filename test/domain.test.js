@@ -770,3 +770,159 @@ test("observation amendments and voids cannot be recorded ahead of the reference
  );
  assert.equal(voided[0].recordState,"voided");
 });
+
+const standardFhirOptions = {
+  subjectReference: "Patient/example",
+  sourceExtensionUrl: "https://example.org/fhir/StructureDefinition/observation-source",
+  qualityExtensionUrl: "https://example.org/fhir/StructureDefinition/observation-quality",
+  versionAuditExtensionUrl: "https://example.org/fhir/StructureDefinition/observation-version-audit"
+};
+const standardFhirBase = {
+  observedAt: "2026-01-01T00:00:00Z", source: "manual-entry", quality: "reported"
+};
+
+test("standard FHIR terminology maps registered metrics to vetted LOINC and UCUM codes", async () => {
+  const { toStandardFhirObservation, STANDARD_FHIR_TERMINOLOGY } = await import("../src/domain/index.js");
+  assert.equal(STANDARD_FHIR_TERMINOLOGY["heart-rate"].code.code, "8867-4");
+  assert.equal(STANDARD_FHIR_TERMINOLOGY["blood-pressure"].code.code, "85354-9");
+
+  const heart = toStandardFhirObservation(
+    { ...standardFhirBase, metric: "heart-rate", value: 72, unit: "次/分" }, standardFhirOptions);
+  assert.equal(heart.resourceType, "Observation");
+  assert.equal(heart.status, "final");
+  assert.equal(heart.subject.reference, "Patient/example");
+  assert.equal(heart.effectiveDateTime, "2026-01-01T00:00:00.000Z");
+  assert.deepEqual(heart.category, [{
+    coding: [{
+      system: "http://terminology.hl7.org/CodeSystem/observation-category",
+      code: "vital-signs"
+    }]
+  }]);
+  assert.equal(heart.code.coding[0].system, "http://loinc.org");
+  assert.equal(heart.code.coding[0].code, "8867-4");
+  assert.equal(heart.code.coding[0].display, "Heart rate");
+  assert.equal(heart.valueQuantity.value, 72);
+  assert.equal(heart.valueQuantity.system, "http://unitsofmeasure.org");
+  assert.equal(heart.valueQuantity.code, "/min");
+  // The local display unit is normalized to the canonical UCUM display so a
+  // 次/分 record and a bpm record export identically.
+  assert.equal(heart.valueQuantity.unit, "/min");
+
+  const resting = toStandardFhirObservation(
+    { ...standardFhirBase, metric: "resting-heart-rate", value: 62, unit: "bpm" }, standardFhirOptions);
+  assert.equal(resting.code.coding[0].code, "40443-4");
+  assert.equal(resting.code.coding[0].display, "Heart rate --resting");
+  assert.equal(resting.valueQuantity.code, "/min");
+
+  const weight = toStandardFhirObservation(
+    { ...standardFhirBase, metric: "body-weight", value: 65.5, unit: "公斤" }, standardFhirOptions);
+  assert.equal(weight.code.coding[0].code, "29463-7");
+  assert.equal(weight.code.coding[0].display, "Body weight");
+  assert.equal(weight.valueQuantity.code, "kg");
+  assert.equal(weight.valueQuantity.unit, "kg");
+  const alias = toStandardFhirObservation(
+    { ...standardFhirBase, metric: "weight", value: 65.5, unit: "kg" }, standardFhirOptions);
+  assert.equal(alias.code.coding[0].code, "29463-7");
+
+  // The local model stores one unattributed pressure value, so the export
+  // keeps the panel code with a single mm[Hg] quantity and must not invent
+  // systolic/diastolic components.
+  const pressure = toStandardFhirObservation(
+    { ...standardFhirBase, metric: "blood-pressure", value: 120, unit: "mmHg" }, standardFhirOptions);
+  assert.equal(pressure.code.coding[0].code, "85354-9");
+  assert.equal(pressure.valueQuantity.code, "mm[Hg]");
+  assert.equal(pressure.valueQuantity.unit, "mm[Hg]");
+  assert.equal(pressure.component, undefined);
+});
+
+test("standard FHIR export refuses unmapped metrics and demo data", async () => {
+  const { toStandardFhirObservation } = await import("../src/domain/index.js");
+  assert.throws(() => toStandardFhirObservation(
+    { ...standardFhirBase, metric: "research-index", value: 1, unit: "lab-unit-x" }, standardFhirOptions
+  ), /no vetted standard FHIR terminology mapping/);
+  assert.throws(() => toStandardFhirObservation(
+    { ...standardFhirBase, metric: "heart-rate", value: 72, unit: "bpm", quality: "demo" }, standardFhirOptions
+  ), /demo observations cannot be exported/);
+});
+
+test("standard FHIR export derives lifecycle status from the record state", async () => {
+  const { toStandardFhirObservation } = await import("../src/domain/index.js");
+  const voided = toStandardFhirObservation({
+    ...standardFhirBase, metric: "heart-rate", value: 70, unit: "bpm",
+    recordState: "voided", voidReason: "Duplicate entry", voidedBy: "reviewer-1",
+    voidedAt: "2026-01-03T00:00:00Z"
+  }, standardFhirOptions);
+  assert.equal(voided.status, "entered-in-error");
+  const amended = toStandardFhirObservation({
+    ...standardFhirBase, metric: "heart-rate", value: 70, unit: "bpm",
+    recordState: "active", previousVersionId: "obs-v1",
+    amendmentReason: "Corrected transcription", amendedBy: "reviewer-1",
+    amendedAt: "2026-01-02T00:00:00Z"
+  }, standardFhirOptions);
+  assert.equal(amended.status, "amended");
+  const uncategorized = toStandardFhirObservation(
+    { ...standardFhirBase, metric: "heart-rate", value: 72, unit: "bpm" },
+    { ...standardFhirOptions, category: null });
+  assert.equal(uncategorized.category, undefined);
+});
+
+test("generic FHIR serializer only emits a category when the caller supplies one", async () => {
+  const { toFhirObservation } = await import("../src/domain/index.js");
+  const observation = {
+    metric: "heart-rate", value: 72, unit: "bpm",
+    observedAt: "2026-01-01T00:00:00Z", source: "wearable", quality: "measured"
+  };
+  const mapping = {
+    status: "final", subjectReference: "Patient/example",
+    code: { system: "http://loinc.org", code: "8867-4", display: "Heart rate" },
+    unitCoding: { system: "http://unitsofmeasure.org", code: "/min" },
+    sourceExtensionUrl: "https://example.org/fhir/StructureDefinition/source",
+    qualityExtensionUrl: "https://example.org/fhir/StructureDefinition/quality"
+  };
+  assert.equal(toFhirObservation(observation, mapping).category, undefined);
+  const categorized = toFhirObservation(observation, {
+    ...mapping,
+    category: [{ coding: [{ system: "http://terminology.hl7.org/CodeSystem/observation-category", code: "vital-signs" }] }]
+  });
+  assert.equal(categorized.category[0].coding[0].code, "vital-signs");
+  assert.throws(() => toFhirObservation(observation, { ...mapping, category: [] }), TypeError);
+  assert.throws(() => toFhirObservation(observation, { ...mapping, category: [{ coding: [] }] }), TypeError);
+});
+
+test("FHIR Bundle export packages standard observations as an R4 collection", async () => {
+  const { toFhirBundle } = await import("../src/domain/index.js");
+  const bundle = toFhirBundle([
+    {
+      id: "obs-hr-1", metric: "heart-rate", value: 72, unit: "bpm",
+      observedAt: "2026-01-01T00:00:00Z", source: "wearable", quality: "measured",
+      recordState: "active"
+    },
+    {
+      id: "obs-wt-1", metric: "body-weight", value: 65.5, unit: "kg",
+      observedAt: "2026-01-01T01:00:00Z", source: "scale", quality: "measured",
+      recordState: "active"
+    },
+    {
+      metric: "resting-heart-rate", value: 62, unit: "bpm",
+      observedAt: "2026-01-01T02:00:00Z", source: "wearable", quality: "measured"
+    }
+  ], { ...standardFhirOptions, timestamp: "2026-02-01T00:00:00Z" });
+  assert.equal(bundle.resourceType, "Bundle");
+  assert.equal(bundle.type, "collection");
+  assert.equal(bundle.timestamp, "2026-02-01T00:00:00.000Z");
+  assert.equal(bundle.entry.length, 3);
+  assert.equal(bundle.entry[0].fullUrl, "Observation/obs-hr-1");
+  assert.equal(bundle.entry[0].resource.id, "obs-hr-1");
+  assert.equal(bundle.entry[0].resource.resourceType, "Observation");
+  assert.equal(bundle.entry[0].resource.code.coding[0].code, "8867-4");
+  assert.equal(bundle.entry[0].resource.category[0].coding[0].code, "vital-signs");
+  assert.equal(bundle.entry[1].resource.code.coding[0].code, "29463-7");
+  assert.equal(bundle.entry[1].resource.valueQuantity.code, "kg");
+  // Records without a local id stay anonymous instead of gaining an
+  // invented identifier.
+  assert.equal(bundle.entry[2].fullUrl, undefined);
+  assert.equal(bundle.entry[2].resource.id, undefined);
+  assert.equal(bundle.entry[2].resource.code.coding[0].code, "40443-4");
+  assert.ok(Object.isFrozen(bundle) && Object.isFrozen(bundle.entry));
+  assert.throws(() => toFhirBundle("not-an-array", standardFhirOptions), TypeError);
+});
