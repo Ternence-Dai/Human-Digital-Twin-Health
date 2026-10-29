@@ -39,6 +39,19 @@ test("bounds observation text fields and rejects control characters", () => {
   assert.throws(() => createObservation({...valid,source:"s".repeat(181)}), RangeError);
   assert.throws(() => createObservation({...valid,source:"wearable\u007f"}), TypeError);
 });
+test("accepts every registered unit for a registered metric", () => {
+  assert.equal(createObservation({...valid, unit:"次/分"}).unit, "次/分");
+  assert.equal(createObservation({...valid, metric:"heart-rate", unit:"bpm"}).unit, "bpm");
+  assert.equal(createObservation({...valid, metric:"blood-pressure", unit:"mmHg"}).unit, "mmHg");
+  assert.equal(createObservation({...valid, metric:"body-weight", unit:"公斤"}).unit, "公斤");
+});
+test("rejects units outside the registry for a registered metric", () => {
+  assert.throws(() => createObservation({...valid, unit:"kg"}), RangeError);
+  assert.throws(() => createObservation({...valid, metric:"body-weight", unit:"bpm"}), /unit is not valid for metric body-weight/);
+});
+test("leaves unregistered metrics free-form", () => {
+  assert.equal(createObservation({...valid, metric:"research-index", unit:"lab-unit-x"}).unit, "lab-unit-x");
+});
 test("rejects missing provenance and invalid measurements", () => {
   assert.throws(() => createObservation({...valid,source:""}), TypeError);
   assert.throws(() => createObservation({...valid,value:Infinity}), TypeError);
@@ -103,8 +116,8 @@ test("observation identity includes measurement value and provenance", async () 
   const first = createObservation(valid);
   assert.equal(observationIdentity(first), observationIdentity({...first}));
   for (const change of [
-    {value:63}, {unit:"Hz"}, {observedAt:"2026-01-02T00:00:00Z"},
-    {source:"manual"}, {quality:"reported"}, {metric:"blood-pressure"}
+    {value:63}, {unit:"次/分"}, {observedAt:"2026-01-02T00:00:00Z"},
+    {source:"manual"}, {quality:"reported"}, {metric:"blood-pressure", unit:"mmHg"}
   ]) {
     assert.notEqual(observationIdentity(first), observationIdentity({...first,...change}));
   }
@@ -184,7 +197,7 @@ test("rejects incomplete, ambiguous or tampered observation amendments",()=>{
  const id=base[0].id;
  assert.throws(()=>amendObservation(base,id,{...amendmentBase,value:63}," ","operator-1","2026-10-19T02:00:00Z","bad-1"),/amendment reason is required/);
  assert.throws(()=>amendObservation(base,id,{...amendmentBase,value:63},"reason"," ","2026-10-19T02:00:00Z","bad-2"),/amendment actor is required/);
- assert.throws(()=>amendObservation(base,id,{...amendmentBase,metric:"blood-pressure"},"reason","operator-1","2026-10-19T02:00:00Z","bad-3"),/retain the original observation metric/);
+ assert.throws(()=>amendObservation(base,id,{...amendmentBase,metric:"blood-pressure",unit:"mmHg"},"reason","operator-1","2026-10-19T02:00:00Z","bad-3"),/retain the original observation metric/);
  assert.throws(()=>amendObservation(base,id,{...amendmentBase,value:63},"reason","operator-1","2026-10-19T02:00:00Z",id),/already exists/);
  const amended=amendObservation(base,id,{...amendmentBase,value:63},"reason","operator-1","2026-10-19T02:00:00Z","obs-revision-004");
  assert.throws(()=>validateObservationHistory([...amended,{...amended[1],id:"obs-revision-005"}]),/only one direct successor/);
