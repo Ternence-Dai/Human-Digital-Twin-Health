@@ -1,5 +1,17 @@
 const allowedQuality = new Set(["measured","reported","estimated","imported","demo"]);
 
+// Canonical display units for the metrics this application actually records,
+// keyed by the exact metric strings used across the app and its history files.
+// Metrics outside this registry stay free-form: research and imported series
+// must not be rejected just because the registry has not caught up with them.
+export const METRIC_UNIT_REGISTRY = Object.freeze({
+  "heart-rate": Object.freeze(["次/分", "bpm"]),
+  "resting-heart-rate": Object.freeze(["次/分", "bpm"]),
+  "blood-pressure": Object.freeze(["mmHg"]),
+  "body-weight": Object.freeze(["kg", "公斤"]),
+  "weight": Object.freeze(["kg", "公斤"])
+});
+
 function parseObservedAt(value) {
   if (typeof value !== "string") throw new TypeError("observedAt must be an ISO timestamp with an explicit timezone");
   const match = /^(\d{4})-(\d{2})-(\d{2})T([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d)(?:\.\d{1,3})?)?(Z|([+-])(\d{2}):(\d{2}))$/.exec(value);
@@ -42,6 +54,10 @@ export function createObservation(input) {
   if (typeof unit !== "string" || !unit.trim()) throw new TypeError("unit is required");
   if (unit.trim().length > 24) throw new RangeError("unit must not exceed 24 characters");
   if (/[\x00-\x1F\x7F]/.test(unit)) throw new TypeError("unit must not contain control characters");
+  const allowedUnits = METRIC_UNIT_REGISTRY[metric.trim()];
+  if (allowedUnits && !allowedUnits.includes(unit.trim())) {
+    throw new RangeError(`unit is not valid for metric ${metric.trim()}: expected one of ${allowedUnits.join(", ")}`);
+  }
   const canonicalObservedAt = parseObservedAt(observedAt);
   // Ingestion time is distinct from measurement time: a manually backfilled
   // reading must retain when it was entered, not appear to have been entered
