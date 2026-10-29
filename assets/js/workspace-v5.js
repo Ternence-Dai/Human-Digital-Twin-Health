@@ -81,7 +81,7 @@
     }
     function render() {
       const query = input.value.trim().toLowerCase();
-      visibleItems = collect().filter(item => item.label.toLowerCase().includes(query)).slice(0, 12);
+      visibleItems = collect().filter(item => item.label.toLowerCase().includes(query)).slice(0, 30);
       activeIndex = Math.min(activeIndex, Math.max(0, visibleItems.length - 1));
       list.replaceChildren();
       if (!visibleItems.length) {
