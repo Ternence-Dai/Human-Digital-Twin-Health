@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#123b4c">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icons/icon.svg">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="description" content="人体数字孪生健康数据空间：记录健康观察值、数据来源、时间与质量标记。演示信息不代表临床评估。">
 <title>健康数据空间 · 人体数字孪生平台</title>
 <link rel="stylesheet" href="./assets/css/legacy-app.css">
@@ -377,5 +381,12 @@
 <script src="./assets/js/legacy-app.js?v=20261023-provenance-trend-v1"></script>
   <script src="./assets/js/workspace-v5.js?v=20261019-v5"></script>
 <script src="./assets/js/reference-shell-v4-boot.js?v=20261022-reference-v5"></script>
+<script>
+if ((location.protocol === 'http:' || location.protocol === 'https:') && 'serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('./service-worker.js').catch(function () {});
+  });
+}
+</script>
 </body>
 </html>
