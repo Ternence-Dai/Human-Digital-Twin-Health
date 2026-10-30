@@ -925,4 +925,23 @@ test("FHIR Bundle export packages standard observations as an R4 collection", as
   assert.equal(bundle.entry[2].resource.code.coding[0].code, "40443-4");
   assert.ok(Object.isFrozen(bundle) && Object.isFrozen(bundle.entry));
   assert.throws(() => toFhirBundle("not-an-array", standardFhirOptions), TypeError);
+  assert.throws(() => toFhirBundle([
+    {
+      id: "duplicate-observation",
+      metric: "heart-rate", value: 72, unit: "bpm",
+      observedAt: "2026-01-01T00:00:00Z", source: "wearable", quality: "measured"
+    },
+    {
+      id: "duplicate-observation",
+      metric: "heart-rate", value: 73, unit: "bpm",
+      observedAt: "2026-01-01T01:00:00Z", source: "wearable", quality: "measured"
+    }
+  ], standardFhirOptions), /FHIR Bundle Observation ids must be unique/);
+
+  const oversized = new Array(50001);
+  Object.defineProperty(oversized, "0", {
+    get() { throw new Error("bundle entries must not be traversed before size validation"); }
+  });
+  assert.throws(() => toFhirBundle(oversized, standardFhirOptions),
+    /50000-observation export limit/);
 });

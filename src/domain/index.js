@@ -808,18 +808,32 @@ export function toFhirBundle(observations, options) {
   if (!Array.isArray(observations)) {
     throw new TypeError("FHIR bundle observations must be an array");
   }
+  // Match the observation-history validation bound before allocating Bundle
+  // entries or traversing caller-controlled array elements.
+  if (observations.length > 50000) {
+    throw new RangeError("FHIR bundle exceeds the 50000-observation export limit");
+  }
   if (!options || typeof options !== "object" || Array.isArray(options)) {
     throw new TypeError("FHIR export options are required");
   }
   const timestamp = options.timestamp === undefined
     ? new Date().toISOString()
     : parseObservedAt(options.timestamp);
+  const resourceIds = new Set();
   const entry = observations.map(observation => {
+    const id = observation && typeof observation.id === "string" &&
+      fhirResourceIdPattern.test(observation.id.trim())
+      ? observation.id.trim()
+      : null;
+    if (id) {
+      if (resourceIds.has(id)) {
+        throw new RangeError("FHIR Bundle Observation ids must be unique");
+      }
+      resourceIds.add(id);
+    }
     const resource = toStandardFhirObservation(observation, options);
     const item = { resource };
-    if (observation && typeof observation.id === "string" &&
-        fhirResourceIdPattern.test(observation.id.trim())) {
-      const id = observation.id.trim();
+    if (id) {
       item.fullUrl = "Observation/" + id;
       item.resource = deepFreezeFhir({ id, ...resource });
     }
